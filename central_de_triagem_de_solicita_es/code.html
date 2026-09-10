@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {"darkMode":"class","theme":{"extend":{"colors":{"on-surface-variant":"#44474e","secondary-fixed-dim":"#6bd8cb","tertiary-container":"#422000","on-error":"#ffffff","on-tertiary-fixed-variant":"#6e3900","surface-container-highest":"#dae2fd","primary-container":"#0f294a","on-primary-fixed":"#001b3b","tertiary":"#240f00","outline":"#74777f","on-background":"#131b2e","surface-dim":"#d2d9f4","on-primary-fixed-variant":"#30476a","on-secondary":"#ffffff","surface-container-low":"#f2f3ff","on-secondary-fixed":"#00201d","on-primary":"#ffffff","secondary-fixed":"#89f5e7","on-tertiary":"#ffffff","primary-fixed-dim":"#b0c8f1","on-tertiary-fixed":"#2f1500","tertiary-fixed":"#ffdcc3","on-primary-container":"#7a91b7","secondary":"#006a61","background":"#faf8ff","outline-variant":"#c4c6cf","inverse-surface":"#283044","on-tertiary-container":"#d97705","primary-fixed":"#d5e3ff","primary":"#00142f","inverse-on-surface":"#eef0ff","secondary-container":"#86f2e4","surface-variant":"#dae2fd","on-error-container":"#93000a","error-container":"#ffdad6","surface-bright":"#faf8ff","on-secondary-container":"#006f66","surface-container-lowest":"#ffffff","surface-container":"#eaedff","inverse-primary":"#b0c8f1","surface-container-high":"#e2e7ff","surface":"#faf8ff","on-surface":"#131b2e","error":"#ba1a1a","surface-tint":"#485f83","on-secondary-fixed-variant":"#005049","tertiary-fixed-dim":"#ffb77d"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-xl":"2rem","layout-margin-mobile":"1rem","layout-margin-tablet":"1.5rem","space-2xs":"0.25rem","space-2xl":"3rem","space-xs":"0.5rem","layout-margin-desktop":"2rem","space-lg":"1.5rem","layout-max-width":"1280px","space-sm":"0.75rem","layout-gutter":"1.5rem","space-3xl":"4rem","space-md":"1rem"},"fontFamily":{"label-sm":["Inter"],"headline-xl":["Plus Jakarta Sans"],"body-sm":["Inter"],"title-md":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"label-md":["Inter"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"code":["JetBrains Mono"],"caption":["Inter"],"headline-lg":["Plus Jakarta Sans"],"body-lg":["Inter"],"body-md":["Inter"]},"fontSize":{"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"title-md":["16px",{"lineHeight":"22px","fontWeight":"600"}],"headline-md":["22px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-lg-mobile":["22px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-sm":["18px",{"lineHeight":"24px","fontWeight":"600"}],"code":["12px",{"lineHeight":"16px","fontWeight":"500"}],"caption":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="bg-primary text-on-primary py-1 px-layout-margin-desktop"><div class="max-w-layout-max-width mx-auto flex items-center justify-between font-caption text-caption"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px] text-secondary-fixed">campaign</span><span><strong>Edital PIBIC 2024/2025</strong> — Período de Submissão e Cartas de Interesse Aberto</span></div><div class="hidden md:flex items-center gap-space-md text-surface-variant font-caption text-caption"><span>Prazo final: 31 de Outubro de 2024</span><span class="opacity-50">|</span><a class="text-surface-bright hover:underline" href="#">Baixar Edital em PDF</a></div></div></div><div class="h-20 max-w-layout-max-width mx-auto px-layout-margin-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md shrink-0"><img alt="PIBIC Logo Institucional" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XT5_o7jTxsaJIyjXXuClQgilZ6qMz-DgEvFkz9ht7_J32W8REdZvECCIuf8WETXJ21z-aFhXD_OPjT0s3xh_FlQuePjHkrf1xpdZ4VJYxcRZbOOIt_aM6AIyQiboEgosuw2T-AldWojETFFPk_Nlxc3bg3CY-agoXgTLObSkATSXMysxf-03SeZBqiFtxltYXbXZSbLcOSdFOuyq8l6eARobdX_-EqRw1KsnlrK4t1F25AbusfJiG_JTFz"/><div class="flex flex-col"><span class="font-title-md text-title-md text-primary leading-tight font-bold tracking-tight">PIBIC</span><span class="font-caption text-caption text-on-surface-variant hidden lg:inline-block">Portal de Iniciação Científica &amp; Inovação</span></div></div><nav class="hidden xl:flex items-center gap-space-2xs p-space-2xs rounded-xl bg-surface-container-low" data-active-classes="bg-primary-container text-on-primary font-label-md text-label-md rounded-lg shadow-sm"><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="vitrine-de-pesquisas" href="#">Vitrine de Pesquisas</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="detalhes-da-pesquisa" href="#">Detalhes da Pesquisa</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="painel-gestor-metricas" href="#">Painel Gestor &amp; Métricas</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="nova-pesquisa" href="#">Nova Pesquisa</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="triagem-de-solicitacoes" href="#">Triagem de Solicitações</a></nav><div class="flex items-center gap-space-sm shrink-0"><button aria-label="Notificações" class="relative p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-4 h-4 bg-error text-on-error font-label-sm text-label-sm rounded-full flex items-center justify-center font-bold">3</span></button><div class="flex items-center gap-space-xs pl-space-xs py-space-2xs pr-space-sm bg-surface-container-low rounded-full"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col text-left"><span class="font-label-sm text-label-sm text-primary leading-none">Prof. Dr. Carlos Mendes</span><span class="font-caption text-caption text-on-surface-variant text-[10px] leading-tight">Orientador • DCC/ICEx</span></div></div></div></div></header><main class="w-full pt-20 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<div class="max-w-layout-max-width mx-auto w-full px-layout-margin-mobile md:px-layout-margin-desktop py-space-lg flex flex-col gap-space-lg">
+<!-- Hero / Institutional Header Banner -->
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low p-space-lg md:p-space-xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="absolute -right-16 -top-16 w-80 h-80 rounded-full bg-secondary-fixed/20 blur-3xl pointer-events-none"></div>
+<div class="absolute -left-12 -bottom-12 w-64 h-64 rounded-full bg-primary-fixed/30 blur-2xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col gap-space-xs max-w-3xl">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="inline-flex items-center gap-1 px-space-xs py-space-2xs rounded bg-primary text-on-primary font-code text-code uppercase tracking-wider">
+<span class="material-symbols-outlined text-[14px]">verified_user</span>
+            Módulo Docente • PRPq
+          </span>
+<span class="font-caption text-caption text-on-surface-variant flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+            Sessão Ativa • Edital 2024/2025
+          </span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-primary font-bold tracking-tight">
+          Central de Triagem de Solicitações
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Avalie e decida sobre as cartas de interesse de estudantes e propostas de cooperação técnica vinculadas às suas pesquisas ativas.
+        </p>
+<!-- Active Advisor Notice Bar -->
+<div class="mt-space-2xs inline-flex items-center gap-space-xs px-space-sm py-space-xs rounded-lg bg-surface-container-lowest text-primary font-caption text-caption shadow-sm w-fit">
+<span class="material-symbols-outlined text-secondary text-[18px]">account_balance</span>
+<span><strong>Orientador:</strong> Prof. Dr. Roberto Alencar</span>
+<span class="opacity-40">•</span>
+<span class="text-on-tertiary-container font-medium">3 cartas pendentes de avaliação</span>
+<span class="opacity-40">•</span>
+<span class="text-secondary font-medium">1 proposta técnica em análise</span>
+</div>
+</div>
+<!-- Quick Stats Spark / Badge Strip -->
+<div class="relative z-10 flex items-center md:flex-col justify-end gap-space-xs shrink-0 font-caption text-caption text-on-surface-variant">
+<div class="px-space-md py-space-xs bg-surface-container-lowest rounded-lg shadow-sm flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">rule_folder</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary uppercase">Conformidade Legal</span>
+<span class="font-code text-code text-on-surface-variant">RN01 • RN02 • RN03 Ativas</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tab Navigation Component -->
+<div class="flex items-center justify-between gap-space-sm overflow-x-auto pb-space-2xs" role="tablist">
+<div class="flex items-center gap-space-xs p-space-2xs bg-surface-container-low rounded-xl">
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg font-label-md text-label-md bg-primary text-on-primary shadow-sm transition-all" id="tab-btn-students" onclick="switchTab('students')">
+<span class="material-symbols-outlined text-[18px]">school</span>
+<span>Cartas de Interesse de Estudantes</span>
+<span class="ml-1 px-1.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-code text-[11px] font-bold">3 Pendentes</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" id="tab-btn-companies" onclick="switchTab('companies')">
+<span class="material-symbols-outlined text-[18px]">corporate_fare</span>
+<span>Cooperações Técnicas com Empresas</span>
+<span class="ml-1 px-1.5 py-0.5 rounded-full bg-surface-container-highest text-primary font-code text-[11px] font-semibold">1 Nova Proposta</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all" id="tab-btn-history" onclick="switchTab('history')">
+<span class="material-symbols-outlined text-[18px]">history_edu</span>
+<span>Histórico de Decisões e Pareceres</span>
+<span class="ml-1 font-caption text-caption text-on-surface-variant">14 registros</span>
+</button>
+</div>
+<div class="hidden lg:flex items-center gap-space-2xs font-caption text-caption text-on-surface-variant bg-surface-container-lowest px-space-sm py-space-xs rounded-lg shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">info</span>
+<span>As deliberações são registradas em ata com assinatura digital ICP-Edu.</span>
+</div>
+</div>
+<!-- TAB CONTENT 1: Cartas de Interesse dos Alunos (Master-Detail Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start" id="tab-content-students">
+<!-- Left Column: Master List of Candidate Letters (5 cols on lg) -->
+<section aria-label="Lista de Candidaturas" class="lg:col-span-5 flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-space-2xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-primary font-bold">Inscrições Recebidas</span>
+<span class="px-2 py-0.5 bg-surface-container-high rounded text-on-surface-variant font-code text-code">3</span>
+</div>
+<div class="flex items-center gap-1 font-caption text-caption text-on-surface-variant">
+<span>Filtro:</span>
+<span class="font-medium text-primary">Não avaliadas</span>
+</div>
+</div>
+<!-- Application Card 1 (Active / Selected) -->
+<article class="cursor-pointer transition-all duration-150 p-space-md rounded-xl bg-surface-container-lowest shadow-md flex flex-col gap-space-xs relative overflow-hidden ring-2 ring-primary" id="card-cand-1" onclick="selectCandidate(1)">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-secondary"></div>
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-title-md text-title-md font-bold">
+                LR
+              </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-bold">Lucas Silva Ramos</span>
+<span class="font-code text-code text-on-surface-variant">Matrícula: 2021049281</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-container"></span>
+              Pendente
+            </span>
+</div>
+<div class="flex flex-col gap-1 text-on-surface-variant font-body-sm text-body-sm mt-1">
+<div class="flex items-center justify-between">
+<span>Ciência da Computação (8º período)</span>
+<span class="font-semibold text-primary font-code">CR: 8.92</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant line-clamp-1 italic">
+              Projeto: “Algoritmos de Aprendizado Profundo para Tomografia Pulmonar”
+            </p>
+</div>
+<div class="pt-space-2xs flex items-center justify-between font-caption text-caption">
+<span class="inline-flex items-center gap-1 text-secondary font-label-sm text-label-sm bg-secondary-fixed/30 px-space-xs py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+              Atende 100% aos pré-requisitos
+            </span>
+<span class="text-outline">Enviada há 2 dias</span>
+</div>
+</article>
+<!-- Application Card 2 -->
+<article class="cursor-pointer transition-all duration-150 p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md flex flex-col gap-space-xs relative overflow-hidden hover:bg-surface-container-low" id="card-cand-2" onclick="selectCandidate(2)">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-title-md text-title-md font-bold">
+                MC
+              </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Mariana Duarte Costa</span>
+<span class="font-code text-code text-on-surface-variant">Matrícula: 2022019402</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+              Pendente
+            </span>
+</div>
+<div class="flex flex-col gap-1 text-on-surface-variant font-body-sm text-body-sm mt-1">
+<div class="flex items-center justify-between">
+<span>Engenharia Biomédica (6º período)</span>
+<span class="font-semibold text-primary font-code">CR: 9.15</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant line-clamp-1 italic">
+              Projeto: “Algoritmos de Aprendizado Profundo para Tomografia Pulmonar”
+            </p>
+</div>
+<div class="pt-space-2xs flex items-center justify-between font-caption text-caption">
+<span class="inline-flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm bg-surface-container px-space-xs py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+              Critérios Mínimos OK
+            </span>
+<span class="text-outline">Enviada há 3 dias</span>
+</div>
+</article>
+<!-- Application Card 3 -->
+<article class="cursor-pointer transition-all duration-150 p-space-md rounded-xl bg-surface-container-lowest shadow-sm hover:shadow-md flex flex-col gap-space-xs relative overflow-hidden hover:bg-surface-container-low" id="card-cand-3" onclick="selectCandidate(3)">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary font-title-md text-title-md font-bold">
+                GL
+              </div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Gabriel Fontes Lima</span>
+<span class="font-code text-code text-on-surface-variant">Matrícula: 2020081290</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+              Pendente
+            </span>
+</div>
+<div class="flex flex-col gap-1 text-on-surface-variant font-body-sm text-body-sm mt-1">
+<div class="flex items-center justify-between">
+<span>Informática Médica (9º período)</span>
+<span class="font-semibold text-primary font-code">CR: 7.80</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant line-clamp-1 italic">
+              Projeto: “Algoritmos de Aprendizado Profundo para Tomografia Pulmonar”
+            </p>
+</div>
+<div class="pt-space-2xs flex items-center justify-between font-caption text-caption">
+<span class="inline-flex items-center gap-1 text-on-tertiary-fixed-variant font-label-sm text-label-sm bg-tertiary-fixed/40 px-space-xs py-0.5 rounded">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+              Requer Entrevista Técnica
+            </span>
+<span class="text-outline">Enviada há 4 dias</span>
+</div>
+</article>
+<!-- Guidelines Callout Box -->
+<div class="mt-space-sm p-space-md rounded-xl bg-surface-container-low flex items-start gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-secondary shrink-0 text-[20px]">help_center</span>
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md text-primary">Diretriz CNPq/PRPq (RN03)</span>
+<p class="font-caption text-caption leading-relaxed">
+              O orientador deve emitir parecer fundamentado para todas as cartas submetidas. A concessão definitiva da cota PIBIC fica condicionada à homologação pela Câmara de Pesquisa.
+            </p>
+</div>
+</div>
+</section>
+<!-- Right Column: Detailed Candidate Dossier & Evaluation Panel (7 cols on lg) -->
+<section aria-label="Painel de Decisão da Candidatura" class="lg:col-span-7 flex flex-col gap-space-md bg-surface-container-lowest p-space-lg md:p-space-xl rounded-xl shadow-sm">
+<!-- Header Dossier Info -->
+<div class="flex flex-col md:flex-row md:items-start justify-between gap-space-md pb-space-sm">
+<div class="flex items-start gap-space-md">
+<div class="relative shrink-0">
+<div class="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-on-primary font-headline-lg text-headline-lg font-bold shadow-md">
+                LR
+              </div>
+<span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-on-secondary text-[12px]" title="Candidato Homologado">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h2 class="font-headline-md text-headline-md text-primary font-bold" id="detail-candidate-name">Lucas Silva Ramos</h2>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-primary font-code text-code" id="detail-candidate-id">DCC-2021049281</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant" id="detail-candidate-course">Bacharelado em Ciência da Computação • 8º Período Letivo • Turno Integral</span>
+<div class="flex items-center gap-space-sm mt-1 text-on-surface-variant font-caption text-caption flex-wrap">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">mail</span>
+<a class="hover:underline text-primary" href="mailto:lucas.ramos@aluno.uf.br">lucas.ramos@aluno.uf.br</a>
+</span>
+<span class="opacity-40">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">call</span>
+<span>(31) 98844-3201</span>
+</span>
+<span class="opacity-40">•</span>
+<a class="inline-flex items-center gap-1 text-secondary font-semibold hover:underline" href="#">
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                  Currículo Lattes CNPq
+                </a>
+</div>
+</div>
+</div>
+<!-- Academic Index Badge -->
+<div class="flex flex-row md:flex-col items-center md:items-end justify-between p-space-xs md:p-space-sm rounded-lg bg-surface-container-low shrink-0">
+<span class="font-caption text-caption text-on-surface-variant uppercase font-medium">Coeficiente (CR)</span>
+<span class="font-headline-lg text-headline-lg font-bold text-primary font-code" id="detail-candidate-cr">8.92</span>
+<span class="font-caption text-caption text-secondary font-medium">Top 5% da Turma</span>
+</div>
+</div>
+<!-- Attached Documents Strip -->
+<div class="flex flex-col gap-space-2xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Documentação Acadêmica Anexada</span>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-xs">
+<a class="flex items-center justify-between p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors group" href="#">
+<div class="flex items-center gap-space-xs overflow-hidden">
+<span class="material-symbols-outlined text-error text-[20px]">picture_as_pdf</span>
+<div class="flex flex-col truncate">
+<span class="font-label-md text-label-md text-primary truncate group-hover:underline">Historico_Escolar_Oficial.pdf</span>
+<span class="font-caption text-caption text-on-surface-variant">Autenticado SIGA • 1.4 MB</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">download</span>
+</a>
+<a class="flex items-center justify-between p-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container-high transition-colors group" href="#">
+<div class="flex items-center gap-space-xs overflow-hidden">
+<span class="material-symbols-outlined text-secondary text-[20px]">description</span>
+<div class="flex flex-col truncate">
+<span class="font-label-md text-label-md text-primary truncate group-hover:underline">Portfolio_Projetos_PyTorch.pdf</span>
+<span class="font-caption text-caption text-on-surface-variant">GitHub &amp; Papers • 3.8 MB</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">download</span>
+</a>
+</div>
+</div>
+<!-- Motivation Letter Box (Verbatim reading box) -->
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Carta de Motivação do Estudante</span>
+<span class="font-caption text-caption text-on-surface-variant">Registrada no sistema PIBIC</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low text-on-surface leading-relaxed font-body-md text-body-md relative">
+<p class="italic text-on-surface-variant font-serif pl-space-xs" id="detail-motivation-letter">
+              “Prezado Professor Dr. Roberto, venho por meio desta manifestar meu profundo interesse na vaga de bolsa PIBIC deste projeto. Já cursei as disciplinas de Processamento Digital de Imagens e Redes Neurais com média superior a 9.0 e desenvolvi projetos práticos em Python e PyTorch envolvendo arquiteturas ResNet e U-Net aplicadas à segmentação biomédica. Tenho disponibilidade integral de 20 horas semanais no laboratório LPIA e pretendo prosseguir para o mestrado nesta mesma linha temática. Anexo meu portfólio de código e histórico integral.”
+            </p>
+</div>
+</div>
+<!-- Business Rules Auto-Validation Checklist (RN01, RN02, RN03 System Compliance) -->
+<div class="p-space-md rounded-xl bg-surface-container-high flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary uppercase font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-[16px]">verified</span>
+              Validação Automática de Conformidade (CNPq / PRPq)
+            </span>
+<span class="font-caption text-caption text-secondary font-bold">100% Homologável</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-xs pt-space-2xs">
+<div class="flex items-start gap-space-2xs p-space-xs rounded bg-surface-container-lowest shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0">check_circle</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary font-bold">RN01 • Projeto Ativo</span>
+<span class="font-caption text-caption text-on-surface-variant">Status vigente e aprovado no comitê.</span>
+</div>
+</div>
+<div class="flex items-start gap-space-2xs p-space-xs rounded bg-surface-container-lowest shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0">check_circle</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary font-bold">RN02 • Sem Duplicidade</span>
+<span class="font-caption text-caption text-on-surface-variant">Estudante sem outra carta pendente nesta pesquisa.</span>
+</div>
+</div>
+<div class="flex items-start gap-space-2xs p-space-xs rounded bg-surface-container-lowest shadow-sm">
+<span class="material-symbols-outlined text-secondary text-[18px] shrink-0">check_circle</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-primary font-bold">Inadimplência Zero</span>
+<span class="font-caption text-caption text-on-surface-variant">Sem relatórios pendentes em editais anteriores.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Parecer do Orientador Form (RN03 Requirements) -->
+<div class="flex flex-col gap-space-sm pt-space-2xs">
+<div class="flex items-center justify-between">
+<label class="font-title-md text-title-md text-primary font-bold flex items-center gap-space-xs" for="advisor-evaluation-text">
+<span>Parecer do Orientador (RN03)</span>
+<span class="text-error font-body-sm text-body-sm">*</span>
+</label>
+<span class="font-caption text-caption text-outline">Obrigatório para emissão de termo de outorga</span>
+</div>
+<textarea class="w-full p-space-sm rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary shadow-inner resize-y transition-all" id="advisor-evaluation-text" placeholder="Insira a fundamentação técnica e acadêmica para a decisão tomada sobre a candidatura de Lucas Silva Ramos..." rows="4"></textarea>
+<!-- Decision Action Buttons -->
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-space-xs pt-space-xs">
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-primary bg-surface-container hover:bg-surface-container-high transition-colors flex items-center justify-center gap-space-xs" onclick="handleInterviewAction()" type="button">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span>Convidar para Entrevista</span>
+</button>
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-error bg-error-container/50 hover:bg-error-container transition-colors flex items-center justify-center gap-space-xs" onclick="handleRejectAction()" type="button">
+<span class="material-symbols-outlined text-[18px]">cancel</span>
+<span>Recusar com Parecer Justificado</span>
+</button>
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md bg-secondary hover:bg-on-secondary-container text-on-primary font-semibold shadow-sm transition-all flex items-center justify-center gap-space-xs" onclick="handleAcceptAction()" type="button">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+<span>Aceitar Candidatura &amp; Atribuir Bolsa</span>
+</button>
+</div>
+<p class="font-caption text-caption text-outline text-right mt-1">
+            Ao assinar digitalmente o parecer favorável, o plano de trabalho correspondente será vinculado à quota PIBIC do projeto no SIG-PRPq.
+          </p>
+</div>
+</section>
+</div>
+<!-- TAB CONTENT 2: Cooperações Técnicas Empresariais (Initially Hidden) -->
+<div class="hidden flex-col gap-space-md" id="tab-content-companies">
+<div class="flex items-center justify-between">
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Propostas de Parceria &amp; Cooperação Tecnológica</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Acordos de cooperação universidade-empresa conforme o Marco Legal de CTI (Lei 13.243/2016).</p>
+</div>
+<span class="px-space-sm py-space-xs bg-secondary-fixed/40 text-on-secondary-fixed font-code text-code rounded-lg">
+          1 proposta aguardando despacho do orientador
+        </span>
+</div>
+<!-- Company Proposal Card -->
+<article class="p-space-lg md:p-space-xl rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col md:flex-row md:items-start justify-between gap-space-md">
+<div class="flex items-start gap-space-md">
+<div class="w-14 h-14 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[28px]">domain_add</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-xs flex-wrap">
+<h3 class="font-headline-sm text-headline-sm text-primary font-bold">MedTech Soluções Diagnósticas S.A.</h3>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-primary font-code text-code">CNPJ: 18.234.901/0001-55</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Sede: Parque Tecnológico BH-TEC • Contato: Dr. Marcos Vinicius (Diretor de P&amp;D)</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-space-sm py-space-2xs rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+              Em análise preliminar • PRPq
+            </span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md p-space-md rounded-xl bg-surface-container-low">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Objeto da Proposta de Cooperação</span>
+<p class="font-body-sm text-body-sm text-on-surface">
+              Co-financiamento de infraestrutura computacional de alto desempenho (1 servidor Dell PowerEdge com 4x NVIDIA A100 80GB) no valor estimado de R$ 180.000,00, além de bolsas complementares de apoio técnico.
+            </p>
+</div>
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Contrapartida Solicitada pela Empresa</span>
+<p class="font-body-sm text-body-sm text-on-surface">
+              Acesso e licenciamento não-exclusivo ao conjunto de dados anonimizados resultantes da pesquisa de tomografia pulmonar e prioridade de avaliação para copropriedade de patentes geradas no projeto.
+            </p>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-space-sm pt-space-xs">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-caption text-caption">
+<span class="material-symbols-outlined text-[18px] text-secondary">verified_user</span>
+<span>Documento de minuta jurídica analisado pela Procuradoria Federal junto à Universidade.</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md text-primary bg-surface-container hover:bg-surface-container-high transition-colors" type="button">
+              Solicitar Ajustes no Plano de Trabalho
+            </button>
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md bg-secondary text-on-primary font-semibold hover:bg-on-secondary-container transition-colors flex items-center gap-1 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+              Emitir Parecer Técnico Favorável
+            </button>
+</div>
+</div>
+</article>
+</div>
+<!-- TAB CONTENT 3: Histórico de Decisões e Pareceres (Initially Hidden) -->
+<div class="hidden flex-col gap-space-md" id="tab-content-history">
+<div class="flex items-center justify-between">
+<div class="flex flex-col gap-1">
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Histórico de Pareceres e Atribuição de Bolsas</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Registro imutável com logs de aprovações, recusas e termos de outorga gerados.</p>
+</div>
+<button class="px-space-sm py-space-xs rounded-lg bg-surface-container text-primary font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">file_download</span>
+          Exportar Relatório Geral (PDF)
+        </button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<tr>
+<th class="p-space-sm">Data / Hora</th>
+<th class="p-space-sm">Candidato / Entidade</th>
+<th class="p-space-sm">Edital &amp; Modalidade</th>
+<th class="p-space-sm">Decisão Emitida</th>
+<th class="p-space-sm">Parecer Resumido</th>
+<th class="p-space-sm text-right">Comprovante</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high/40 text-on-surface">
+<tr class="hover:bg-surface-container-low/50">
+<td class="p-space-sm font-code text-code text-on-surface-variant">14/10/2024 16:30</td>
+<td class="p-space-sm font-semibold text-primary">Ana Beatriz Nogueira</td>
+<td class="p-space-sm font-caption text-caption">PIBIC 2024/2025 • Cota Regular</td>
+<td class="p-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Aprovado / Bolsista
+                  </span>
+</td>
+<td class="p-space-sm max-w-xs truncate text-on-surface-variant">“Excelente histórico e domínio prévio em Visão Computacional...”</td>
+<td class="p-space-sm text-right">
+<a class="text-secondary font-semibold hover:underline font-caption text-caption" href="#">Termo_092.pdf</a>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50">
+<td class="p-space-sm font-code text-code text-on-surface-variant">08/10/2024 11:15</td>
+<td class="p-space-sm font-semibold text-primary">Thiago Moreira Alves</td>
+<td class="p-space-sm font-caption text-caption">PIVIC (Voluntário)</td>
+<td class="p-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Aprovado / PIVIC
+                  </span>
+</td>
+<td class="p-space-sm max-w-xs truncate text-on-surface-variant">“Ingresso alocado como pesquisador voluntário com plano de 10h...”</td>
+<td class="p-space-sm text-right">
+<a class="text-secondary font-semibold hover:underline font-caption text-caption" href="#">Termo_084.pdf</a>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50">
+<td class="p-space-sm font-code text-code text-on-surface-variant">29/09/2024 14:02</td>
+<td class="p-space-sm font-semibold text-primary">Felipe Zanin Campos</td>
+<td class="p-space-sm font-caption text-caption">PIBITI Inovação</td>
+<td class="p-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Recusado
+                  </span>
+</td>
+<td class="p-space-sm max-w-xs truncate text-on-surface-variant">“Conflito de horários com estágio extracurricular não compatível...”</td>
+<td class="p-space-sm text-right">
+<a class="text-secondary font-semibold hover:underline font-caption text-caption" href="#">Parecer_12.pdf</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Notification Toast Element (Micro-interaction feedback) -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none p-space-md rounded-xl bg-primary text-on-primary shadow-xl flex items-center gap-space-sm" id="action-toast">
+<span class="material-symbols-outlined text-secondary-fixed text-[24px]" id="toast-icon">check_circle</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold" id="toast-title">Ação Registrada</span>
+<span class="font-caption text-caption text-surface-container-highest" id="toast-desc">O parecer do orientador foi arquivado com sucesso no SIGA.</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Candidate dataset for Master-Detail interactions
+  const candidateData = {
+    1: {
+      name: "Lucas Silva Ramos",
+      id: "DCC-2021049281",
+      initials: "LR",
+      course: "Bacharelado em Ciência da Computação • 8º Período Letivo • Turno Integral",
+      email: "lucas.ramos@aluno.uf.br",
+      phone: "(31) 98844-3201",
+      cr: "8.92",
+      crTag: "Top 5% da Turma",
+      motivation: "“Prezado Professor Dr. Roberto, venho por meio desta manifestar meu profundo interesse na vaga de bolsa PIBIC deste projeto. Já cursei as disciplinas de Processamento Digital de Imagens e Redes Neurais com média superior a 9.0 e desenvolvi projetos práticos em Python e PyTorch envolvendo arquiteturas ResNet e U-Net aplicadas à segmentação biomédica. Tenho disponibilidade integral de 20 horas semanais no laboratório LPIA e pretendo prosseguir para o mestrado nesta mesma linha temática. Anexo meu portfólio de código e histórico integral.”"
+    },
+    2: {
+      name: "Mariana Duarte Costa",
+      id: "ENG-2022019402",
+      initials: "MC",
+      course: "Engenharia Biomédica • 6º Período Letivo • Diurno",
+      email: "mariana.costa@aluno.uf.br",
+      phone: "(31) 99120-7741",
+      cr: "9.15",
+      crTag: "Top 2% da Turma",
+      motivation: "“Caro Professor Roberto, realizo pesquisas de iniciação voluntária no setor de bioengenharia pulmonar e desejo aplicar modelos de deep learning para redução de ruído em exames de tomografia de baixa dosagem. Tenho publicações como coautora em congresso nacional e domínio das bibliotecas ITK-SNAP e OpenCV. Gostaria muito da oportunidade de integrar formalmente a equipe PIBIC.”"
+    },
+    3: {
+      name: "Gabriel Fontes Lima",
+      id: "MED-2020081290",
+      initials: "GL",
+      course: "Informática Médica • 9º Período Letivo • Noturno",
+      email: "gabriel.lima@aluno.uf.br",
+      phone: "(31) 98711-5092",
+      cr: "7.80",
+      crTag: "Média Satisfatória",
+      motivation: "“Professor Dr. Roberto Alencar, busco com esta bolsa PIBIC concentrar meus esforços de Trabalho de Conclusão de Curso na área de apoio ao diagnóstico de patologias pulmonares. Embora meu coeficiente tenha oscilado no início do curso, obtive notas de excelência no último ano em aprendizado de máquina e visão computacional.”"
+    }
+  };
+
+  function selectCandidate(id) {
+    const data = candidateData[id];
+    if (!data) return;
+
+    // Reset and highlight active card
+    [1, 2, 3].forEach(cid => {
+      const card = document.getElementById('card-cand-' + cid);
+      if (card) {
+        if (cid === id) {
+          card.classList.add('ring-2', 'ring-primary', 'shadow-md');
+          card.classList.remove('shadow-sm');
+        } else {
+          card.classList.remove('ring-2', 'ring-primary', 'shadow-md');
+          card.classList.add('shadow-sm');
+        }
+      }
+    });
+
+    // Populate details panel
+    document.getElementById('detail-candidate-name').textContent = data.name;
+    document.getElementById('detail-candidate-id').textContent = data.id;
+    document.getElementById('detail-candidate-course').textContent = data.course;
+    document.getElementById('detail-candidate-cr').textContent = data.cr;
+    document.getElementById('detail-motivation-letter').textContent = data.motivation;
+    
+    // Clear textarea prompt
+    const textarea = document.getElementById('advisor-evaluation-text');
+    textarea.value = '';
+    textarea.placeholder = `Insira a fundamentação técnica e acadêmica para a decisão tomada sobre a candidatura de ${data.name}...`;
+  }
+
+  function switchTab(tabKey) {
+    const tabStudents = document.getElementById('tab-content-students');
+    const tabCompanies = document.getElementById('tab-content-companies');
+    const tabHistory = document.getElementById('tab-content-history');
+
+    const btnStudents = document.getElementById('tab-btn-students');
+    const btnCompanies = document.getElementById('tab-btn-companies');
+    const btnHistory = document.getElementById('tab-btn-history');
+
+    // Hide all
+    tabStudents.classList.add('hidden');
+    tabCompanies.classList.add('hidden');
+    tabHistory.classList.add('hidden');
+
+    // Reset button styles
+    [btnStudents, btnCompanies, btnHistory].forEach(btn => {
+      btn.className = "flex items-center gap-space-xs px-space-md py-space-xs rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all";
+    });
+
+    const activeClasses = "flex items-center gap-space-xs px-space-md py-space-xs rounded-lg font-label-md text-label-md bg-primary text-on-primary shadow-sm transition-all";
+
+    if (tabKey === 'students') {
+      tabStudents.classList.remove('hidden');
+      btnStudents.className = activeClasses;
+    } else if (tabKey === 'companies') {
+      tabCompanies.classList.remove('hidden');
+      tabCompanies.classList.add('flex');
+      btnCompanies.className = activeClasses;
+    } else if (tabKey === 'history') {
+      tabHistory.classList.remove('hidden');
+      tabHistory.classList.add('flex');
+      btnHistory.className = activeClasses;
+    }
+  }
+
+  function triggerToast(title, desc, iconName) {
+    const toast = document.getElementById('action-toast');
+    const toastTitle = document.getElementById('toast-title');
+    const toastDesc = document.getElementById('toast-desc');
+    const toastIcon = document.getElementById('toast-icon');
+
+    toastTitle.textContent = title;
+    toastDesc.textContent = desc;
+    toastIcon.textContent = iconName;
+
+    toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+    toast.classList.add('translate-y-0', 'opacity-100');
+
+    setTimeout(() => {
+      toast.classList.remove('translate-y-0', 'opacity-100');
+      toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+    }, 4500);
+  }
+
+  function handleAcceptAction() {
+    const text = document.getElementById('advisor-evaluation-text').value.trim();
+    if (!text) {
+      alert("Por favor, preencha o Parecer do Orientador (RN03) com a justificativa de mérito para homologação da bolsa.");
+      document.getElementById('advisor-evaluation-text').focus();
+      return;
+    }
+    triggerToast("Candidatura Aprovada!", "Bolsa PIBIC atribuída e termo de outorga encaminhado à PRPq.", "check_circle");
+  }
+
+  function handleRejectAction() {
+    const text = document.getElementById('advisor-evaluation-text').value.trim();
+    if (!text) {
+      alert("Para recusar uma candidatura formal (RN03), é obrigatório fornecer parecer acadêmico fundamentado.");
+      document.getElementById('advisor-evaluation-text').focus();
+      return;
+    }
+    triggerToast("Parecer de Recusa Registrado", "O estudante foi notificado com o teor integral da justificativa acadêmica.", "cancel");
+  }
+
+  function handleInterviewAction() {
+    triggerToast("Convite para Entrevista Enviado", "Notificação com sala virtual enviada ao e-mail institucional do discente.", "calendar_month");
+  }
+</script></main><footer class="w-full bg-surface-container-low mt-space-3xl"><div class="max-w-layout-max-width mx-auto px-layout-margin-desktop py-space-2xl"><div class="grid grid-cols-1 md:grid-cols-4 gap-space-xl"><div class="flex flex-col gap-space-xs md:col-span-1"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-primary font-bold">PIBIC</span></div><p class="font-body-sm text-body-sm text-on-surface-variant">Programa Institucional de Bolsas de Iniciação Científica e Desenvolvimento Tecnológico da Universidade.</p><p class="font-caption text-caption text-outline">CNPq • CAPES • Pró-Reitoria de Pesquisa</p></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md text-primary uppercase tracking-wider">Administração</span><ul class="flex flex-col gap-space-2xs font-body-sm text-body-sm text-on-surface-variant"><li><a class="hover:text-on-surface hover:underline" href="#">Pró-Reitoria de Pesquisa (PRPq)</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Comitê Assessor PIBIC/PIBITI</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Coordenação de Inovação e Parcerias</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Comitê de Ética em Pesquisa (CEP)</a></li></ul></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md text-primary uppercase tracking-wider">Fomento &amp; Parcerias</span><ul class="flex flex-col gap-space-2xs font-body-sm text-body-sm text-on-surface-variant"><li><a class="hover:text-on-surface hover:underline" href="#">Plataforma Integrada CNPq</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Portal de Periódicos CAPES</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Termos de Cooperação Técnica</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Modelos de Cartas de Anuência</a></li></ul></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md text-primary uppercase tracking-wider">Suporte &amp; Transparência</span><ul class="flex flex-col gap-space-2xs font-body-sm text-body-sm text-on-surface-variant"><li><a class="hover:text-on-surface hover:underline" href="#">Declaração de Acessibilidade</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Ouvidoria Universitária</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Manual do Bolsista e Orientador</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Fale Conosco: pibic@universidade.br</a></li></ul></div></div><div class="mt-space-xl pt-space-lg flex flex-col sm:flex-row items-center justify-between gap-space-md text-on-surface-variant font-caption text-caption"><p>© 2024 Setor de Pesquisa Científica &amp; Inovação Tecnológica. Todos os direitos reservados.</p><p class="font-code text-code text-outline">Sistema PIBIC v4.2.0-PROD</p></div></div></footer></body></html>

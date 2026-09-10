@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {"darkMode":"class","theme":{"extend":{"colors":{"on-surface-variant":"#44474e","secondary-fixed-dim":"#6bd8cb","tertiary-container":"#422000","on-error":"#ffffff","on-tertiary-fixed-variant":"#6e3900","surface-container-highest":"#dae2fd","primary-container":"#0f294a","on-primary-fixed":"#001b3b","tertiary":"#240f00","outline":"#74777f","on-background":"#131b2e","surface-dim":"#d2d9f4","on-primary-fixed-variant":"#30476a","on-secondary":"#ffffff","surface-container-low":"#f2f3ff","on-secondary-fixed":"#00201d","on-primary":"#ffffff","secondary-fixed":"#89f5e7","on-tertiary":"#ffffff","primary-fixed-dim":"#b0c8f1","on-tertiary-fixed":"#2f1500","tertiary-fixed":"#ffdcc3","on-primary-container":"#7a91b7","secondary":"#006a61","background":"#faf8ff","outline-variant":"#c4c6cf","inverse-surface":"#283044","on-tertiary-container":"#d97705","primary-fixed":"#d5e3ff","primary":"#00142f","inverse-on-surface":"#eef0ff","secondary-container":"#86f2e4","surface-variant":"#dae2fd","on-error-container":"#93000a","error-container":"#ffdad6","surface-bright":"#faf8ff","on-secondary-container":"#006f66","surface-container-lowest":"#ffffff","surface-container":"#eaedff","inverse-primary":"#b0c8f1","surface-container-high":"#e2e7ff","surface":"#faf8ff","on-surface":"#131b2e","error":"#ba1a1a","surface-tint":"#485f83","on-secondary-fixed-variant":"#005049","tertiary-fixed-dim":"#ffb77d"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-xl":"2rem","layout-margin-mobile":"1rem","layout-margin-tablet":"1.5rem","space-2xs":"0.25rem","space-2xl":"3rem","space-xs":"0.5rem","layout-margin-desktop":"2rem","space-lg":"1.5rem","layout-max-width":"1280px","space-sm":"0.75rem","layout-gutter":"1.5rem","space-3xl":"4rem","space-md":"1rem"},"fontFamily":{"label-sm":["Inter"],"headline-xl":["Plus Jakarta Sans"],"body-sm":["Inter"],"title-md":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"label-md":["Inter"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"code":["JetBrains Mono"],"caption":["Inter"],"headline-lg":["Plus Jakarta Sans"],"body-lg":["Inter"],"body-md":["Inter"]},"fontSize":{"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"title-md":["16px",{"lineHeight":"22px","fontWeight":"600"}],"headline-md":["22px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-lg-mobile":["22px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-sm":["18px",{"lineHeight":"24px","fontWeight":"600"}],"code":["12px",{"lineHeight":"16px","fontWeight":"500"}],"caption":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="bg-primary text-on-primary py-1 px-layout-margin-desktop"><div class="max-w-layout-max-width mx-auto flex items-center justify-between font-caption text-caption"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px] text-secondary-fixed">campaign</span><span><strong>Edital PIBIC 2024/2025</strong> — Período de Submissão e Cartas de Interesse Aberto</span></div><div class="hidden md:flex items-center gap-space-md text-surface-variant font-caption text-caption"><span>Prazo final: 31 de Outubro de 2024</span><span class="opacity-50">|</span><a class="text-surface-bright hover:underline" href="#">Baixar Edital em PDF</a></div></div></div><div class="h-20 max-w-layout-max-width mx-auto px-layout-margin-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md shrink-0"><img alt="PIBIC Logo Institucional" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XT5_o7jTxsaJIyjXXuClQgilZ6qMz-DgEvFkz9ht7_J32W8REdZvECCIuf8WETXJ21z-aFhXD_OPjT0s3xh_FlQuePjHkrf1xpdZ4VJYxcRZbOOIt_aM6AIyQiboEgosuw2T-AldWojETFFPk_Nlxc3bg3CY-agoXgTLObSkATSXMysxf-03SeZBqiFtxltYXbXZSbLcOSdFOuyq8l6eARobdX_-EqRw1KsnlrK4t1F25AbusfJiG_JTFz"/><div class="flex flex-col"><span class="font-title-md text-title-md text-primary leading-tight font-bold tracking-tight">PIBIC</span><span class="font-caption text-caption text-on-surface-variant hidden lg:inline-block">Portal de Iniciação Científica &amp; Inovação</span></div></div><nav class="hidden xl:flex items-center gap-space-2xs p-space-2xs rounded-xl bg-surface-container-low" data-active-classes="bg-primary-container text-on-primary font-label-md text-label-md rounded-lg shadow-sm"><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="vitrine-de-pesquisas" href="#">Vitrine de Pesquisas</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="detalhes-da-pesquisa" href="#">Detalhes da Pesquisa</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="painel-gestor-metricas" href="#">Painel Gestor &amp; Métricas</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="nova-pesquisa" href="#">Nova Pesquisa</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="triagem-de-solicitacoes" href="#">Triagem de Solicitações</a></nav><div class="flex items-center gap-space-sm shrink-0"><button aria-label="Notificações" class="relative p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-4 h-4 bg-error text-on-error font-label-sm text-label-sm rounded-full flex items-center justify-center font-bold">3</span></button><div class="flex items-center gap-space-xs pl-space-xs py-space-2xs pr-space-sm bg-surface-container-low rounded-full"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col text-left"><span class="font-label-sm text-label-sm text-primary leading-none">Prof. Dr. Carlos Mendes</span><span class="font-caption text-caption text-on-surface-variant text-[10px] leading-tight">Orientador • DCC/ICEx</span></div></div></div></div></header><main class="w-full pt-20 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- Dynamic Notification / Cycle Tracker Banner -->
+<section class="w-full bg-surface-container-low py-space-sm px-layout-margin-desktop mb-space-lg">
+<div class="max-w-layout-max-width mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-space-sm font-caption text-caption text-on-surface-variant">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-bold text-primary">Edital Normativo PRPq 08/2024</span>
+<span class="opacity-40">•</span>
+<span>Conformidade com Diretrizes CNPq / Resolução CEPE Nº 14/2023 (RF04 &amp; RN04)</span>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-secondary">verified</span> Auditoria de Vagas: Regular</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-on-surface-variant">schedule</span> Última sincronização: Hoje às 10:45</span>
+</div>
+</div>
+</section>
+<div class="max-w-layout-max-width mx-auto px-layout-margin-desktop w-full flex flex-col gap-space-2xl pb-space-3xl">
+<!-- Header with Action Controls -->
+<header class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-lg">
+<div class="flex flex-col gap-space-2xs max-w-3xl">
+<div class="flex items-center gap-space-xs">
+<span class="px-space-xs py-space-2xs bg-primary-container text-on-primary font-code text-code rounded-lg">PAINEL PRPq / DTD</span>
+<span class="font-caption text-caption uppercase text-secondary font-semibold tracking-wider">Gestão Integrada de Inovação Científica</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-primary font-bold tracking-tight">Painel Gestor &amp; Indicadores Científicos</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Acompanhamento consolidado de projetos PIBIC, ocupação de bolsas, cartas de interesse recebidas e cooperações institucionais.</p>
+</div>
+<div class="flex flex-wrap items-center gap-space-xs">
+<!-- Quick cycle selector -->
+<div class="relative bg-surface-container-high rounded-lg px-space-sm py-space-xs flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[18px] text-primary">calendar_month</span>
+<div class="flex flex-col">
+<span class="font-caption text-[10px] uppercase text-on-surface-variant leading-none">Ciclo Vigente</span>
+<select class="bg-transparent font-label-md text-label-md text-primary font-semibold focus:outline-none cursor-pointer pr-space-xs">
+<option selected="" value="2024/2025">2024/2025 (Atual)</option>
+<option value="2023/2024">2023/2024 (Encerrado)</option>
+<option value="2022/2023">2022/2023 (Histórico)</option>
+</select>
+</div>
+</div>
+<!-- Export Buttons -->
+<button class="bg-surface-container-highest hover:bg-surface-container-high text-primary font-label-md text-label-md px-space-sm py-space-xs rounded-lg flex items-center gap-space-xs transition-colors shadow-sm" onclick="exportDataReport()" title="Baixar relatório consolidado do ciclo" type="button">
+<span class="material-symbols-outlined text-[18px]">sim_card_download</span>
+<span>Exportar Relatório (PDF/Excel)</span>
+</button>
+<!-- Primary CTA: Cadastrar Nova Pesquisa -->
+<a class="bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md px-space-md py-space-xs rounded-lg flex items-center gap-space-xs transition-all shadow-md" data-path="nova-pesquisa" href="#">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span>Cadastrar Nova Pesquisa</span>
+</a>
+</div>
+</header>
+<!-- KPI Metric Cards Row (5 Cards) -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-space-md">
+<!-- KPI 1 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
+<div class="flex justify-between items-start mb-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total de Pesquisas</span>
+<span class="material-symbols-outlined text-primary text-[20px]">science</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-primary font-bold leading-tight">1.428</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-space-2xs">892 Ativas • 536 Finalizadas</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low/60 -mx-space-md -mb-space-md px-space-md py-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +14% vs 23/24
+          </span>
+<span class="font-caption text-caption text-outline font-code">RF04</span>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute top-0 left-0 right-0 h-1 bg-secondary"></div>
+<div class="flex justify-between items-start mb-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Ocupação de Bolsas</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">account_circle</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-secondary font-bold leading-tight">94.2%</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-space-2xs">840 de 892 com bolsistas</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low/60 -mx-space-md -mb-space-md px-space-md py-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-semibold">52 vagas em aberto</span>
+<span class="w-12 bg-surface-variant h-1.5 rounded-full overflow-hidden">
+<span class="block bg-secondary h-full" style="width: 94%"></span>
+</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
+<div class="flex justify-between items-start mb-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Cartas de Interesse</span>
+<span class="material-symbols-outlined text-primary text-[20px]">mark_email_unread</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-primary font-bold leading-tight">3.180</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-space-2xs">Submissões de estudantes</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low/60 -mx-space-md -mb-space-md px-space-md py-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-tertiary-container font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">pending_actions</span> 285 aguardam triagem
+          </span>
+<span class="font-caption text-caption text-outline font-code">RNF01</span>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute top-0 left-0 right-0 h-1 bg-secondary"></div>
+<div class="flex justify-between items-start mb-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Cooperações Técnicas</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">corporate_fare</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-primary font-bold leading-tight">68</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-space-2xs">Indústrias e Startups</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low/60 -mx-space-md -mb-space-md px-space-md py-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">handshake</span> PIBITI e P&amp;D
+          </span>
+<span class="font-caption text-caption text-secondary">+8 este mês</span>
+</div>
+</div>
+<!-- KPI 5 -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
+<div class="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
+<div class="flex justify-between items-start mb-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tempo Médio de Triagem</span>
+<span class="material-symbols-outlined text-primary text-[20px]">timer</span>
+</div>
+<div>
+<div class="font-headline-lg text-headline-lg text-primary font-bold leading-tight">3.8 dias</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-space-2xs">SLA máximo do edital: 7d</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low/60 -mx-space-md -mb-space-md px-space-md py-space-xs flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> 92% dentro do prazo
+          </span>
+<span class="font-caption text-caption text-outline font-code">RNF02</span>
+</div>
+</div>
+</section>
+<!-- Visual Analytics Hub (3 Bespoke Visualizations) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Chart 1: Donut Distribution CNPq (5 cols) -->
+<div class="lg:col-span-5 bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between mb-space-md">
+<div class="flex flex-col">
+<span class="font-caption text-caption uppercase text-outline font-semibold tracking-wider">Classificação CNPq</span>
+<h2 class="font-headline-sm text-headline-sm text-primary font-bold">Distribuição por Grande Área</h2>
+</div>
+<button class="text-outline hover:text-primary transition-colors" title="Informações sobre a tabela CNPq" type="button">
+<span class="material-symbols-outlined text-[20px]">info</span>
+</button>
+</div>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-space-lg my-space-xs">
+<!-- Donut SVG Chart (CNPq Proportions) -->
+<div class="relative w-44 h-44 shrink-0 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 120 120">
+<!-- Engenharias: 28% = 28 * 3.1415 = 87.9; C = 314.15 -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#00142f" stroke-dasharray="87.96 226.19" stroke-dashoffset="0" stroke-width="16"></circle>
+<!-- Cienc. Saude: 24% = 75.39 -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#006a61" stroke-dasharray="75.39 238.76" stroke-dashoffset="-87.96" stroke-width="16"></circle>
+<!-- Exatas e Terra: 19% = 59.68 -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#485f83" stroke-dasharray="59.68 254.47" stroke-dashoffset="-163.35" stroke-width="16"></circle>
+<!-- Humanas e Sociais: 15% = 47.12 -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#89f5e7" stroke-dasharray="47.12 267.03" stroke-dashoffset="-223.03" stroke-width="16"></circle>
+<!-- Biologicas: 14% = 43.98 -->
+<circle cx="60" cy="60" fill="transparent" r="50" stroke="#d97705" stroke-dasharray="43.98 270.17" stroke-dashoffset="-270.15" stroke-width="16"></circle>
+</svg>
+<div class="absolute flex flex-col items-center justify-center text-center">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">1.428</span>
+<span class="font-caption text-caption text-on-surface-variant text-[10px]">Projetos</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="flex flex-col gap-space-2xs w-full">
+<div class="flex items-center justify-between p-space-2xs rounded hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-primary shrink-0"></span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Engenharias</span>
+</div>
+<span class="font-code text-code text-primary font-bold">28% (400)</span>
+</div>
+<div class="flex items-center justify-between p-space-2xs rounded hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-secondary shrink-0"></span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Ciências da Saúde</span>
+</div>
+<span class="font-code text-code text-secondary font-bold">24% (343)</span>
+</div>
+<div class="flex items-center justify-between p-space-2xs rounded hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-surface-tint shrink-0"></span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Ciências Exatas e da Terra</span>
+</div>
+<span class="font-code text-code text-surface-tint font-bold">19% (271)</span>
+</div>
+<div class="flex items-center justify-between p-space-2xs rounded hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-secondary-fixed shrink-0"></span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Humanas &amp; Sociais</span>
+</div>
+<span class="font-code text-code text-on-surface font-bold">15% (214)</span>
+</div>
+<div class="flex items-center justify-between p-space-2xs rounded hover:bg-surface-container-low transition-colors">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-full bg-on-tertiary-container shrink-0"></span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Ciências Biológicas</span>
+</div>
+<span class="font-code text-code text-on-tertiary-container font-bold">14% (200)</span>
+</div>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low rounded-lg p-space-sm flex items-center justify-between font-caption text-caption text-on-surface-variant">
+<span>Metodologia: Árvore de Conhecimento CNPq</span>
+<span class="font-code text-[11px] text-primary font-semibold">Atualizado a cada 24h</span>
+</div>
+</div>
+<!-- Chart 2: Stacked Progress by Campus/Unit (4 cols) -->
+<div class="lg:col-span-4 bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between mb-space-md">
+<div class="flex flex-col">
+<span class="font-caption text-caption uppercase text-outline font-semibold tracking-wider">Alocação Institucional</span>
+<h2 class="font-headline-sm text-headline-sm text-primary font-bold">Status por Campus / Unidade</h2>
+</div>
+<span class="font-code text-code px-space-xs py-space-2xs bg-surface-container-high rounded text-on-surface-variant">4 Polos</span>
+</div>
+<!-- Stacked Horizontal Bars -->
+<div class="flex flex-col gap-space-md my-auto">
+<!-- Campus Central -->
+<div class="flex flex-col gap-space-2xs">
+<div class="flex justify-between items-center font-body-sm text-body-sm">
+<span class="font-semibold text-primary">Campus Central (ICEx / DCC / FAFICH)</span>
+<span class="font-code text-code text-on-surface-variant">610 projetos</span>
+</div>
+<div class="h-4 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="bg-primary h-full" style="width: 65%" title="Ativas: 65%"></div>
+<div class="bg-surface-tint h-full" style="width: 15%" title="Em Finalização: 15%"></div>
+<div class="bg-surface-container-highest h-full" style="width: 20%" title="Concluídas: 20%"></div>
+</div>
+</div>
+<!-- Campus Saude -->
+<div class="flex flex-col gap-space-2xs">
+<div class="flex justify-between items-center font-body-sm text-body-sm">
+<span class="font-semibold text-primary">Polo Saúde (Medicina / Enfermagem / Farmácia)</span>
+<span class="font-code text-code text-on-surface-variant">380 projetos</span>
+</div>
+<div class="h-4 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="bg-primary h-full" style="width: 70%" title="Ativas: 70%"></div>
+<div class="bg-surface-tint h-full" style="width: 10%" title="Em Finalização: 10%"></div>
+<div class="bg-surface-container-highest h-full" style="width: 20%" title="Concluídas: 20%"></div>
+</div>
+</div>
+<!-- Campus Tecnologico -->
+<div class="flex flex-col gap-space-2xs">
+<div class="flex justify-between items-center font-body-sm text-body-sm">
+<span class="font-semibold text-primary">Polo Tecnológico &amp; Agrárias (BHTec / ICA)</span>
+<span class="font-code text-code text-on-surface-variant">275 projetos</span>
+</div>
+<div class="h-4 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="bg-primary h-full" style="width: 58%" title="Ativas: 58%"></div>
+<div class="bg-surface-tint h-full" style="width: 22%" title="Em Finalização: 22%"></div>
+<div class="bg-surface-container-highest h-full" style="width: 20%" title="Concluídas: 20%"></div>
+</div>
+</div>
+<!-- Campus Montes Claros -->
+<div class="flex flex-col gap-space-2xs">
+<div class="flex justify-between items-center font-body-sm text-body-sm">
+<span class="font-semibold text-primary">Unidades Regionais do Interior</span>
+<span class="font-code text-code text-on-surface-variant">163 projetos</span>
+</div>
+<div class="h-4 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="bg-primary h-full" style="width: 52%" title="Ativas: 52%"></div>
+<div class="bg-surface-tint h-full" style="width: 18%" title="Em Finalização: 18%"></div>
+<div class="bg-surface-container-highest h-full" style="width: 30%" title="Concluídas: 30%"></div>
+</div>
+</div>
+</div>
+<!-- Legend for Stacked -->
+<div class="mt-space-sm pt-space-xs flex items-center justify-between text-caption font-caption text-on-surface-variant border-t-0">
+<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-primary"></span> Ativas</div>
+<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-surface-tint"></span> Em Finalização</div>
+<div class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-surface-container-highest"></span> Concluídas</div>
+</div>
+</div>
+<!-- Chart 3: Monthly Flow Line/Bar Hybrid (3 cols) -->
+<div class="lg:col-span-3 bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-start justify-between mb-space-md">
+<div class="flex flex-col">
+<span class="font-caption text-caption uppercase text-outline font-semibold tracking-wider">Métricas Temporais</span>
+<h2 class="font-headline-sm text-headline-sm text-primary font-bold">Fluxo Mensal</h2>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]">show_chart</span>
+</div>
+<div class="flex flex-col justify-end h-40 w-full relative">
+<!-- Inline Sparkline / Flow Visual -->
+<svg class="w-full h-28 overflow-visible" viewbox="0 0 200 80">
+<!-- Gridlines -->
+<line stroke="#eaedff" stroke-dasharray="2 2" stroke-width="1" x1="0" x2="200" y1="20" y2="20"></line>
+<line stroke="#eaedff" stroke-dasharray="2 2" stroke-width="1" x1="0" x2="200" y1="50" y2="50"></line>
+<!-- Line: Student letters (Primary) -->
+<path d="M 10 70 Q 45 60 70 35 T 130 18 T 190 8" fill="none" stroke="#00142f" stroke-linecap="round" stroke-width="3"></path>
+<!-- Dots on line -->
+<circle cx="10" cy="70" fill="#00142f" r="3"></circle>
+<circle cx="70" cy="35" fill="#00142f" r="3"></circle>
+<circle cx="130" cy="18" fill="#00142f" r="3"></circle>
+<circle cx="190" cy="8" fill="#89f5e7" r="4" stroke="#00142f" stroke-width="2"></circle>
+<!-- Bars: Corporate partnerships (Secondary) -->
+<rect fill="#006a61" height="15" opacity="0.7" rx="2" width="8" x="25" y="65"></rect>
+<rect fill="#006a61" height="25" opacity="0.7" rx="2" width="8" x="85" y="55"></rect>
+<rect fill="#006a61" height="40" opacity="0.7" rx="2" width="8" x="145" y="40"></rect>
+<rect fill="#006a61" height="48" rx="2" width="8" x="175" y="32"></rect>
+</svg>
+<!-- X axis months -->
+<div class="flex justify-between font-code text-[10px] text-outline mt-space-2xs">
+<span>Jul</span>
+<span>Ago</span>
+<span>Set</span>
+<span>Out (Pico)</span>
+</div>
+</div>
+<div class="mt-space-sm pt-space-xs bg-surface-container-low rounded-lg p-space-xs flex flex-col gap-1 text-caption font-caption">
+<div class="flex items-center justify-between text-primary">
+<span class="flex items-center gap-1"><span class="w-2 h-0.5 bg-primary"></span> Cartas de Estudantes</span>
+<span class="font-bold font-code">+42%</span>
+</div>
+<div class="flex items-center justify-between text-secondary">
+<span class="flex items-center gap-1"><span class="w-2 h-2 bg-secondary rounded-sm"></span> Acordos Empresariais</span>
+<span class="font-bold font-code">+18%</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Project Highlight / Corporate Ecosystem Mini-Feature (Bento style) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<div class="bg-surface-container-high rounded-xl p-space-md flex items-center gap-space-md md:col-span-2">
+<div class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[24px]">workspace_premium</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider">Prêmio Destaque de Inovação 2024</span>
+<h3 class="font-title-md text-title-md text-primary font-bold">14 Patentes &amp; Registros de Software depositados por bolsistas PIBIC/PIBITI</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Conformidade total com a Lei de Inovação (Lei 10.973/2004) e apoio técnico da Coordenadoria de Transferência e Inovação Tecnológica (CTIT).</p>
+</div>
+</div>
+<div class="bg-primary text-on-primary rounded-xl p-space-md flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-secondary-fixed uppercase tracking-wider">Portal de Triagem</span>
+<span class="material-symbols-outlined text-secondary-fixed">assignment_turned_in</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold">Triagem Ágil de Bolsistas</div>
+<p class="font-caption text-caption text-surface-variant mt-1">285 candidatos aguardando análise de currículo Lattes e plano de trabalho.</p>
+</div>
+<a class="mt-space-xs font-label-sm text-label-sm text-secondary-fixed font-semibold flex items-center gap-1 hover:underline" data-path="triagem-de-solicitacoes" href="#">
+          Acessar Módulo de Triagem <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+</section>
+<!-- Management Data Table (RF04 & RN04) -->
+<section class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<!-- Section Header -->
+<div class="p-space-lg flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div>
+<div class="flex items-center gap-space-xs">
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Gerenciamento de Projetos e Vagas</h2>
+<span class="px-space-xs py-0.5 bg-surface-container font-code text-code text-primary rounded-full">RF04 • RN04</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Visão regulatória institucional. Encerramento de vigência condicionado à aprovação do orientador ou gestor PRPq.</p>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-space-xs rounded-lg font-label-md text-label-md bg-primary text-on-primary transition-colors" id="btn-todas" onclick="filterTable('todas')" type="button">Todas (4)</button>
+<button class="px-space-sm py-space-xs rounded-lg font-label-md text-label-md bg-surface-container-high text-on-surface-variant hover:bg-surface-container transition-colors" id="btn-ativa" onclick="filterTable('ativa')" type="button">Ativas (3)</button>
+<button class="px-space-sm py-space-xs rounded-lg font-label-md text-label-md bg-surface-container-high text-on-surface-variant hover:bg-surface-container transition-colors" id="btn-finalizada" onclick="filterTable('finalizada')" type="button">Finalizadas (1)</button>
+</div>
+</div>
+<!-- Filter Controls Bar -->
+<div class="px-space-lg py-space-sm bg-surface-container-low grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-sm">
+<!-- Search -->
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span>
+<input class="w-full bg-surface-container-lowest pl-9 pr-space-sm py-space-xs rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary shadow-sm" id="tableSearch" onkeyup="searchTable()" placeholder="Buscar por código, título ou orientador..." type="text"/>
+</div>
+<!-- Campus Filter -->
+<div class="flex items-center bg-surface-container-lowest rounded-lg px-space-sm py-space-xs shadow-sm">
+<span class="material-symbols-outlined text-outline text-[18px] mr-2">domain</span>
+<select class="w-full bg-transparent font-body-sm text-body-sm text-on-surface focus:outline-none cursor-pointer" id="campusFilter" onchange="applyFilters()">
+<option value="all">Todos os Campus</option>
+<option value="central">Campus Central (ICEx)</option>
+<option value="saude">Campus Saúde (Medicina)</option>
+<option value="tecnologico">BHTec / Engenharia</option>
+<option value="montesclaros">Campus Regional Montes Claros</option>
+</select>
+</div>
+<!-- Area Filter -->
+<div class="flex items-center bg-surface-container-lowest rounded-lg px-space-sm py-space-xs shadow-sm">
+<span class="material-symbols-outlined text-outline text-[18px] mr-2">category</span>
+<select class="w-full bg-transparent font-body-sm text-body-sm text-on-surface focus:outline-none cursor-pointer" id="areaFilter" onchange="applyFilters()">
+<option value="all">Todas as Áreas CNPq</option>
+<option value="exatas">Ciências Exatas / Computação</option>
+<option value="engenharias">Engenharias &amp; Materiais</option>
+<option value="biologicas">Biológicas &amp; Fitoquímica</option>
+<option value="saude">Ciências da Saúde</option>
+</select>
+</div>
+<!-- Coordinator Filter -->
+<div class="flex items-center bg-surface-container-lowest rounded-lg px-space-sm py-space-xs shadow-sm">
+<span class="material-symbols-outlined text-outline text-[18px] mr-2">person_search</span>
+<select class="w-full bg-transparent font-body-sm text-body-sm text-on-surface focus:outline-none cursor-pointer" id="orientadorFilter" onchange="applyFilters()">
+<option value="all">Orientador Responsável</option>
+<option value="roberto">Dr. Roberto Alencar</option>
+<option value="marina">Dra. Marina Vasconcelos</option>
+<option value="fernando">Dr. Fernando Guimarães</option>
+<option value="beatriz">Dra. Beatriz Siqueira</option>
+</select>
+</div>
+</div>
+<!-- Data Table Responsive Wrapper -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse" id="researchTable">
+<thead>
+<tr class="bg-surface-container-high text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-space-sm px-space-md">Código</th>
+<th class="py-space-sm px-space-md">Título da Pesquisa &amp; Área</th>
+<th class="py-space-sm px-space-md">Orientador(a)</th>
+<th class="py-space-sm px-space-md text-center">Bolsistas / Vagas</th>
+<th class="py-space-sm px-space-md text-center">Cartas de Interesse</th>
+<th class="py-space-sm px-space-md">Vigência</th>
+<th class="py-space-sm px-space-md text-center">Status</th>
+<th class="py-space-sm px-space-md text-right">Ações</th>
+</tr>
+</thead>
+<tbody class="divide-y-0 font-body-sm text-body-sm">
+<!-- Row 1: PIBIC-2024-0412 -->
+<tr class="project-row hover:bg-surface-container-low transition-colors group" data-area="exatas" data-campus="central" data-orientador="roberto" data-status="ativa">
+<td class="py-space-md px-space-md align-top">
+<span class="font-code text-code text-primary font-bold bg-surface-container px-space-xs py-space-2xs rounded block w-fit">PIBIC-2024-0412</span>
+<span class="font-caption text-[10px] text-outline mt-1 block">Subm. em 12/03/2024</span>
+</td>
+<td class="py-space-md px-space-md align-top max-w-xs">
+<a class="font-title-md text-title-md text-primary font-bold hover:underline block leading-snug" data-path="detalhes-da-pesquisa" href="#">Tomografia Pulmonar com Deep Learning</a>
+<div class="flex items-center gap-space-2xs mt-1">
+<span class="px-space-xs py-0.5 rounded text-[11px] font-medium bg-surface-variant text-on-surface-variant">Ciências da Computação</span>
+<span class="text-outline text-caption">• ICEx / DCC</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-semibold text-primary">Dr. Roberto Alencar</div>
+<div class="font-caption text-caption text-on-surface-variant">Bolsista Produtividade CNPq 1D</div>
+<div class="font-caption text-[11px] text-secondary">Lattes: 9481.0421.9920</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<div class="inline-flex flex-col items-center">
+<span class="font-title-md text-title-md font-bold text-primary">2 / 2</span>
+<span class="font-caption text-[11px] text-secondary font-semibold">100% Preenchida</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<div class="inline-flex flex-col items-center">
+<span class="px-space-xs py-0.5 bg-tertiary-fixed text-tertiary-container font-label-sm text-label-sm rounded-full font-bold">5 pendentes</span>
+<span class="font-caption text-caption text-on-surface-variant mt-0.5">Total: 18 cartas</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="text-on-surface font-medium">01/08/2024 à 31/07/2025</div>
+<div class="font-caption text-caption text-secondary">Em andamento (Mês 3)</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<span class="px-space-sm py-space-2xs bg-secondary-container text-on-secondary-container font-label-sm text-label-sm rounded-full font-bold inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Ativa
+                </span>
+</td>
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="viewTriage('PIBIC-2024-0412')" title="Ver Triagem de Cartas (5 pendentes)" type="button">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="editResearch('PIBIC-2024-0412')" title="Editar Pesquisa (RF02)" type="button">
+<span class="material-symbols-outlined text-[18px]">edit_square</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="downloadReport('PIBIC-2024-0412')" title="Download Relatório Semestral" type="button">
+<span class="material-symbols-outlined text-[18px]">description</span>
+</button>
+<button class="p-1.5 rounded hover:bg-error-container text-error" onclick="openCloseModal('PIBIC-2024-0412', 'Tomografia Pulmonar com Deep Learning', 'Dr. Roberto Alencar')" title="Encerrar Projeto (RN04)" type="button">
+<span class="material-symbols-outlined text-[18px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: PIBIC-2024-0198 -->
+<tr class="project-row hover:bg-surface-container-low transition-colors group bg-surface-container-lowest" data-area="engenharias" data-campus="tecnologico" data-orientador="marina" data-status="ativa">
+<td class="py-space-md px-space-md align-top">
+<span class="font-code text-code text-primary font-bold bg-surface-container px-space-xs py-space-2xs rounded block w-fit">PIBIC-2024-0198</span>
+<span class="font-caption text-[10px] text-outline mt-1 block">Subm. em 28/02/2024</span>
+</td>
+<td class="py-space-md px-space-md align-top max-w-xs">
+<a class="font-title-md text-title-md text-primary font-bold hover:underline block leading-snug" data-path="detalhes-da-pesquisa" href="#">Biopolímeros de Cana-de-Açúcar para Embalagens</a>
+<div class="flex items-center gap-space-2xs mt-1">
+<span class="px-space-xs py-0.5 rounded text-[11px] font-medium bg-surface-variant text-on-surface-variant">Engenharia Química / Materiais</span>
+<span class="px-space-xs py-0.5 rounded text-[10px] font-semibold bg-secondary-fixed text-on-secondary-fixed">2 Parcerias Empresariais</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-semibold text-primary">Dra. Marina Vasconcelos</div>
+<div class="font-caption text-caption text-on-surface-variant">Dep. Engenharia Metalúrgica e de Materiais</div>
+<div class="font-caption text-[11px] text-secondary">Lattes: 1102.8392.4410</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<div class="inline-flex flex-col items-center">
+<span class="font-title-md text-title-md font-bold text-primary">1 / 2</span>
+<span class="font-caption text-[11px] text-on-tertiary-container font-semibold">1 vaga aberta</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<div class="inline-flex flex-col items-center">
+<span class="px-space-xs py-0.5 bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm rounded-full font-bold">0 pendentes</span>
+<span class="font-caption text-caption text-on-surface-variant mt-0.5">Total: 22 cartas</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="text-on-surface font-medium">01/08/2024 à 31/07/2025</div>
+<div class="font-caption text-caption text-secondary">Em andamento (Mês 3)</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<span class="px-space-sm py-space-2xs bg-secondary-container text-on-secondary-container font-label-sm text-label-sm rounded-full font-bold inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Ativa
+                </span>
+</td>
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="viewTriage('PIBIC-2024-0198')" title="Ver Triagem de Cartas" type="button">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="editResearch('PIBIC-2024-0198')" title="Editar Pesquisa (RF02)" type="button">
+<span class="material-symbols-outlined text-[18px]">edit_square</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="downloadReport('PIBIC-2024-0198')" title="Download Relatório" type="button">
+<span class="material-symbols-outlined text-[18px]">description</span>
+</button>
+<button class="p-1.5 rounded hover:bg-error-container text-error" onclick="openCloseModal('PIBIC-2024-0198', 'Biopolímeros de Cana-de-Açúcar', 'Dra. Marina Vasconcelos')" title="Encerrar Projeto (RN04)" type="button">
+<span class="material-symbols-outlined text-[18px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: PIBIC-2023-0871 (Finalizada) -->
+<tr class="project-row hover:bg-surface-container-low transition-colors group opacity-85" data-area="engenharias" data-campus="tecnologico" data-orientador="fernando" data-status="finalizada">
+<td class="py-space-md px-space-md align-top">
+<span class="font-code text-code text-on-surface-variant font-bold bg-surface-container-high px-space-xs py-space-2xs rounded block w-fit">PIBIC-2023-0871</span>
+<span class="font-caption text-[10px] text-outline mt-1 block">Ciclo 2023/2024</span>
+</td>
+<td class="py-space-md px-space-md align-top max-w-xs">
+<a class="font-title-md text-title-md text-on-surface font-bold hover:underline block leading-snug" data-path="detalhes-da-pesquisa" href="#">Microredes Híbridas Solares para Comunidades Isoladas</a>
+<div class="flex items-center gap-space-2xs mt-1">
+<span class="px-space-xs py-0.5 rounded text-[11px] font-medium bg-surface-container-high text-on-surface-variant">Engenharia Elétrica</span>
+<span class="text-outline text-caption">• Parceria CEMIG</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-semibold text-primary">Dr. Fernando Guimarães</div>
+<div class="font-caption text-caption text-on-surface-variant">Dep. Engenharia Elétrica</div>
+<div class="font-caption text-[11px] text-outline">Lattes: 5543.1290.7712</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<div class="inline-flex flex-col items-center">
+<span class="font-title-md text-title-md font-bold text-on-surface-variant">2 / 2</span>
+<span class="font-caption text-[11px] text-outline">Bolsas Cumpridas</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<div class="inline-flex flex-col items-center">
+<span class="px-space-xs py-0.5 bg-surface-container text-outline font-label-sm text-label-sm rounded-full font-semibold">0 pendentes</span>
+<span class="font-caption text-caption text-outline mt-0.5">Total: 34 cartas</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="text-on-surface-variant font-medium">Finalizada em 11/2023</div>
+<div class="font-caption text-caption text-outline">Relatório Final Aprovado</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<span class="px-space-sm py-space-2xs bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm rounded-full font-bold inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Finalizada
+                </span>
+</td>
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="downloadReport('PIBIC-2023-0871')" title="Baixar Certificado e Dossiê Final" type="button">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="downloadReport('PIBIC-2023-0871')" title="Download Relatório Final" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: PIBIC-2024-0550 -->
+<tr class="project-row hover:bg-surface-container-low transition-colors group" data-area="biologicas" data-campus="montesclaros" data-orientador="beatriz" data-status="ativa">
+<td class="py-space-md px-space-md align-top">
+<span class="font-code text-code text-primary font-bold bg-surface-container px-space-xs py-space-2xs rounded block w-fit">PIBIC-2024-0550</span>
+<span class="font-caption text-[10px] text-outline mt-1 block">Subm. em 14/04/2024</span>
+</td>
+<td class="py-space-md px-space-md align-top max-w-xs">
+<a class="font-title-md text-title-md text-primary font-bold hover:underline block leading-snug" data-path="detalhes-da-pesquisa" href="#">Fitoquímica do Cerrado e Compostos Antiparasitários</a>
+<div class="flex items-center gap-space-2xs mt-1">
+<span class="px-space-xs py-0.5 rounded text-[11px] font-medium bg-surface-variant text-on-surface-variant">Farmácia &amp; Fitoquímica</span>
+<span class="text-outline text-caption">• Campus Regional</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-semibold text-primary">Dra. Beatriz Siqueira</div>
+<div class="font-caption text-caption text-on-surface-variant">Inst. de Ciências Agrárias (ICA)</div>
+<div class="font-caption text-[11px] text-secondary">Lattes: 7721.5540.3211</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<div class="inline-flex flex-col items-center">
+<span class="font-title-md text-title-md font-bold text-primary">1 / 1</span>
+<span class="font-caption text-[11px] text-secondary font-semibold">100% Preenchida</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<div class="inline-flex flex-col items-center">
+<span class="px-space-xs py-0.5 bg-tertiary-fixed text-tertiary-container font-label-sm text-label-sm rounded-full font-bold">3 pendentes</span>
+<span class="font-caption text-caption text-on-surface-variant mt-0.5">Total: 9 cartas</span>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="text-on-surface font-medium">01/08/2024 à 31/07/2025</div>
+<div class="font-caption text-caption text-secondary">Em andamento (Mês 3)</div>
+</td>
+<td class="py-space-md px-space-md align-top text-center">
+<span class="px-space-sm py-space-2xs bg-secondary-container text-on-secondary-container font-label-sm text-label-sm rounded-full font-bold inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Ativa
+                </span>
+</td>
+<td class="py-space-md px-space-md align-top text-right">
+<div class="flex items-center justify-end gap-1">
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="viewTriage('PIBIC-2024-0550')" title="Ver Triagem de Cartas (3 pendentes)" type="button">
+<span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="editResearch('PIBIC-2024-0550')" title="Editar Pesquisa (RF02)" type="button">
+<span class="material-symbols-outlined text-[18px]">edit_square</span>
+</button>
+<button class="p-1.5 rounded hover:bg-surface-container text-primary" onclick="downloadReport('PIBIC-2024-0550')" title="Download Relatório" type="button">
+<span class="material-symbols-outlined text-[18px]">description</span>
+</button>
+<button class="p-1.5 rounded hover:bg-error-container text-error" onclick="openCloseModal('PIBIC-2024-0550', 'Fitoquímica do Cerrado', 'Dra. Beatriz Siqueira')" title="Encerrar Projeto (RN04)" type="button">
+<span class="material-symbols-outlined text-[18px]">block</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Regulatory Pagination -->
+<div class="p-space-md bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-space-sm font-caption text-caption text-on-surface-variant">
+<div class="flex items-center gap-space-xs">
+<span>Mostrando <strong class="text-primary" id="rowCountDisplay">4</strong> de 1.428 pesquisas cadastradas no sistema</span>
+<span class="opacity-40">•</span>
+<span class="font-code text-[11px] text-outline">Regra RN04: Status restrito ao Orientador/PRPq</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1 bg-surface-container-lowest rounded text-primary font-medium hover:bg-surface-container disabled:opacity-50" disabled="" type="button">Anterior</button>
+<span class="px-2 font-bold text-primary font-code">1 / 357</span>
+<button class="px-space-sm py-1 bg-surface-container-lowest rounded text-primary font-medium hover:bg-surface-container" type="button">Próxima</button>
+</div>
+</div>
+</section>
+</div>
+<!-- MODAL: Encerramento de Pesquisa (Regra RN04) -->
+<div aria-labelledby="modal-title" aria-modal="true" class="fixed inset-0 z-50 bg-primary/40 backdrop-blur-sm hidden items-center justify-center p-space-md" id="closeProjectModal" role="dialog">
+<div class="bg-surface-container-lowest max-w-lg w-full rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+<!-- Modal Header -->
+<div class="bg-error-container p-space-md flex items-center justify-between text-on-error-container">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[24px]">gavel</span>
+<h4 class="font-title-md text-title-md font-bold" id="modal-title">Encerrar Vigência de Projeto (RN04)</h4>
+</div>
+<button class="text-on-error-container hover:opacity-75" onclick="closeModal()" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-space-lg flex flex-col gap-space-md">
+<!-- Regulatory Warning Banner -->
+<div class="p-space-sm bg-surface-container-low rounded-lg flex items-start gap-space-xs text-on-surface">
+<span class="material-symbols-outlined text-error text-[20px] shrink-0 mt-0.5">warning</span>
+<div class="font-body-sm text-body-sm flex flex-col gap-1">
+<span class="font-bold text-primary">Atenção à Regra de Negócio RN04:</span>
+<p class="text-on-surface-variant">Apenas o <strong>pesquisador orientador cadastrado</strong> ou um <strong>administrador da Pró-Reitoria de Pesquisa (PRPq)</strong> possui prerrogativa jurídico-institucional para alterar o status para finalizado.</p>
+</div>
+</div>
+<!-- Target Project Details -->
+<div class="flex flex-col gap-space-2xs bg-surface-container p-space-sm rounded-lg">
+<span class="font-caption text-caption uppercase text-outline">Projeto Selecionado</span>
+<span class="font-code text-code font-bold text-primary" id="modalProjectCode">PIBIC-XXXX-XXXX</span>
+<span class="font-body-md text-body-md font-semibold text-primary" id="modalProjectTitle">Título</span>
+<span class="font-caption text-caption text-on-surface-variant" id="modalProjectAdvisor">Orientador</span>
+</div>
+<!-- Verification Checklist -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-outline tracking-wider">Requisitos de Conclusão Obrigatórios</span>
+<label class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface cursor-pointer">
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-primary" id="check1" type="checkbox"/>
+<span>Relatório Técnico Final submetido pelo bolsista</span>
+</label>
+<label class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface cursor-pointer">
+<input checked="" class="w-4 h-4 rounded text-primary focus:ring-primary" id="check2" type="checkbox"/>
+<span>Prestação de contas de material de consumo concluída</span>
+</label>
+<label class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface cursor-pointer">
+<input class="w-4 h-4 rounded text-primary focus:ring-primary" id="check3" type="checkbox"/>
+<span>Parecer circunstanciado emitido pelo orientador</span>
+</label>
+</div>
+<!-- Justification Input -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-primary font-semibold" for="closeJustification">Justificativa Institucional / Motivo do Encerramento *</label>
+<textarea class="w-full p-space-xs font-body-sm text-body-sm rounded-lg bg-surface-container-lowest border-0 ring-1 ring-outline-variant focus:ring-2 focus:ring-primary text-on-surface" id="closeJustification" placeholder="Descreva formalmente o cumprimento do plano de trabalho..." rows="2"></textarea>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-space-md bg-surface-container-low flex items-center justify-end gap-space-xs">
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md bg-surface-container-high text-on-surface-variant hover:bg-surface-container transition-colors" onclick="closeModal()" type="button">Cancelar</button>
+<button class="px-space-md py-space-xs rounded-lg font-label-md text-label-md bg-error text-on-error font-semibold hover:opacity-90 flex items-center gap-1 transition-opacity" onclick="confirmProjectClosure()" type="button">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+<span>Confirmar Encerramento Formal</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Notification Toast Container -->
+<div class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none" id="toastNotification">
+<div class="bg-primary text-on-primary px-space-md py-space-sm rounded-xl shadow-xl flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary-fixed text-[20px]" id="toastIcon">check_circle</span>
+<span class="font-body-sm text-body-sm font-medium" id="toastMessage">Operação realizada com sucesso.</span>
+</div>
+</div>
+<!-- Client-side Interactive Behaviors -->
+<script>
+    // Tab and table filter state
+    let activeStatusFilter = 'todas';
+
+    function showToast(message, icon = 'check_circle') {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+      if (!toast || !msgEl || !iconEl) return;
+
+      msgEl.textContent = message;
+      iconEl.textContent = icon;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    function filterTable(status) {
+      activeStatusFilter = status;
+      const buttons = ['todas', 'ativa', 'finalizada'];
+      buttons.forEach(b => {
+        const btn = document.getElementById(`btn-${b}`);
+        if (!btn) return;
+        if (b === status) {
+          btn.className = 'px-space-sm py-space-xs rounded-lg font-label-md text-label-md bg-primary text-on-primary transition-colors';
+        } else {
+          btn.className = 'px-space-sm py-space-xs rounded-lg font-label-md text-label-md bg-surface-container-high text-on-surface-variant hover:bg-surface-container transition-colors';
+        }
+      });
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const query = (document.getElementById('tableSearch')?.value || '').toLowerCase();
+      const campus = document.getElementById('campusFilter')?.value || 'all';
+      const area = document.getElementById('areaFilter')?.value || 'all';
+      const orientador = document.getElementById('orientadorFilter')?.value || 'all';
+
+      const rows = document.querySelectorAll('.project-row');
+      let visibleCount = 0;
+
+      rows.forEach(row => {
+        const rowStatus = row.getAttribute('data-status');
+        const rowCampus = row.getAttribute('data-campus');
+        const rowArea = row.getAttribute('data-area');
+        const rowOrientador = row.getAttribute('data-orientador');
+        const rowText = row.textContent.toLowerCase();
+
+        const matchStatus = (activeStatusFilter === 'todas') || (rowStatus === activeStatusFilter);
+        const matchCampus = (campus === 'all') || (rowCampus === campus);
+        const matchArea = (area === 'all') || (rowArea === area);
+        const matchOrientador = (orientador === 'all') || (rowOrientador === orientador);
+        const matchQuery = !query || rowText.includes(query);
+
+        if (matchStatus && matchCampus && matchArea && matchOrientador && matchQuery) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      const counter = document.getElementById('rowCountDisplay');
+      if (counter) counter.textContent = visibleCount;
+    }
+
+    function searchTable() {
+      applyFilters();
+    }
+
+    // Modal Operations for RN04
+    let targetProjectCode = '';
+
+    function openCloseModal(code, title, advisor) {
+      targetProjectCode = code;
+      const modal = document.getElementById('closeProjectModal');
+      document.getElementById('modalProjectCode').textContent = code;
+      document.getElementById('modalProjectTitle').textContent = title;
+      document.getElementById('modalProjectAdvisor').textContent = `Orientador: ${advisor}`;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('closeProjectModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function confirmProjectClosure() {
+      const check3 = document.getElementById('check3');
+      const justification = document.getElementById('closeJustification');
+
+      if (!check3.checked) {
+        alert('RN04: É obrigatório certificar a emissão do Parecer Circunstanciado antes de encerrar formalmente.');
+        return;
+      }
+
+      if (!justification.value.trim()) {
+        alert('Por favor, preencha a justificativa institucional do encerramento.');
+        return;
+      }
+
+      // Mark row as finalized in UI
+      const rows = document.querySelectorAll('.project-row');
+      rows.forEach(row => {
+        if (row.textContent.includes(targetProjectCode)) {
+          row.setAttribute('data-status', 'finalizada');
+          const statusCell = row.children[6];
+          if (statusCell) {
+            statusCell.innerHTML = `
+              <span class="px-space-sm py-space-2xs bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm rounded-full font-bold inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Finalizada
+              </span>
+            `;
+          }
+        }
+      });
+
+      closeModal();
+      showToast(`Projeto ${targetProjectCode} finalizado com sucesso conforme norma RN04.`);
+      applyFilters();
+    }
+
+    function viewTriage(code) {
+      showToast(`Abrindo módulo de triagem de cartas para o projeto ${code}...`, 'pending_actions');
+    }
+
+    function editResearch(code) {
+      showToast(`Carregando formulário de edição (RF02) para ${code}...`, 'edit');
+    }
+
+    function downloadReport(code) {
+      showToast(`Gerando Dossiê Consolidado de ${code} em PDF...`, 'sim_card_download');
+    }
+
+    function exportDataReport() {
+      showToast('Exportando dados consolidado do Ciclo 2024/2025 para XLSX/PDF...', 'download');
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-container-low mt-space-3xl"><div class="max-w-layout-max-width mx-auto px-layout-margin-desktop py-space-2xl"><div class="grid grid-cols-1 md:grid-cols-4 gap-space-xl"><div class="flex flex-col gap-space-xs md:col-span-1"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-primary font-bold">PIBIC</span></div><p class="font-body-sm text-body-sm text-on-surface-variant">Programa Institucional de Bolsas de Iniciação Científica e Desenvolvimento Tecnológico da Universidade.</p><p class="font-caption text-caption text-outline">CNPq • CAPES • Pró-Reitoria de Pesquisa</p></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md text-primary uppercase tracking-wider">Administração</span><ul class="flex flex-col gap-space-2xs font-body-sm text-body-sm text-on-surface-variant"><li><a class="hover:text-on-surface hover:underline" href="#">Pró-Reitoria de Pesquisa (PRPq)</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Comitê Assessor PIBIC/PIBITI</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Coordenação de Inovação e Parcerias</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Comitê de Ética em Pesquisa (CEP)</a></li></ul></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md text-primary uppercase tracking-wider">Fomento &amp; Parcerias</span><ul class="flex flex-col gap-space-2xs font-body-sm text-body-sm text-on-surface-variant"><li><a class="hover:text-on-surface hover:underline" href="#">Plataforma Integrada CNPq</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Portal de Periódicos CAPES</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Termos de Cooperação Técnica</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Modelos de Cartas de Anuência</a></li></ul></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md text-primary uppercase tracking-wider">Suporte &amp; Transparência</span><ul class="flex flex-col gap-space-2xs font-body-sm text-body-sm text-on-surface-variant"><li><a class="hover:text-on-surface hover:underline" href="#">Declaração de Acessibilidade</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Ouvidoria Universitária</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Manual do Bolsista e Orientador</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Fale Conosco: pibic@universidade.br</a></li></ul></div></div><div class="mt-space-xl pt-space-lg flex flex-col sm:flex-row items-center justify-between gap-space-md text-on-surface-variant font-caption text-caption"><p>© 2024 Setor de Pesquisa Científica &amp; Inovação Tecnológica. Todos os direitos reservados.</p><p class="font-code text-code text-outline">Sistema PIBIC v4.2.0-PROD</p></div></div></footer></body></html>

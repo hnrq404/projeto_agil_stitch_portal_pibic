@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Plus+Jakarta+Sans:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {"darkMode":"class","theme":{"extend":{"colors":{"on-surface-variant":"#44474e","secondary-fixed-dim":"#6bd8cb","tertiary-container":"#422000","on-error":"#ffffff","on-tertiary-fixed-variant":"#6e3900","surface-container-highest":"#dae2fd","primary-container":"#0f294a","on-primary-fixed":"#001b3b","tertiary":"#240f00","outline":"#74777f","on-background":"#131b2e","surface-dim":"#d2d9f4","on-primary-fixed-variant":"#30476a","on-secondary":"#ffffff","surface-container-low":"#f2f3ff","on-secondary-fixed":"#00201d","on-primary":"#ffffff","secondary-fixed":"#89f5e7","on-tertiary":"#ffffff","primary-fixed-dim":"#b0c8f1","on-tertiary-fixed":"#2f1500","tertiary-fixed":"#ffdcc3","on-primary-container":"#7a91b7","secondary":"#006a61","background":"#faf8ff","outline-variant":"#c4c6cf","inverse-surface":"#283044","on-tertiary-container":"#d97705","primary-fixed":"#d5e3ff","primary":"#00142f","inverse-on-surface":"#eef0ff","secondary-container":"#86f2e4","surface-variant":"#dae2fd","on-error-container":"#93000a","error-container":"#ffdad6","surface-bright":"#faf8ff","on-secondary-container":"#006f66","surface-container-lowest":"#ffffff","surface-container":"#eaedff","inverse-primary":"#b0c8f1","surface-container-high":"#e2e7ff","surface":"#faf8ff","on-surface":"#131b2e","error":"#ba1a1a","surface-tint":"#485f83","on-secondary-fixed-variant":"#005049","tertiary-fixed-dim":"#ffb77d"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-xl":"2rem","layout-margin-mobile":"1rem","layout-margin-tablet":"1.5rem","space-2xs":"0.25rem","space-2xl":"3rem","space-xs":"0.5rem","layout-margin-desktop":"2rem","space-lg":"1.5rem","layout-max-width":"1280px","space-sm":"0.75rem","layout-gutter":"1.5rem","space-3xl":"4rem","space-md":"1rem"},"fontFamily":{"label-sm":["Inter"],"headline-xl":["Plus Jakarta Sans"],"body-sm":["Inter"],"title-md":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"],"label-md":["Inter"],"headline-xl-mobile":["Plus Jakarta Sans"],"headline-lg-mobile":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"code":["JetBrains Mono"],"caption":["Inter"],"headline-lg":["Plus Jakarta Sans"],"body-lg":["Inter"],"body-md":["Inter"]},"fontSize":{"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"title-md":["16px",{"lineHeight":"22px","fontWeight":"600"}],"headline-md":["22px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-lg-mobile":["22px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"700"}],"headline-sm":["18px",{"lineHeight":"24px","fontWeight":"600"}],"code":["12px",{"lineHeight":"16px","fontWeight":"500"}],"caption":["12px",{"lineHeight":"16px","fontWeight":"400"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}]}}}};</script></head><body class="bg-surface font-body-md text-body-md text-on-surface"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="bg-primary text-on-primary py-1 px-layout-margin-desktop"><div class="max-w-layout-max-width mx-auto flex items-center justify-between font-caption text-caption"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[14px] text-secondary-fixed">campaign</span><span><strong>Edital PIBIC 2024/2025</strong> — Período de Submissão e Cartas de Interesse Aberto</span></div><div class="hidden md:flex items-center gap-space-md text-surface-variant font-caption text-caption"><span>Prazo final: 31 de Outubro de 2024</span><span class="opacity-50">|</span><a class="text-surface-bright hover:underline" href="#">Baixar Edital em PDF</a></div></div></div><div class="h-20 max-w-layout-max-width mx-auto px-layout-margin-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md shrink-0"><img alt="PIBIC Logo Institucional" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XT5_o7jTxsaJIyjXXuClQgilZ6qMz-DgEvFkz9ht7_J32W8REdZvECCIuf8WETXJ21z-aFhXD_OPjT0s3xh_FlQuePjHkrf1xpdZ4VJYxcRZbOOIt_aM6AIyQiboEgosuw2T-AldWojETFFPk_Nlxc3bg3CY-agoXgTLObSkATSXMysxf-03SeZBqiFtxltYXbXZSbLcOSdFOuyq8l6eARobdX_-EqRw1KsnlrK4t1F25AbusfJiG_JTFz"/><div class="flex flex-col"><span class="font-title-md text-title-md text-primary leading-tight font-bold tracking-tight">PIBIC</span><span class="font-caption text-caption text-on-surface-variant hidden lg:inline-block">Portal de Iniciação Científica &amp; Inovação</span></div></div><nav class="hidden xl:flex items-center gap-space-2xs p-space-2xs rounded-xl bg-surface-container-low" data-active-classes="bg-primary-container text-on-primary font-label-md text-label-md rounded-lg shadow-sm"><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="vitrine-de-pesquisas" href="#">Vitrine de Pesquisas</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="detalhes-da-pesquisa" href="#">Detalhes da Pesquisa</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="painel-gestor-metricas" href="#">Painel Gestor &amp; Métricas</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="nova-pesquisa" href="#">Nova Pesquisa</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="triagem-de-solicitacoes" href="#">Triagem de Solicitações</a><a class="px-space-sm py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors rounded-lg" data-path="autenticacao-e-controle-de-acesso" href="#">Controle de Acesso</a></nav><div class="flex items-center gap-space-sm shrink-0"><button aria-label="Notificações" class="relative p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-4 h-4 bg-error text-on-error font-label-sm text-label-sm rounded-full flex items-center justify-center font-bold">3</span></button><div class="flex items-center gap-space-xs pl-space-xs py-space-2xs pr-space-sm bg-surface-container-low rounded-full"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden md:flex flex-col text-left"><span class="font-label-sm text-label-sm text-primary leading-none">Prof. Dr. Carlos Mendes</span><span class="font-caption text-caption text-on-surface-variant text-[10px] leading-tight">Orientador • DCC/ICEx</span></div></div></div></div></header><main class="w-full pt-20 bg-surface min-h-screen"><div class="flex flex-col w-full">
+<!-- BANNER CONTEXTUAL INSTITUCIONAL & STATUS RNF03 -->
+<section class="w-full bg-surface-container-low py-space-xl">
+<div class="max-w-layout-max-width mx-auto px-layout-margin-desktop">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="inline-flex items-center gap-1 px-space-xs py-space-2xs rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">verified_user</span>
+              Segurança • RNF03
+            </span>
+<span class="inline-flex items-center gap-1 px-space-xs py-space-2xs rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">key</span>
+              RBAC v2.4 (Role-Based Access Control)
+            </span>
+<span class="font-code text-code text-on-surface-variant">Pró-Reitoria de Pesquisa (PRPq) • Equipe 06</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-primary tracking-tight">
+            Portal de Acesso Seguro &amp; Gestão de Identidades
+          </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+            Ambiente federado com criptografia ativa em repouso e trânsito (Argon2id/Bcrypt + TLS 1.3), integrado à Comunidade Acadêmica Federada (CAFe/RNP) e Gov.br. Consulte os privilégios e as restrições regulamentadas do programa PIBIC/PIBITI.
+          </p>
+</div>
+<!-- Indicador de Status Criptográfico em Tempo Real -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col gap-space-xs min-w-[280px]">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status do Servidor de Autenticação</span>
+<span class="inline-block w-2.5 h-2.5 rounded-full bg-secondary"></span>
+</div>
+<div class="flex items-center gap-space-xs text-secondary font-title-md text-title-md font-bold">
+<span class="material-symbols-outlined text-[20px]">enhanced_encryption</span>
+<span>Ativo (Nível A1 - FIPS 140-3)</span>
+</div>
+<div class="grid grid-cols-2 gap-space-xs pt-space-xs font-caption text-caption text-on-surface-variant border-t border-surface-container">
+<div>
+<p class="text-outline">Cifra:</p>
+<p class="font-code text-code text-primary font-semibold">Argon2id 64MB</p>
+</div>
+<div>
+<p class="text-outline">Sessão Segura:</p>
+<p class="font-code text-code text-primary font-semibold">Max 30 min idle</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SEÇÃO PRINCIPAL: AUTENTICAÇÃO / CADASTRO COM BENTO CARD DE IDENTIDADE -->
+<section class="w-full py-space-2xl">
+<div class="max-w-layout-max-width mx-auto px-layout-margin-desktop">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
+<!-- COLUNA ESQUERDA (7 colunas): FORMULÁRIO COM ABAS (LOGIN & CADASTRO) -->
+<div class="lg:col-span-7 flex flex-col gap-space-lg">
+<!-- Alternador de Abas Moderno -->
+<div class="bg-surface-container-high p-1 rounded-xl flex items-center gap-1 shadow-sm">
+<button class="flex-1 py-space-xs px-space-md rounded-lg font-label-md text-label-md transition-all duration-200 flex items-center justify-center gap-space-xs bg-surface-container-lowest text-primary shadow-sm" id="tab-login-btn" onclick="switchAuthTab('login')">
+<span class="material-symbols-outlined text-[18px]">lock_open</span>
+              Entrar no Sistema (Login)
+            </button>
+<button class="flex-1 py-space-xs px-space-md rounded-lg font-label-md text-label-md transition-all duration-200 flex items-center justify-center gap-space-xs text-on-surface-variant hover:text-on-surface" id="tab-register-btn" onclick="switchAuthTab('register')">
+<span class="material-symbols-outlined text-[18px]">person_add</span>
+              Criar Nova Conta Institucional
+            </button>
+</div>
+<!-- ABA 1: LOGIN -->
+<div class="bg-surface-container-lowest p-space-xl rounded-xl shadow-sm flex flex-col gap-space-lg" id="panel-login">
+<!-- Simulador de Perfil Ativo para Demonstração Interativa -->
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-primary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">tune</span>
+                  Simulador de Papel / Credencial (Demonstração de Regras):
+                </span>
+<span class="font-caption text-caption text-outline">RBAC Ativo</span>
+</div>
+<div class="grid grid-cols-3 gap-space-xs mt-space-2xs">
+<button class="role-selector-btn py-space-xs px-space-xs text-center rounded-lg font-label-md text-label-md bg-primary text-on-primary transition-all" id="role-pill-aluno" onclick="selectSimulatedRole('aluno')" type="button">
+                  Aluno (Graduação)
+                </button>
+<button class="role-selector-btn py-space-xs px-space-xs text-center rounded-lg font-label-md text-label-md bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all" id="role-pill-professor" onclick="selectSimulatedRole('professor')" type="button">
+                  Professor Orientador
+                </button>
+<button class="role-selector-btn py-space-xs px-space-xs text-center rounded-lg font-label-md text-label-md bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all" id="role-pill-gestor" onclick="selectSimulatedRole('gestor')" type="button">
+                  Gerente / PRPq
+                </button>
+</div>
+</div>
+<!-- Box Dinâmico de Restrições/Permissões do Perfil Selecionado -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-2xs" id="dynamic-permission-box">
+<div class="flex items-center justify-between">
+<span class="font-title-md text-title-md text-primary font-bold" id="perm-title">
+                  Perfil Atual: Aluno de Graduação (PIBIC / PIVIC)
+                </span>
+<span class="font-code text-code px-space-xs py-space-2xs rounded bg-surface-container-highest text-primary font-semibold" id="perm-badge">
+                  Acesso: Nível 1 (Discente)
+                </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant" id="perm-description">
+                Permissão autorizada para consultar a Vitrine Pública, visualizar detalhes técnicos das pesquisas e submeter/acompanhar suas próprias Cartas de Interesse (RN01, RN02).
+              </p>
+<div class="pt-space-xs flex items-center gap-space-md flex-wrap text-body-sm font-body-sm">
+<div class="flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span id="perm-allowed">Vitrine Pública, Detalhes, Envio de Cartas</span>
+</div>
+<div class="flex items-center gap-1 text-error font-semibold">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+<span id="perm-denied">Painel Gestor, Nova Pesquisa, Triagem Geral</span>
+</div>
+</div>
+</div>
+<!-- Formulário Padrão de Login -->
+<form class="flex flex-col gap-space-md" onsubmit="event.preventDefault(); simulateAuthSuccess();">
+<div class="flex flex-col gap-space-2xs">
+<label class="font-label-md text-label-md text-primary" for="login-email">
+                  E-mail Institucional Acadêmico <span class="text-error">*</span>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-outline text-[20px]">mail</span>
+<input class="w-full pl-10 pr-3 py-2 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary" id="login-email" placeholder="identificador@universidade.br" required="" type="email" value="carlos.mendes@dcc.universidade.br"/>
+</div>
+<span class="font-caption text-caption text-outline">Utilize seu login institucional cadastrado no sistema acadêmico central.</span>
+</div>
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-primary" for="login-password">
+                    Senha de Acesso <span class="text-error">*</span>
+</label>
+<a class="font-caption text-caption text-secondary hover:underline" href="#">Esqueceu sua senha?</a>
+</div>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-outline text-[20px]">lock</span>
+<input class="w-full pl-10 pr-10 py-2 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary" id="login-password" required="" type="password" value="••••••••••••"/>
+<button aria-label="Exibir senha" class="absolute right-3 text-outline hover:text-on-surface" type="button">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+</div>
+<!-- Indicador de Criptografia RNF03 -->
+<div class="flex items-center gap-space-xs font-caption text-caption text-secondary pt-1">
+<span class="material-symbols-outlined text-[14px]">shield</span>
+<span>Protegido por Hash Argon2id + Salting criptográfico de 128-bits</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<label class="flex items-center gap-space-xs cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-secondary" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Lembrar credencial nesta estação (30 dias)</span>
+</label>
+<span class="font-caption text-caption text-outline">Timeout de inatividade: 30m</span>
+</div>
+<!-- Botão Principal de Login -->
+<button class="w-full py-space-sm bg-primary-container hover:bg-primary text-on-primary font-label-md text-label-md rounded-lg shadow-sm transition-colors flex items-center justify-center gap-space-xs font-semibold" type="submit">
+<span class="material-symbols-outlined text-[20px]">login</span>
+                Entrar com Credencial Institucional
+              </button>
+</form>
+<div class="flex items-center gap-space-sm text-outline font-caption text-caption">
+<div class="flex-1 h-px bg-surface-container-high"></div>
+<span>OU AUTENTIQUE-SE POR FEDERAÇÃO OFICIAL</span>
+<div class="flex-1 h-px bg-surface-container-high"></div>
+</div>
+<!-- Provedores Federados (Gov.br & CAFe/RNP) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<button class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container-high text-primary flex items-center justify-center gap-space-xs transition-colors shadow-sm" type="button">
+<div class="w-6 h-6 rounded bg-primary text-on-primary flex items-center justify-center font-bold text-[12px]">gov</div>
+<span class="font-label-md text-label-md font-semibold">Entrar com gov.br (Prata/Ouro)</span>
+</button>
+<button class="p-space-sm rounded-lg bg-surface-container-low hover:bg-surface-container-high text-primary flex items-center justify-center gap-space-xs transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-secondary text-[20px]">hub</span>
+<span class="font-label-md text-label-md font-semibold">Comunidade CAFe / RNP</span>
+</button>
+</div>
+</div>
+<!-- ABA 2: CADASTRO INSTITUCIONAL -->
+<div class="hidden bg-surface-container-lowest p-space-xl rounded-xl shadow-sm flex flex-col gap-space-lg" id="panel-register">
+<div class="flex flex-col gap-space-2xs">
+<h2 class="font-headline-sm text-headline-sm text-primary">Cadastro de Usuário Institucional</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Preencha os dados oficiais de vínculo para análise e habilitação do seu perfil no Programa de Iniciação Científica e Tecnológica.
+              </p>
+</div>
+<form class="flex flex-col gap-space-md" onsubmit="event.preventDefault(); alert('Solicitação de cadastro submetida com sucesso! Em análise pela PRPq.');">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="flex flex-col gap-space-2xs">
+<label class="font-label-md text-label-md text-primary">Nome Completo <span class="text-error">*</span></label>
+<input class="py-2 px-3 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary" placeholder="Ex: Profa. Mariana Silva" required="" type="text"/>
+</div>
+<div class="flex flex-col gap-space-2xs">
+<label class="font-label-md text-label-md text-primary">CPF <span class="text-error">*</span></label>
+<input class="py-2 px-3 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary" placeholder="000.000.000-00" required="" type="text"/>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="flex flex-col gap-space-2xs">
+<label class="font-label-md text-label-md text-primary">E-mail Institucional (@aluno / @univ) <span class="text-error">*</span></label>
+<input class="py-2 px-3 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary" placeholder="nome.sobrenome@universidade.br" required="" type="email"/>
+</div>
+<div class="flex flex-col gap-space-2xs">
+<label class="font-label-md text-label-md text-primary">Matrícula Discente / SIAPE Docente <span class="text-error">*</span></label>
+<input class="py-2 px-3 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary" placeholder="Ex: 2021049281 ou SIAPE 1984210" required="" type="text"/>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="flex flex-col gap-space-2xs">
+<label class="font-label-md text-label-md text-primary">Vínculo Acadêmico (Unidade / Centro) <span class="text-error">*</span></label>
+<select class="py-2 px-3 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary">
+<option>ICEx - Inst. de Ciências Exatas (DCC, MAT, FIS)</option>
+<option>ICB - Inst. de Ciências Biológicas</option>
+<option>FAFICH - Filosofia e Ciências Humanas</option>
+<option>Escola de Engenharia</option>
+<option>Faculdade de Medicina</option>
+</select>
+</div>
+<div class="flex flex-col gap-space-2xs">
+<label class="font-label-md text-label-md text-primary">Grande Área CNPq <span class="text-error">*</span></label>
+<select class="py-2 px-3 bg-surface-container-lowest text-on-surface font-body-md text-body-md rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary">
+<option>Ciências Exatas e da Terra</option>
+<option>Ciências Biológicas</option>
+<option>Engenharias</option>
+<option>Ciências da Saúde</option>
+<option>Ciências Humanas e Sociais</option>
+</select>
+</div>
+</div>
+<!-- Seleção do Papel Pretendido com Regra de Comprovação -->
+<div class="flex flex-col gap-space-2xs pt-space-xs">
+<label class="font-label-md text-label-md text-primary">Perfil Solicitado <span class="text-error">*</span></label>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-xs">
+<label class="flex items-center gap-space-xs p-space-sm bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container-high transition-colors">
+<input checked="" class="text-primary" name="profile_request" onchange="toggleAttachmentNotice(false)" type="radio" value="aluno"/>
+<div>
+<span class="block font-label-md text-label-md text-primary font-bold">Aluno</span>
+<span class="block font-caption text-caption text-on-surface-variant">Liberação Automática via SIGA</span>
+</div>
+</label>
+<label class="flex items-center gap-space-xs p-space-sm bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container-high transition-colors">
+<input class="text-primary" name="profile_request" onchange="toggleAttachmentNotice(true)" type="radio" value="professor"/>
+<div>
+<span class="block font-label-md text-label-md text-primary font-bold">Professor Orientador</span>
+<span class="block font-caption text-caption text-on-surface-variant">Validação Portaria / SIAPE</span>
+</div>
+</label>
+<label class="flex items-center gap-space-xs p-space-sm bg-surface-container-low rounded-lg cursor-pointer hover:bg-surface-container-high transition-colors">
+<input class="text-primary" name="profile_request" onchange="toggleAttachmentNotice(true)" type="radio" value="gestor"/>
+<div>
+<span class="block font-label-md text-label-md text-primary font-bold">Gerente PRPq</span>
+<span class="block font-caption text-caption text-on-surface-variant">Homologação da Diretoria</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Bloco de Validação Documental para Perfis Elevados -->
+<div class="hidden p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs" id="attachment-notice">
+<div class="flex items-center gap-space-xs text-primary font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-secondary text-[20px]">upload_file</span>
+                  Comprovação de Função para Nível Elevado
+                </div>
+<p class="font-caption text-caption text-on-surface-variant">
+                  Para os papéis de Docente Orientador ou Gestor PRPq, anexe a portaria de nomeação, comprovante SIAPE ou ata departamental assinada digitalmente (ICP-Brasil ou Gov.br).
+                </p>
+<div class="p-space-md rounded-lg bg-surface-container-lowest text-center flex flex-col items-center justify-center gap-space-xs cursor-pointer hover:bg-surface-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-outline text-[28px]">cloud_upload</span>
+<span class="font-label-md text-label-md text-primary font-medium">Clique para enviar o arquivo PDF (máx. 10MB)</span>
+<span class="font-caption text-caption text-outline">Formatos aceitos: .pdf assinado digitalmente</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs pt-space-xs">
+<input class="rounded text-primary focus:ring-secondary" id="terms-agree" required="" type="checkbox"/>
+<label class="font-body-sm text-body-sm text-on-surface-variant" for="terms-agree">
+                  Declaro sob as penas da lei que todas as informações prestadas são verdadeiras e estou em conformidade com o regulamento do PIBIC/PRPq.
+                </label>
+</div>
+<button class="w-full py-space-sm bg-secondary text-on-secondary font-label-md text-label-md rounded-lg shadow-sm transition-colors flex items-center justify-center gap-space-xs font-semibold hover:opacity-95" type="submit">
+<span class="material-symbols-outlined text-[20px]">how_to_reg</span>
+                Finalizar Cadastro Institucional
+              </button>
+</form>
+</div>
+</div>
+<!-- COLUNA DIREITA (5 colunas): CARD BENTO ILUSTRATIVO & ESTATÍSTICA DE IDENTIDADES -->
+<div class="lg:col-span-5 flex flex-col gap-space-lg">
+<!-- Card de Apresentação Visual da Comunidade Científica -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-secondary font-bold uppercase tracking-wider">Rede Acadêmica Conectada</span>
+<span class="font-caption text-caption text-outline">Edital 2024/2025</span>
+</div>
+<div class="relative w-full h-44 rounded-lg overflow-hidden bg-primary-container">
+<img class="w-full h-full object-cover opacity-80" data-alt="Universidade moderna com estudantes universitários de graduação e professores pesquisadores trabalhando em equipe com computadores, telas de gráficos científicos, livros e atmosfera acadêmica brasileira de alta tecnologia e colaboração intelectual, iluminação em tons de azul escuro e verde azulado institucional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpfxmvkgJPxZVPAseuhgFY4k1L4_XJyra3n0nXhjcN_74BK13_htCC-Avmc271NjbytZlkNQFgvdLhhtM0Z9eI54bS-X-MCyZ47r3N4po13hOgGzIRsRBhaPOTgOHKANmoV5gHMGDDIn_m3p3z4iM4din6pv93Yq9K9vooK-9-MvLVuyZ8tvHwYSxCr2zmlXmjBBUNX5k1jy1k29cFGwdbiwoCEf0a1ZeOf8q5D5akUv5fD7H50QsodQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 via-primary/30 to-transparent p-space-md flex flex-col justify-end text-on-primary">
+<span class="font-title-md text-title-md font-bold">Inovação, Ciência &amp; Transparência</span>
+<span class="font-caption text-caption text-surface-container-highest">Mais de 1.840 pesquisadores e acadêmicos ativos no ecossistema</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              O controle de acesso baseado em papéis (RBAC) garante a integridade de pareceres científicos, resguarda a autoria de planos de trabalho e assegura conformidade estrita com a LGPD e normas do CNPq.
+            </p>
+<!-- Mini KPIs de Identidades Ativas -->
+<div class="grid grid-cols-3 gap-space-xs pt-space-xs text-center border-t border-surface-container">
+<div class="p-space-xs rounded bg-surface-container-low">
+<span class="block font-headline-sm text-headline-sm font-bold text-primary">1.420</span>
+<span class="block font-caption text-caption text-outline">Alunos</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container-low">
+<span class="block font-headline-sm text-headline-sm font-bold text-secondary">386</span>
+<span class="block font-caption text-caption text-outline">Docentes</span>
+</div>
+<div class="p-space-xs rounded bg-surface-container-low">
+<span class="block font-headline-sm text-headline-sm font-bold text-primary">34</span>
+<span class="block font-caption text-caption text-outline">Gestores PRPq</span>
+</div>
+</div>
+</div>
+<!-- Card de Suporte e Conformidade Federal -->
+<div class="bg-surface-container-high p-space-md rounded-xl flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-primary font-title-md text-title-md font-semibold">
+<span class="material-symbols-outlined text-[20px] text-secondary">support_agent</span>
+              Dúvidas de Acesso ou Primeiro Vínculo?
+            </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Caso sua matrícula ou portaria SIAPE não seja validada automaticamente pela federação, encaminhe seus dados funcionais para a Secretaria de Iniciação Científica:
+            </p>
+<div class="flex items-center justify-between pt-space-xs text-body-sm font-body-sm">
+<span class="font-code text-code text-primary font-bold">pibic.suporte@prpq.universidade.br</span>
+<span class="text-outline">Ramais 4120 / 4122</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- MATRIZ COMPARATIVA DE ACESSOS & PERMISSÕES (RBAC) -->
+<section class="w-full bg-surface-container-low py-space-3xl">
+<div class="max-w-layout-max-width mx-auto px-layout-margin-desktop flex flex-col gap-space-xl">
+<!-- Cabeçalho da Seção de Permissões -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-md text-label-md text-secondary font-bold uppercase tracking-wider">Arquitetura de Segurança por Função</span>
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight">
+            Matriz Comparativa de Acessos &amp; Níveis de Permissão (RBAC)
+          </h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+            Tabela de privilégios conforme as Regras de Negócio (RN01, RN02, RN03, RN04) e Requisitos Funcionais (RF01 a RF04) homologados pela PRPq.
+          </p>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-lowest p-space-xs rounded-lg shadow-sm">
+<span class="inline-flex items-center gap-1 font-caption text-caption text-secondary font-semibold">
+<span class="material-symbols-outlined text-[16px]">check_circle</span> Permitido
+          </span>
+<span class="text-outline">|</span>
+<span class="inline-flex items-center gap-1 font-caption text-caption text-error font-semibold">
+<span class="material-symbols-outlined text-[16px]">cancel</span> Restrito / Bloqueado
+          </span>
+</div>
+</div>
+<!-- Tabela Estruturada RBAC -->
+<div class="w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-primary text-on-primary font-label-md text-label-md">
+<th class="py-space-md px-space-lg w-2/5">Funcionalidade / Escopo do Sistema</th>
+<th class="py-space-md px-space-md text-center w-1/5 bg-primary/95">
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-[20px] text-secondary-fixed">school</span>
+<span class="font-bold">Aluno</span>
+<span class="font-caption text-caption font-normal text-surface-variant text-[10px]">Graduação / Bolsista</span>
+</div>
+</th>
+<th class="py-space-md px-space-md text-center w-1/5 bg-primary/90">
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-[20px] text-secondary-fixed">psychology</span>
+<span class="font-bold">Professor Orientador</span>
+<span class="font-caption text-caption font-normal text-surface-variant text-[10px]">Docente Responsável</span>
+</div>
+</th>
+<th class="py-space-md px-space-md text-center w-1/5 bg-primary/85">
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-[20px] text-secondary-fixed">admin_panel_settings</span>
+<span class="font-bold">Gerente / PRPq</span>
+<span class="font-caption text-caption font-normal text-surface-variant text-[10px]">Administrador Geral</span>
+</div>
+</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container font-body-sm text-body-sm text-on-surface">
+<!-- Linha 1 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Vitrine Pública &amp; Busca de Pesquisas</span>
+<span class="font-caption text-caption text-on-surface-variant">Consulta a editais, subáreas CNPq e vagas ativas em toda a universidade.</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Total</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Total</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Total</span>
+</div>
+</td>
+</tr>
+<!-- Linha 2 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Detalhes Completos da Pesquisa &amp; Plano de Trabalho</span>
+<span class="font-caption text-caption text-on-surface-variant">Visualização do resumo, metodologia, requisitos e cronograma das bolsas.</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Liberado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Liberado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Liberado</span>
+</div>
+</td>
+</tr>
+<!-- Linha 3 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Submissão de Carta de Interesse &amp; Histórico (RN01, RN02)</span>
+<span class="font-caption text-caption text-on-surface-variant">Candidatura oficial de estudantes a pesquisas abertas com anexos acadêmicos.</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-secondary-container/20">
+<div class="inline-flex items-center gap-1 text-secondary font-bold">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+<span class="font-caption text-caption">Exclusivo Aluno</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-outline">
+<span class="material-symbols-outlined text-[20px]">remove_circle_outline</span>
+<span class="font-caption text-caption">Inaplicável</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-outline">
+<span class="material-symbols-outlined text-[20px]">remove_circle_outline</span>
+<span class="font-caption text-caption">Inaplicável</span>
+</div>
+</td>
+</tr>
+<!-- Linha 4 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Cadastro e Edição de Novas Pesquisas (RF01, RF02)</span>
+<span class="font-caption text-caption text-on-surface-variant">Criação de projetos, definição de vagas remuneradas/voluntárias e planos.</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-error font-semibold">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+<span class="font-caption text-caption">Bloqueado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Suas Pesquisas</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Total (Todas)</span>
+</div>
+</td>
+</tr>
+<!-- Linha 5 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Triagem de Cartas Recebidas para os Seus Projetos (RN03)</span>
+<span class="font-caption text-caption text-on-surface-variant">Avaliação das candidaturas recebidas nas vagas sob sua orientação.</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-error font-semibold">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+<span class="font-caption text-caption">Bloqueado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Seus Projetos</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Total</span>
+</div>
+</td>
+</tr>
+<!-- Linha 6 (Destaque Restrição Central de Triagem Geral) -->
+<tr class="hover:bg-surface-container-low transition-colors bg-error-container/10">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-title-md text-title-md text-primary font-bold">Central de Triagem Geral &amp; Consolidada</span>
+<span class="font-code text-code px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-semibold">Restrito</span>
+</div>
+<span class="font-caption text-caption text-on-surface-variant">Painel unificado de triagem de todos os departamentos e orientadores da instituição.</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<div class="inline-flex items-center gap-1 text-error font-bold">
+<span class="material-symbols-outlined text-[20px]">block</span>
+<span class="font-caption text-caption">Bloqueado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<div class="inline-flex items-center gap-1 text-error font-bold">
+<span class="material-symbols-outlined text-[20px]">block</span>
+<span class="font-caption text-caption">Bloqueado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-secondary-container/20">
+<div class="inline-flex items-center gap-1 text-secondary font-bold">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<span class="font-caption text-caption">Exclusivo PRPq</span>
+</div>
+</td>
+</tr>
+<!-- Linha 7 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Painel Gestor &amp; Métricas Institucionais Globais (RF04)</span>
+<span class="font-caption text-caption text-on-surface-variant">Cotas de bolsas CNPq/FAPEMIG, taxa de adesão por unidade e gráficos executivos.</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-error font-semibold">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+<span class="font-caption text-caption">Bloqueado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-error font-semibold">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+<span class="font-caption text-caption">Bloqueado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-secondary-container/20">
+<div class="inline-flex items-center gap-1 text-secondary font-bold">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<span class="font-caption text-caption">Acesso Total</span>
+</div>
+</td>
+</tr>
+<!-- Linha 8 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Encerramento e Homologação de Pesquisas (RN04)</span>
+<span class="font-caption text-caption text-on-surface-variant">Finalização formal por conclusão, preenchimento de vaga ou arquivamento.</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-error font-semibold">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+<span class="font-caption text-caption">Bloqueado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Suas Pesquisas</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-secondary font-semibold">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="font-caption text-caption">Homologação Geral</span>
+</div>
+</td>
+</tr>
+<!-- Linha 9 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-title-md text-title-md text-primary font-semibold">Auditoria de Logs, Segurança &amp; Gestão de Usuários</span>
+<span class="font-caption text-caption text-on-surface-variant">Rastreabilidade completa de submissões, logs de IP, sessões e revogação de acessos.</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-error font-semibold">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+<span class="font-caption text-caption">Bloqueado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-surface-container-lowest">
+<div class="inline-flex items-center gap-1 text-error font-semibold">
+<span class="material-symbols-outlined text-[20px]">cancel</span>
+<span class="font-caption text-caption">Bloqueado</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center bg-secondary-container/20">
+<div class="inline-flex items-center gap-1 text-secondary font-bold">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<span class="font-caption text-caption">Exclusivo PRPq</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Rodapé explicativo da tabela -->
+<div class="p-space-md bg-surface-container flex flex-col sm:flex-row items-center justify-between gap-space-xs text-on-surface-variant font-caption text-caption">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[18px]">info</span>
+<span>Regra de Negócio: Os orientadores realizam a triagem somente de seus próprios bolsistas; a Central Geral é privativa da PRPq.</span>
+</div>
+<span class="font-code text-code">RBAC Policy Revision 4.2 • 2024</span>
+</div>
+</div>
+</div>
+</section>
+<!-- BLOCO DE DIRETRIZES DE SEGURANÇA & REQUISITO NÃO-FUNCIONAL RNF03 -->
+<section class="w-full py-space-2xl">
+<div class="max-w-layout-max-width mx-auto px-layout-margin-desktop">
+<div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[24px]">gavel</span>
+<span class="font-label-md text-label-md text-secondary uppercase tracking-wider font-bold">Diretrizes de Proteção de Dados e Autenticação</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-primary">
+            Conformidade com o Requisito RNF03 &amp; LGPD Acadêmica
+          </h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            O Sistema PIBIC opera sob rigorosos padrões de segurança da informação compatíveis com a Infraestrutura de Chaves Públicas Brasileira (ICP-Brasil) e as recomendações do CNPq.
+          </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Card 1: Hashing -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">password</span>
+</div>
+<span class="font-title-md text-title-md text-primary font-bold">Criptografia Argon2id</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Todas as senhas passam por derivação de chave Argon2id/Bcrypt com memória ajustada (64MB) impedindo ataques de força bruta ou rainbow table.
+            </p>
+</div>
+<!-- Card 2: 2FA & Federação -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-secondary text-on-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">vibration</span>
+</div>
+<span class="font-title-md text-title-md text-primary font-bold">2FA &amp; Federação CAFe</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Suporte a token TOTP e autenticação federada SAML 2.0 / OpenID Connect via Rede Nacional de Ensino e Pesquisa (RNP).
+            </p>
+</div>
+<!-- Card 3: Sessão Segura -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">timer</span>
+</div>
+<span class="font-title-md text-title-md text-primary font-bold">Sessão HTTPS 30 min</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Cookies marcados estritamente como HttpOnly, Secure e SameSite=Strict, com expiração automática após 30 minutos de inatividade.
+            </p>
+</div>
+<!-- Card 4: Trilha de Auditoria -->
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<div class="w-9 h-9 rounded-lg bg-secondary text-on-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+</div>
+<span class="font-title-md text-title-md text-primary font-bold">Trilha Imutável de Logs</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Cada submissão de carta, emissão de parecer e homologação gera registro imutável com carimbo de data/hora oficial e endereço IP auditável.
+            </p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SCRIPT CLIENT-SIDE PARA INTERATIVIDADE: SIMULADOR DE PAPÉIS & ABAS -->
+<script>
+    const roleConfigs = {
+      aluno: {
+        title: "Perfil Atual: Aluno de Graduação (PIBIC / PIVIC)",
+        badge: "Acesso: Nível 1 (Discente)",
+        email: "aluno.iniciacao@aluno.universidade.br",
+        desc: "Permissão autorizada para consultar a Vitrine Pública, visualizar detalhes técnicos das pesquisas e submeter/acompanhar suas próprias Cartas de Interesse (RN01, RN02).",
+        allowed: "Vitrine Pública, Detalhes, Envio e Acompanhamento de Cartas",
+        denied: "Painel Gestor, Nova Pesquisa, Central de Triagem Geral"
+      },
+      professor: {
+        title: "Perfil Atual: Professor Orientador (Docente)",
+        badge: "Acesso: Nível 2 (Docente)",
+        email: "carlos.mendes@dcc.universidade.br",
+        desc: "Permissão para submeter novas pesquisas (RF01), gerenciar seus projetos, triar cartas recebidas em suas vagas (RN03) e encerrar seus planos (RN04).",
+        allowed: "Vitrine, Cadastro/Edição de Pesquisas, Triagem das Suas Vagas, Encerramento Próprio",
+        denied: "Painel Gestor Geral PRPq, Triagem Geral de Outros Docentes"
+      },
+      gestor: {
+        title: "Perfil Atual: Gerente / Administrador PRPq",
+        badge: "Acesso: Nível 3 (Root Institucional)",
+        email: "diretoria.pibic@prpq.universidade.br",
+        desc: "Acesso irrestrito ao Painel Gestor & Métricas (RF04), Central Geral de Triagem e Auditoria (RN03), Homologação de Bolsas e Gestão de Usuários.",
+        allowed: "Painel Gestor & Métricas, Central de Triagem Geral, Auditoria, Homologação Global",
+        denied: "Nenhuma restrição (Acesso Irrestrito Homologado)"
+      }
+    };
+
+    function selectSimulatedRole(roleKey) {
+      const config = roleConfigs[roleKey];
+      if (!config) return;
+
+      // Atualiza textos
+      document.getElementById("perm-title").textContent = config.title;
+      document.getElementById("perm-badge").textContent = config.badge;
+      document.getElementById("perm-description").textContent = config.desc;
+      document.getElementById("perm-allowed").textContent = config.allowed;
+      document.getElementById("perm-denied").textContent = config.denied;
+      document.getElementById("login-email").value = config.email;
+
+      // Atualiza pills visuais
+      const buttons = document.querySelectorAll(".role-selector-btn");
+      buttons.forEach(btn => {
+        btn.classList.remove("bg-primary", "text-on-primary");
+        btn.classList.add("bg-surface-container-high", "text-on-surface-variant");
+      });
+
+      const activeBtn = document.getElementById("role-pill-" + roleKey);
+      if (activeBtn) {
+        activeBtn.classList.remove("bg-surface-container-high", "text-on-surface-variant");
+        activeBtn.classList.add("bg-primary", "text-on-primary");
+      }
+    }
+
+    function switchAuthTab(tab) {
+      const loginPanel = document.getElementById("panel-login");
+      const registerPanel = document.getElementById("panel-register");
+      const loginBtn = document.getElementById("tab-login-btn");
+      const registerBtn = document.getElementById("tab-register-btn");
+
+      if (tab === "login") {
+        loginPanel.classList.remove("hidden");
+        registerPanel.classList.add("hidden");
+        loginBtn.classList.add("bg-surface-container-lowest", "text-primary", "shadow-sm");
+        loginBtn.classList.remove("text-on-surface-variant");
+        registerBtn.classList.remove("bg-surface-container-lowest", "text-primary", "shadow-sm");
+        registerBtn.classList.add("text-on-surface-variant");
+      } else {
+        loginPanel.classList.add("hidden");
+        registerPanel.classList.remove("hidden");
+        registerBtn.classList.add("bg-surface-container-lowest", "text-primary", "shadow-sm");
+        registerBtn.classList.remove("text-on-surface-variant");
+        loginBtn.classList.remove("bg-surface-container-lowest", "text-primary", "shadow-sm");
+        loginBtn.classList.add("text-on-surface-variant");
+      }
+    }
+
+    function toggleAttachmentNotice(show) {
+      const box = document.getElementById("attachment-notice");
+      if (box) {
+        if (show) {
+          box.classList.remove("hidden");
+        } else {
+          box.classList.add("hidden");
+        }
+      }
+    }
+
+    function simulateAuthSuccess() {
+      const email = document.getElementById("login-email").value;
+      alert("Autenticação com criptografia RNF03 bem-sucedida para o usuário: " + email + ".\nRedirecionando para a respectiva área de trabalho acadêmica...");
+    }
+  </script>
+</div></main><footer class="w-full bg-surface-container-low mt-space-3xl"><div class="max-w-layout-max-width mx-auto px-layout-margin-desktop py-space-2xl"><div class="grid grid-cols-1 md:grid-cols-4 gap-space-xl"><div class="flex flex-col gap-space-xs md:col-span-1"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-primary font-bold">PIBIC</span></div><p class="font-body-sm text-body-sm text-on-surface-variant">Programa Institucional de Bolsas de Iniciação Científica e Desenvolvimento Tecnológico da Universidade.</p><p class="font-caption text-caption text-outline">CNPq • CAPES • Pró-Reitoria de Pesquisa</p></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md text-primary uppercase tracking-wider">Administração</span><ul class="flex flex-col gap-space-2xs font-body-sm text-body-sm text-on-surface-variant"><li><a class="hover:text-on-surface hover:underline" href="#">Pró-Reitoria de Pesquisa (PRPq)</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Comitê Assessor PIBIC/PIBITI</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Coordenação de Inovação e Parcerias</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Comitê de Ética em Pesquisa (CEP)</a></li></ul></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md text-primary uppercase tracking-wider">Fomento &amp; Parcerias</span><ul class="flex flex-col gap-space-2xs font-body-sm text-body-sm text-on-surface-variant"><li><a class="hover:text-on-surface hover:underline" href="#">Plataforma Integrada CNPq</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Portal de Periódicos CAPES</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Termos de Cooperação Técnica</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Modelos de Cartas de Anuência</a></li></ul></div><div class="flex flex-col gap-space-xs"><span class="font-label-md text-label-md text-primary uppercase tracking-wider">Suporte &amp; Transparência</span><ul class="flex flex-col gap-space-2xs font-body-sm text-body-sm text-on-surface-variant"><li><a class="hover:text-on-surface hover:underline" href="#">Declaração de Acessibilidade</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Ouvidoria Universitária</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Manual do Bolsista e Orientador</a></li><li><a class="hover:text-on-surface hover:underline" href="#">Fale Conosco: pibic@universidade.br</a></li></ul></div></div><div class="mt-space-xl pt-space-lg flex flex-col sm:flex-row items-center justify-between gap-space-md text-on-surface-variant font-caption text-caption"><p>© 2024 Setor de Pesquisa Científica &amp; Inovação Tecnológica. Todos os direitos reservados.</p><p class="font-code text-code text-outline">Sistema PIBIC v4.2.0-PROD</p></div></div></footer></body></html>
