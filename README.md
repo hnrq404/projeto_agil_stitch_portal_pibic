@@ -12,8 +12,9 @@ Atividade acadêmica — planejamento e documentação para o desenvolvimento de
 
 ## 📚 Documentação
 
-- [🧠 Cérebro do Projeto](./PROJECT_BRAIN.md) — hub central, conectado por wikilinks
-- [DESIGN.md](./DESIGN.md) — sistema de design (cores, tipografia, componentes, WCAG 2.1 AA)
+- [🧠 Cérebro do Projeto](./institutional_scientific_portal/PROJECT_BRAIN.md) — hub central, conectado por wikilinks
+- [DESIGN.md](./institutional_scientific_portal/DESIGN.md) — sistema de design (cores, tipografia, componentes, WCAG 2.1 AA)
+- [Backlog.md](./institutional_scientific_portal/Backlog.md) — requisitos funcionais (RF), requisitos não funcionais (RNF), regras de negócio (RN) e backlog priorizado de user stories por sprint
 
 ### Wiki do Projeto (via wikilinks em `PROJECT_BRAIN.md`)
 - [[Arquitetura]] — organização de código por módulos
