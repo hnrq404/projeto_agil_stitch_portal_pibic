@@ -1,6 +1,5 @@
 # Sprints — Portal de Gestão de Laboratório
 
-> Página da wiki conectada a [[PROJECT_BRAIN]]. Planejamento S0–S8 com objetivos, entregas e riscos. Cada sprint tem 2 semanas (time de 5 pessoas, conforme [[Gestao-de-Projeto]]).
 
 ## 0. Linha do tempo
 
