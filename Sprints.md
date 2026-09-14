@@ -29,13 +29,7 @@ gantt
 
 **Objetivo:** deixar o time pronto para construir — sem código de produto ainda, mas com tudo documentado, ferramentado e validado.
 
-| Entrega | Detalhe |
-| --- | --- |
-| Documentação/wiki | [[PROJECT_BRAIN]], [[Arquitetura]], [[Sprints]], [[Backlog]], [[Qualidade]], [[Usabilidade]], [[Definition-of-Done]], [[Gestao-de-Projeto]] |
-| Design system | [[DESIGN]] revisado e aprovado pelo time (mockups em `stitch_portal_pibic_conecta/`) |
-| Refinamento do backlog | User stories com critérios de aceitação para S1–S3 |
-| ADRs iniciais | Decisões 001–005 registradas ([[PROJECT_BRAIN]] §7) |
-| (Se der tempo) scaffold | Projeto Vite + React + TS + Tailwind + shadcn/ui + Convex inicializado |
+
 
 **Definition of Done da S0** (complementa [[Definition-of-Done]]): 100% das páginas da wiki criadas e revisadas por ≥ 2 membros; backlog S1–S3 refinado; design system aprovado.
 
