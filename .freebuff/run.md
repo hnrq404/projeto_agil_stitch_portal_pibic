@@ -77,3 +77,24 @@ Notas aprendidas nesta sessão:
 1. Abra http://localhost:5173 → aba **Criar Nova Conta Institucional**.
 2. Cadastre-se (senha com 8+ caracteres, maiúscula, minúscula e número). Aluno é liberado automaticamente.
 3. Com a instalação sem nenhum Gestor PRPq, a shell exibe o banner **"Assumir papel de Gestor PRPq"** — o primeiro usuário autenticado assume o papel (bootstrap) e destrava a Gestão de Usuários, onde papéis elevados solicitados no cadastro entram em fila de homologação.
+
+## 4. Sprint 3 — Inscrição de Pesquisa (M3)
+
+Implementada em `portal-lab/` (backend `convex/inscricoes/`, frontend `src/features/inscricao/`). Fluxo validado ponta a ponta no preview: cadastro discente → edital demo → multi-etapas → upload PDF → aceite do orientador → submissão com protocolo.
+
+### Fluxo de demonstração
+1. Cadastre um **docente** (vai para fila de homologação) e um **aluno**; com o banner de bootstrap, o aluno assume Gestor PRPq e homologa o docente em **Gestão de Usuários**.
+2. Como aluno: **Nova Inscrição** → se não houver edital, clique em **"Carregar edital de demonstração"** (seed idempotente — edital PIBIC 01/2026 publicado).
+3. Preencha as 4 etapas (validação por etapa, auto-save com debounce de 1,5 s e indicador "Rascunho salvo"). A URL vira `/nova-inscricao/:id` ao criar o rascunho — fechar a aba não perde dados (RNF08).
+4. Anexos: apenas PDF ≤ 10 MB (RN06), upload direto ao Convex Storage com barra de progresso.
+5. Submissão exige orientador **aprovado** (carta-aceite) + plano de trabalho. O docente responde em **Minhas Inscrições → Solicitações de Orientação** ou no detalhe.
+6. Ao submeter, o backend gera o protocolo CNPq (`23076.014821/2026-09`) e a inscrição fica somente-leitura (RN05); detalhe em `/inscricoes/:id` com timeline.
+
+### Testes
+- `npm test` — 22 unitários (Vitest): protocolo, regras de anexo/submissão, schemas Zod das etapas.
+- `npm run e2e` — Playwright da jornada do discente (`e2e/discente.spec.ts`); requer o dev server rodando (`npm run dev:all`).
+
+### Notas desta sessão (Windows)
+- `BACKGROUND` não disponível no runner: `npm run dev:all` em SYNC mantém os servidores vivos até o timeout, e os processos sobrevivem (Vite :5173, Convex :3210/:3211).
+- `os.tmpdir()` no Windows: usar `"$TEMP"` no shell, não `/tmp` (paths Node).
+- Preview do Freebuff: registrar com `register_preview { url, pid }` usando o PID do processo que escuta :5173 (netstat).
