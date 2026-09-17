@@ -8,9 +8,9 @@ Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda
 
 ## 👥 Equipe
 
-- Ana Beatriz
+- Ana Pellegrino
 - Artur Uchôa
-- Andre Mota
+- André Mota
 - Henrique Valença
 - Pedro Mendes
 
