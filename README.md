@@ -4,7 +4,7 @@ Portal institucional para gestão do ciclo de iniciação científica: editais (
 
 Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda a documentação de produto e arquitetura versionada como uma wiki interna via wikilinks.
 
-**Status atual:** Sprint 0 (fundação) concluída · Sprint 1 (autenticação e níveis de acesso) em andamento — app shell, login/recuperação de senha e guards de rota já implementados em [`portal-lab/`](./portal-lab).
+**Status atual:** Sprint 2 (Edital & Publicação — M2) implementada como API de referência em [`server/`](./server) (Node.js/TypeScript + Express + Zod + Jest, com schema Prisma/PostgreSQL em `server/src/infra/prisma/schema.prisma`): CRUD de editais com ciclo de vida, cotas por subárea CNPq, vitrine pública e notificações in-app — 69 testes verdes (unit + integração + E2E). Sprint 1 (autenticação) segue em andamento no app [`portal-lab/`](./portal-lab).
 
 ## 👥 Equipe
 
@@ -26,6 +26,15 @@ npm run dev:backend   # convex dev — inicia o backend/schema
 npm run dev           # vite — inicia o frontend
 # ou os dois juntos:
 npm run dev:all
+```
+
+A API do módulo Edital & Publicação (Sprint 2) roda em [`server/`](./server) — detalhes e endpoints em [`server/README.md`](./server/README.md):
+
+```bash
+npm install --prefix server
+npm test --prefix server        # unit + integration (in-memory)
+npm run test:e2e --prefix server
+npm run dev --prefix server     # API em http://localhost:3000
 ```
 
 Outros scripts úteis (`portal-lab/package.json`):
@@ -71,7 +80,7 @@ portal-lab/
 | Módulo | Responsabilidade | Sprint |
 | --- | --- | --- |
 | M1 — Autenticação & Acesso | Login, papéis, guards de rota, shell do app | S1 *(em andamento)* |
-| M2 — Edital & Publicação | CRUD de editais, cotas por área, ciclo de vida | S2 |
+| M2 — Edital & Publicação | CRUD de editais, cotas por área, ciclo de vida | S2 *(API de referência em `server/`)* |
 | M3 — Inscrição de Pesquisa | Formulário multi-etapas, upload de plano de trabalho | S3 |
 | M4 — Central de Triagem | Distribuição de propostas, rubrica 0–10, pareceres | S4 |
 | M5 — Painel do Gestor | KPIs, cotas preenchidas, exportação CSV | S5 |
@@ -98,7 +107,7 @@ O sistema de design formal (cores, tipografia, componentes, WCAG 2.1 AA) está e
 | --- | --- | --- |
 | S0 | Fundação: documentação, ferramentação, design system aprovado | ✅ Concluída |
 | S1 | Autenticação e níveis de acesso | 🔵 Em andamento |
-| S2 | Edital & Publicação | ⬜ Planejada |
+| S2 | Edital & Publicação | ✅ API de referência concluída ([`server/`](./server)) |
 | S3 | Inscrição de Pesquisa | ⬜ Planejada |
 | S4 | Central de Triagem e Avaliação | ⬜ Planejada |
 | S5 | Homologação e Painel do Gestor | ⬜ Planejada |
