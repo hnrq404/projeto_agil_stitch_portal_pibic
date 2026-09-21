@@ -4,7 +4,7 @@ Portal institucional para gestão do ciclo de iniciação científica: editais (
 
 Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda a documentação de produto e arquitetura versionada como uma wiki interna via wikilinks.
 
-**Status atual:** Sprint 2 (Edital & Publicação — M2) implementada como API de referência em [`server/`](./server) (Node.js/TypeScript + Express + Zod + Jest, com schema Prisma/PostgreSQL em `server/src/infra/prisma/schema.prisma`): CRUD de editais com ciclo de vida, cotas por subárea CNPq, vitrine pública e notificações in-app — 69 testes verdes (unit + integração + E2E). Sprint 1 (autenticação) segue em andamento no app [`portal-lab/`](./portal-lab).
+**Status atual:** Sprint 2 (Edital & Publicação — M2) **full-stack concluída**: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server), e SPA **React + Vite + Tailwind** navegável em [`web/`](./web) — cadastro/login com redirecionamento por papel, painel do gestor, vitrine pública, notificações in-app. **90 testes de integração/unitários + 2 E2E de API + 1 E2E de browser (Playwright)**, todos verdes. Sprint 1 (Convex Auth no portal-lab) segue em andamento.
 
 ## 👥 Equipe
 
@@ -16,39 +16,46 @@ Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda
 
 ## 🚀 Rodando o projeto
 
-O código da aplicação vive em [`portal-lab/`](./portal-lab) (React + Vite no frontend, Convex no backend).
+A aplicação atual roda full-stack em [`server/`](./server) + [`web/`](./web), usando SQLite local.
 
 ```bash
-cd portal-lab
-npm install
-
-npm run dev:backend   # convex dev — inicia o backend/schema
-npm run dev           # vite — inicia o frontend
-# ou os dois juntos:
-npm run dev:all
-```
-
-A API do módulo Edital & Publicação (Sprint 2) roda em [`server/`](./server) — detalhes e endpoints em [`server/README.md`](./server/README.md):
-
-```bash
+cd caminho/para/projeto_agil_stitch_portal_pibic
 npm install --prefix server
-npm test --prefix server        # unit + integration (in-memory)
-npm run test:e2e --prefix server
-npm run dev --prefix server     # API em http://localhost:3000
+npm install --prefix web
+npm run db:push --prefix server
+npm run db:seed --prefix server
 ```
 
-Outros scripts úteis (`portal-lab/package.json`):
+Para iniciar a API e o frontend em um único terminal, execute na raiz do projeto:
 
-| Script | Descrição |
+```bash
+npx.cmd concurrently -n api,web "npm.cmd run dev --prefix server" "npm.cmd run dev --prefix web"
+```
+
+Esse comando inicia a API em `http://localhost:3000` e o frontend em `http://localhost:5173`.
+Para encerrar os dois serviços, pressione `Ctrl + C`. Como alternativa, a API e o frontend
+podem ser iniciados separadamente em dois terminais.
+
+No PowerShell, se `npm` for bloqueado pela política de scripts, use `npm.cmd` no lugar de `npm`.
+
+Contas de demonstração criadas pelo seed:
+
+| Perfil | E-mail | Senha | Acesso inicial |
+| --- | --- | --- | --- |
+| Gestor | `gestor@pibic.edu.br` | `gestor123` | `/gestor/editais` |
+| Visitante | `visitante@pibic.edu.br` | `visitante123` | `/editais` |
+
+Fluxo: acesse `/cadastro` para criar uma conta ou `/login` para entrar. O Gestor administra editais; o Visitante consulta a vitrine pública.
+
+Detalhes e endpoints em [`server/README.md`](./server/README.md) e [`web/README.md`](./web/README.md).
+
+| Comando (raiz) | Descrição |
 | --- | --- |
-| `npm run build` | typecheck + build de produção (Vite) |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run lint` | ESLint |
-| `npm run test` / `test:watch` | Vitest (unitário/integração) |
-| `npm run e2e` | Playwright (E2E) |
-| `npm run format` | Prettier |
-
-Requer uma conta/projeto [Convex](https://convex.dev) configurado (`convex dev` solicita login na primeira execução) e variáveis de ambiente do Convex Auth em `.env.local` (não versionado).
+| `npm test` | unit + integração (Jest, 90 testes) |
+| `npm run test:e2e:api` | E2E de API com JWT + Prisma real |
+| `npm run test:e2e:ui` | E2E de browser (Playwright) |
+| `npm run typecheck` | tsc nos dois projetos |
+| `npm run db:seed` | contas demo + edital de exemplo |
 
 ## 🏗️ Arquitetura
 
@@ -80,7 +87,7 @@ portal-lab/
 | Módulo | Responsabilidade | Sprint |
 | --- | --- | --- |
 | M1 — Autenticação & Acesso | Login, papéis, guards de rota, shell do app | S1 *(em andamento)* |
-| M2 — Edital & Publicação | CRUD de editais, cotas por área, ciclo de vida | S2 *(API de referência em `server/`)* |
+| M2 — Edital & Publicação | CRUD de editais, cotas por área, ciclo de vida | S2 *(full-stack: `server/` + `web/`)* |
 | M3 — Inscrição de Pesquisa | Formulário multi-etapas, upload de plano de trabalho | S3 |
 | M4 — Central de Triagem | Distribuição de propostas, rubrica 0–10, pareceres | S4 |
 | M5 — Painel do Gestor | KPIs, cotas preenchidas, exportação CSV | S5 |
@@ -107,7 +114,7 @@ O sistema de design formal (cores, tipografia, componentes, WCAG 2.1 AA) está e
 | --- | --- | --- |
 | S0 | Fundação: documentação, ferramentação, design system aprovado | ✅ Concluída |
 | S1 | Autenticação e níveis de acesso | 🔵 Em andamento |
-| S2 | Edital & Publicação | ✅ API de referência concluída ([`server/`](./server)) |
+| S2 | Edital & Publicação | ✅ Full-stack concluída ([`server/`](./server) + [`web/`](./web)) |
 | S3 | Inscrição de Pesquisa | ⬜ Planejada |
 | S4 | Central de Triagem e Avaliação | ⬜ Planejada |
 | S5 | Homologação e Painel do Gestor | ⬜ Planejada |

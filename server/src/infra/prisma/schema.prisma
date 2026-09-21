@@ -1,62 +1,59 @@
-// Schema Prisma — mapeamento 1:1 do domínio em memória para PostgreSQL.
-// O portal roda com repositórios in-memory (ver app.container.ts) até a Sprint de
-// persistência; este schema é o contrato oficial para a migração via `prisma migrate`.
+// Schema Prisma — persistência REAL da aplicação (SQLite, zero-config).
+// Para PostgreSQL: troque provider para "postgresql" e aponte DATABASE_URL.
 //
-// Uso futuro:
 //   npx prisma generate --schema src/infra/prisma/schema.prisma
-//   npx prisma migrate dev --schema src/infra/prisma/schema.prisma
+//   npx prisma db push   --schema src/infra/prisma/schema.prisma
+//
+// Nota: SQLite não suporta enums do Prisma — status/roles são String validados
+// na camada de domínio (mesma regra do núcleo hexagonal).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-enum EditalStatus {
-  RASCUNHO
-  PUBLICADO
-  ENCERRADO
-}
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senhaHash String
+  /// "GESTOR" | "USUARIO" (visitante) — validado na camada de domínio.
+  role      String
+  criadoEm  DateTime @default(now())
 
-enum BolsaTipo {
-  PIBIC
-  PIBITI
-  PIBIC_AF
-  VOLUNTARIO
-}
-
-enum NotificacaoTipo {
-  EDITAL_PUBLICADO
-  EDITAL_ENCERRADO
+  notificacoes Notificacao[]
 }
 
 model Edital {
-  id                    String       @id @default(uuid())
-  numero                String       @unique
-  titulo                String
-  descricao             String       @default("")
-  status                EditalStatus @default(RASCUNHO)
-  tipoBolsa             BolsaTipo
-  totalCotas            Int
-  dataInicioInscricoes  DateTime
-  dataFimInscricoes     DateTime
-  publicadoEm           DateTime?
-  encerradoEm           DateTime?
-  criadoEm              DateTime     @default(now())
-  atualizadoEm          DateTime     @updatedAt
+  id                   String   @id @default(uuid())
+  numero               String   @unique
+  titulo               String
+  descricao            String   @default("")
+  /// "RASCUNHO" | "PUBLICADO" | "ENCERRADO"
+  status               String   @default("RASCUNHO")
+  /// "PIBIC" | "PIBITI" | "PIBIC_AF" | "VOLUNTARIO"
+  tipoBolsa            String
+  totalCotas           Int
+  dataInicioInscricoes DateTime
+  dataFimInscricoes    DateTime
+  publicadoEm          DateTime?
+  encerradoEm          DateTime?
+  criadoEm             DateTime @default(now())
+  atualizadoEm         DateTime @updatedAt
 
-  cotas                 CotaSubarea[]
+  cotas CotaSubarea[]
 
   @@index([status, dataFimInscricoes])
 }
 
 model CotaSubarea {
-  id          String  @id @default(uuid())
+  id          String @id @default(uuid())
   editalId    String
-  edital      Edital  @relation(fields: [editalId], references: [id], onDelete: Cascade)
+  edital      Edital @relation(fields: [editalId], references: [id], onDelete: Cascade)
   subareaCode String
   subareaNome String
   quantidade  Int
@@ -66,14 +63,16 @@ model CotaSubarea {
 }
 
 model Notificacao {
-  id          String          @id @default(uuid())
+  id          String   @id @default(uuid())
   userId      String
-  tipo        NotificacaoTipo
+  user        Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// "EDITAL_PUBLICADO" | "EDITAL_ENCERRADO"
+  tipo        String
   titulo      String
   mensagem    String
   referenceId String?
-  lida        Boolean         @default(false)
-  criadoEm    DateTime        @default(now())
+  lida        Boolean  @default(false)
+  criadoEm    DateTime @default(now())
 
   @@index([userId, lida])
   @@index([referenceId])

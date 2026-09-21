@@ -1,5 +1,9 @@
-/** Papéis de acesso do portal — RN11 (Backlog): o acesso é determinado exclusivamente pelo papel. */
-export type UserRole = 'DISCENTE' | 'DOCENTE' | 'AVALIADOR' | 'GESTOR' | 'ADMIN';
+/**
+ * Papéis de acesso do portal — RN11 (Backlog): o acesso é determinado exclusivamente pelo papel.
+ * `USUARIO` é o perfil de auto-cadastro (visitante) da Sprint 2; os demais são
+ * atribuídos pela instituição (seed/Convex Auth na Sprint 1).
+ */
+export type UserRole = 'DISCENTE' | 'DOCENTE' | 'AVALIADOR' | 'GESTOR' | 'ADMIN' | 'USUARIO';
 
 /** Apenas GESTOR (e ADMIN, como operador de sistema) gerencia editais — Sprint 2, RBAC. */
 export const GESTOR_ROLES: readonly UserRole[] = ['GESTOR', 'ADMIN'];

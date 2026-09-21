@@ -79,4 +79,14 @@ export function registerEditaisRoutes(
       res.json(toEditalResponse(edital));
     }),
   );
+
+  // Alias RESTful para o mesmo endpoint (usado pelo frontend da SPA).
+  router.post(
+    '/api/editais/:id/publicar',
+    ...admin,
+    asyncHandler(async (req, res) => {
+      const edital = await service.transition(req.params['id'] as string, 'publicar', req.user!.id);
+      res.json(toEditalResponse(edital));
+    }),
+  );
 }

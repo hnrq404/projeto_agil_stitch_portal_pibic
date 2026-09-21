@@ -1,90 +1,84 @@
-# server/ — API Edital & Publicação (Sprint 2 · M2)
+# server/ — API Edital & Publicação + Auth (Sprint 2 · M2)
 
-Implementação de referência do módulo **M2 — Edital & Publicação**: CRUD de editais com ciclo de vida, cotas por subárea CNPq, vitrine pública e notificações in-app.
-
-> **Nota de arquitetura:** o backend de produção do portal é Convex (`portal-lab/`). Este serviço REST isola o domínio M2 atrás de portas/repositórios (`Clock`, `EditaisRepository`, `NotificacoesRepository`, `UserDirectory`, `EventPublisher`), de modo que a lógica de negócio é portável para qualquer persistência — inclusive Prisma/PostgreSQL (schema em `src/infra/prisma/schema.prisma`) ou funções Convex.
+Backend do módulo **M2 — Edital & Publicação** com **autenticação real** (JWT + bcrypt) e **persistência real** (Prisma + SQLite — troque o datasource para PostgreSQL em produção).
 
 ## Rodando
 
 ```bash
 npm install
-npm run dev            # tsx watch — http://localhost:3000
-npm test               # unit + integration (in-memory, sem banco)
-npm run test:e2e       # jornada completa do gestor
-npm run typecheck
+npm run db:push     # cria/migra o SQLite (server/src/infra/prisma/dev.db)
+npm run db:seed     # contas de demonstração + edital de exemplo
+npm run dev         # http://localhost:3000 (API + SPA de web/dist)
 ```
 
-## Ciclo de vida do edital
+Contas do seed:
 
-```
-RASCUNHO ──publish──> PUBLICADO ──close/expira──> ENCERRADO
-```
+| E-mail | Senha | Papel |
+| --- | --- | --- |
+| `gestor@pibic.edu.br` | `gestor123` | GESTOR |
+| `visitante@pibic.edu.br` | `visitante123` | USUARIO |
 
-- Somente `RASCUNHO` é editável (`PATCH /api/editais/:id` → 422 caso contrário).
-- Publicar exige: numero/titulo, ≥ 1 cota, Σ cotas ≤ totalCotas, janela de inscrições coerente e futura.
-- `GET /api/publico/editais` retorna apenas `PUBLICADO` com prazo vigente (encerrados automaticamente por relógio).
-- Publicar dispara notificação in-app para todos os usuários (RF07).
-
-## Endpoints
-
-| Método | Rota | Auth | Descrição |
-| --- | --- | --- | --- |
-| POST | `/api/editais` | Bearer GESTOR | Cria edital (RASCUNHO) com cotas |
-| GET | `/api/editais` | Bearer GESTOR | Lista (filtro `?status=`) |
-| GET | `/api/editais/:id` | Bearer GESTOR | Detalhe |
-| PATCH | `/api/editais/:id` | Bearer GESTOR | Atualiza (só RASCUNHO) |
-| POST | `/api/editais/:id/publicar` | Bearer GESTOR | PUBLICADO + notificações |
-| POST | `/api/editais/:id/encerrar` | Bearer GESTOR | ENCERRADO |
-| GET | `/api/notificacoes` | Bearer | Notificações do usuário |
-| GET | `/api/publico/editais` | — | Vitrine pública (vigentes) |
-| POST | `/e2e/seed` | — | Reset do estado (usado pelos testes E2E) |
-
-Erros seguem `{ error: { code, message, details? } }` — `400` schema (Zod), `401/403` auth/RBAC, `404` não encontrado, `409` conflito de transição, `422` regra de negócio.
-
-## Autenticação (stub da Sprint 1)
-
-`Authorization: Bearer <token>` com usuários seed em `src/infra/auth/seed.users.ts`:
-
-| Token | Papel |
-| --- | --- |
-| `gestor-token` | GESTOR |
-| `avaliador-token` | AVALIADOR |
-| `docente-token` | DOCENTE |
-| `discente-token` | DISCENTE |
-
-## Estrutura
+## Arquitetura (hexagonal)
 
 ```
 src/
-├── shared/            # erros de domínio, tabela CNPq, auth/RBAC, middlewares, Clock
+├── shared/            # erros de domínio, tabela CNPq, guards (RBAC), Clock
 ├── modules/
-│   ├── editais/       # domain (regras puras) · dto (Zod) · repository · service · controller
+│   ├── auth/          # domain · dto (Zod) · repository (porta) · service (JWT/bcrypt) · controller
+│   ├── editais/       # domain (regras puras) · dto · repository · service · controller
 │   ├── notificacoes/  # domain · repository · service · controller
 │   └── publico/       # vitrine pública
-├── infra/             # container DI, seed de usuários, schema Prisma
-└── index.ts           # bootstrap
-tests/
-├── unit/              # regras de negócio puras + service de notificações
-├── integration/       # API HTTP via supertest (auth, RBAC, CRUD, erros)
-└── e2e/               # jornada do gestor: criar → cotas → publicar → vitrine → encerrar
+├── infra/
+│   ├── config/        # container DI, env loader
+│   ├── persistence/   # adapters Prisma (Usuario, Edital, CotaSubarea, Notificacao)
+│   └── prisma/        # schema.prisma + dev.db
+└── index.ts           # bootstrap: env, Prisma, API + SPA
 ```
 
-## Exemplo: criar e publicar
+As portas (`Clock`, `EditaisRepository`, `NotificacoesRepository`, `UsuariosRepository`, `UserDirectory`) mantêm o domínio independente de framework — os testes injetam in-memory + clock congelado; o bootstrap injeta Prisma.
+
+## Endpoints
+
+### Auth (público)
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| POST | `/api/auth/register` | `{ nome, email, senha, role: GESTOR \| USUARIO }` → 201 + JWT |
+| POST | `/api/auth/login` | `{ email, senha }` → 200 + JWT |
+| GET | `/api/auth/me` | Perfil do portador do token |
+
+### Editais (Bearer + RBAC GESTOR)
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| POST | `/api/editais` | Cria RASCUNHO com cotas (Σ cotas ≤ totalCotas) |
+| GET | `/api/editais?status=` | Lista administrativa |
+| GET | `/api/editais/:id` | Detalhe |
+| PATCH | `/api/editais/:id` | Edita (somente RASCUNHO → 422) |
+| POST | `/api/editais/:id/transicoes` | `{ acao: "publicar" \| "encerrar" }` |
+| POST | `/api/editais/:id/publicar` | Alias RESTful de publicar |
+
+### Demais
+| Método | Rota | Auth | Descrição |
+| --- | --- | --- | --- |
+| GET | `/api/publico/editais` | — | Vitrine (PUBLICADO + prazo vigente) |
+| GET | `/api/cnpq/areas` | — | Tabela CNPq para selects |
+| GET | `/api/notificacoes` | Bearer | Minhas notificações |
+| PATCH | `/api/notificacoes/:id/leitura` | Bearer | Marcar lida |
+| GET | `/api/health` | — | Health check |
+
+Erros: `{ error: { code, message, details? } }` — 400 (Zod), 401 (JWT), 403 (RBAC), 404, 409 (conflito), 422 (regra de negócio).
+
+## Testes
 
 ```bash
-curl -X POST http://localhost:3000/api/editais \
-  -H "Authorization: Bearer gestor-token" -H "Content-Type: application/json" \
-  -d '{
-    "numero": "01/2026", "titulo": "PIBIC 2026-2027",
-    "totalCotas": 10,
-    "cotas": [
-      { "subareaCode": "1.03", "quantidade": 4 },
-      { "subareaCode": "2.02", "quantidade": 6 }
-    ],
-    "dataInicioInscricoes": "2026-10-01T00:00:00.000Z",
-    "dataFimInscricoes": "2026-11-01T00:00:00.000Z"
-  }'
+npm test              # unit + integração (in-memory, 90 testes)
+npm run test:e2e      # jornada completa com JWT + Prisma real (SQLite)
+```
 
-curl -X POST http://localhost:3000/api/editais/<id>/publicar \
-  -H "Authorization: Bearer gestor-token"
+## Configuração (server/.env)
+
+```env
+DATABASE_URL="file:./dev.db"   # relativo a src/infra/prisma/
+JWT_SECRET="troque-em-producao"
+PORT=3000
+# USE_PRISMA=false              # roda in-memory (sem banco)
 ```

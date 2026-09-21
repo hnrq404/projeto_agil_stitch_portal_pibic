@@ -12,6 +12,7 @@ const makeProject = (displayName, testRegex) => ({
   transform: { '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.test.json' }] },
   moduleNameMapper: {
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
+    '^@auth/(.*)$': '<rootDir>/src/modules/auth/$1',
     '^@editais/(.*)$': '<rootDir>/src/modules/editais/$1',
     '^@notificacoes/(.*)$': '<rootDir>/src/modules/notificacoes/$1',
     '^@publico/(.*)$': '<rootDir>/src/modules/publico/$1',

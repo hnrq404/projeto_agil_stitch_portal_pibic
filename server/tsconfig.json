@@ -20,6 +20,7 @@
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["src/shared/*"],
+      "@auth/*": ["src/modules/auth/*"],
       "@editais/*": ["src/modules/editais/*"],
       "@notificacoes/*": ["src/modules/notificacoes/*"],
       "@publico/*": ["src/modules/publico/*"]

@@ -10,16 +10,18 @@ import type { NotificacoesRepository } from './repositories/notificacoes.reposit
  * usuários cadastrados (broadcast). Idempotente por (evento, usuário): se já
  * existe notificação do mesmo tipo para a mesma referência, não duplica.
  */
+export type UserLister = () => Promise<{ id: string }[]> | { id: string }[];
+
 export class NotificacoesService {
   constructor(
     private readonly repository: NotificacoesRepository,
-    private readonly userDirectory: { listUsers(): { id: string }[] },
+    private readonly userDirectory: { listUsers: UserLister },
   ) {}
 
   /** Handler do evento de domínio "edital publicado". */
   async handleEditalPublicado(event: EditalPublicadoEvent): Promise<Notificacao[]> {
     const now = new Date();
-    const recipients = this.userDirectory.listUsers();
+    const recipients = await this.userDirectory.listUsers();
 
     const created: Notificacao[] = [];
     for (const user of recipients) {
