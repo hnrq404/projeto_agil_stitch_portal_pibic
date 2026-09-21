@@ -12,6 +12,8 @@ import {
 import { DropzonePdf, Stepper, type Step } from "./Stepper";
 import { useAutoSave } from "./useAutoSave";
 import { PageHeader } from "../../components/shared/ui";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
+import { ehIdConvex } from "../../lib/convex-id";
 import { uploadPdfComProgresso, validarArquivoPdf } from "../../lib/upload";
 import { formatarTamanho } from "../../lib/format";
 
@@ -53,12 +55,18 @@ const VAZIO: FormState = {
 export function NovaInscricaoPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user: usuarioAtual } = useCurrentUser();
+
+  // Id na URL precisa ser um Id do Convex; com lixo na URL o validador do
+  // backend derruba a query no cliente antes do handler.
+  const idValido = ehIdConvex(id);
+  const idSeguro = idValido ? (id as Id<"inscricoes">) : undefined;
 
   const editais = useQuery(api.inscricoes.index.listEditaisPublicados, {});
   const docentes = useQuery(api.users.docentes.listDocentes, {});
   const existente = useQuery(
     api.inscricoes.index.get,
-    id ? { id: id as Id<"inscricoes"> } : "skip",
+    idSeguro ? { id: idSeguro } : "skip",
   );
 
   const criarRascunho = useMutation(api.inscricoes.index.criarRascunho);
@@ -76,6 +84,7 @@ export function NovaInscricaoPage() {
   const [progressoLattes, setProgressoLattes] = useState<number | null>(null);
   const [uploadErro, setUploadErro] = useState<string | null>(null);
   const [declaracao, setDeclaracao] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
   const [submetendo, setSubmetendo] = useState(false);
   const [erroSubmissao, setErroSubmissao] = useState<string | null>(null);
   const [criando, setCriando] = useState(false);
@@ -87,17 +96,33 @@ export function NovaInscricaoPage() {
     criarRascunho({ editalId: form.editalId as Id<"editais"> })
       .then(({ id: novoId }) => {
         setInscricaoId(novoId);
-        // A URL passa a apontar para o rascunho: refresh retoma de onde parou.
-        window.history.replaceState(null, "", `/nova-inscricao/${novoId}`);
+        // A URL passa a apontar para o rascunho: refresh retoma de onde
+        // parou. navigate(replace) mantém router e history coerentes —
+        // replaceState manual dessincroniza o React Router 7.
+        navigate(`/nova-inscricao/${novoId}`, { replace: true });
       })
       .catch(() => setCriando(false))
       .finally(() => setCriando(false));
-  }, [inscricaoId, form.editalId, criarRascunho, criando]);
+  }, [inscricaoId, form.editalId, criarRascunho, criando, navigate]);
 
   // Hidrata o formulário a partir do rascunho carregado (continuar edição).
+  // Não sobrescreve digitação que já começou antes do dado chegar (corrida
+  // apontada na revisão S3).
   const hidratado = useRef(false);
   useEffect(() => {
-    if (!id || !existente || hidratado.current) return;
+    if (!idSeguro || !existente || hidratado.current) return;
+    const temDigitacao =
+      form.titulo ||
+      form.areaCnpq ||
+      form.resumo ||
+      form.metodologia ||
+      form.cronograma ||
+      form.palavrasChave ||
+      form.orientadorId;
+    if (temDigitacao) {
+      hidratado.current = true;
+      return;
+    }
     hidratado.current = true;
     setForm({
       editalId: existente.inscricao.editalId,
@@ -109,7 +134,7 @@ export function NovaInscricaoPage() {
       metodologia: existente.inscricao.metodologia ?? "",
       cronograma: existente.inscricao.cronograma ?? "",
     });
-  }, [id, existente]);
+  }, [idSeguro, existente, form]);
 
   // Auto-save (S3.5): payload parcial apenas com campos preenchidos.
   const payloadAutoSave = useMemo(() => {
@@ -225,9 +250,22 @@ export function NovaInscricaoPage() {
     } catch (err) {
       const data = (err as Error & { data?: { message?: string } }).data;
       setErroSubmissao(data?.message ?? (err instanceof Error ? err.message : "Falha na submissão."));
+      // Reabre a revisão para o erro ficar visível (não atrás do overlay).
+      setConfirmando(false);
     } finally {
       setSubmetendo(false);
     }
+  }
+
+  if (id && !idValido) {
+    return (
+      <div className="card flex flex-col items-center gap-3 p-10 text-center">
+        <span aria-hidden="true" className="material-symbols-outlined text-[40px] text-status-bad">link_off</span>
+        <h1 className="font-display text-xl font-bold text-navy">Link de inscrição inválido</h1>
+        <p className="text-sm text-muted">O endereço desta inscrição é inválido ou está corrompido.</p>
+        <Link to="/minhas-inscricoes" className="btn-primary px-4">Minhas Inscrições</Link>
+      </div>
+    );
   }
 
   if (editais === undefined || docentes === undefined) {
@@ -242,7 +280,7 @@ export function NovaInscricaoPage() {
   }
 
   if (editais.length === 0) {
-    return <SemEdital />;
+    return <SemEdital ehAdmin={usuarioAtual?.papel === "admin"} />;
   }
 
   if (id && existente && !emRascunho) {
@@ -503,17 +541,21 @@ export function NovaInscricaoPage() {
               type="button"
               className="btn-primary px-5"
               disabled={!declaracao || submetendo}
-              onClick={() => {
-                if (window.confirm("Confirmar a submissão final? Após enviar, a inscrição fica somente-leitura (RN05).")) {
-                  void submeter();
-                }
-              }}
+              onClick={() => setConfirmando(true)}
             >
               <span aria-hidden="true" className="material-symbols-outlined text-[20px]">send</span>
               {submetendo ? "Submetendo…" : "Submeter inscrição final"}
             </button>
           </div>
         </div>
+      )}
+
+      {confirmando && (
+        <ConfirmarSubmissaoModal
+          submetendo={submetendo}
+          onCancelar={() => setConfirmando(false)}
+          onConfirmar={() => void submeter()}
+        />
       )}
 
       <div className="flex items-center justify-between">
@@ -587,28 +629,100 @@ function badgeVinculo(status: string | undefined) {
   );
 }
 
-function SemEdital() {
+function SemEdital({ ehAdmin }: { ehAdmin: boolean }) {
   const seedEditalDemo = useMutation(api.inscricoes.index.seedEditalDemo);
   const [criando, setCriando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
   return (
     <div className="card flex flex-col items-center gap-3 p-10 text-center">
       <span aria-hidden="true" className="material-symbols-outlined text-[40px] text-teal">campaign</span>
       <h2 className="font-display text-lg font-bold text-navy">Nenhum edital aberto</h2>
       <p className="max-w-md text-sm text-muted">
-        Não há editais publicados com inscrições vigentes. Para demonstração local, você pode carregar um
-        edital PIBIC de exemplo.
+        {ehAdmin
+          ? "Não há editais publicados com inscrições vigentes. Como Gestor PRPq, você pode carregar um edital PIBIC de exemplo para demonstração."
+          : "Não há editais publicados com inscrições vigentes no momento. Assim que a PRPq publicar um edital, você poderá iniciar sua inscrição aqui."}
       </p>
-      <button
-        type="button"
-        className="btn-primary px-4"
-        disabled={criando}
-        onClick={() => {
-          setCriando(true);
-          void seedEditalDemo({}).finally(() => setCriando(false));
-        }}
-      >
-        {criando ? "Carregando…" : "Carregar edital de demonstração"}
-      </button>
+      {ehAdmin && (
+        <>
+          <button
+            type="button"
+            className="btn-primary px-4"
+            disabled={criando}
+            onClick={() => {
+              setErro(null);
+              setCriando(true);
+              seedEditalDemo({})
+                .catch((err: unknown) => {
+                  const data = (err as Error & { data?: { message?: string } }).data;
+                  setErro(data?.message ?? "Falha ao criar o edital de demonstração.");
+                })
+                .finally(() => setCriando(false));
+            }}
+          >
+            {criando ? "Carregando…" : "Carregar edital de demonstração"}
+          </button>
+          {erro && (
+            <p className="text-xs font-semibold text-status-bad" role="alert">
+              {erro}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Modal de confirmação da submissão (DESIGN.md — modais sobre o design
+ * system, sem window.confirm nativo). Foco no cancelar por segurança.
+ */
+function ConfirmarSubmissaoModal({
+  submetendo,
+  onCancelar,
+  onConfirmar,
+}: {
+  submetendo: boolean;
+  onCancelar: () => void;
+  onConfirmar: () => void;
+}) {
+  const cancelarRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    cancelarRef.current?.focus();
+    function aoTeclar(e: KeyboardEvent) {
+      if (e.key === "Escape") onCancelar();
+    }
+    window.addEventListener("keydown", aoTeclar);
+    return () => window.removeEventListener("keydown", aoTeclar);
+  }, [onCancelar]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="confirmar-submissao-titulo"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancelar();
+      }}
+    >
+      <div className="card w-full max-w-md p-6 shadow-[var(--shadow-card-hover)]">
+        <h2 id="confirmar-submissao-titulo" className="font-display text-lg font-bold text-navy">
+          Confirmar submissão final
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          Após enviar, a inscrição fica <strong className="text-ink">somente-leitura (RN05)</strong> e segue para
+          triagem da PRPq. Não será possível editar o conteúdo ou os anexos.
+        </p>
+        <div className="mt-5 flex items-center justify-end gap-2">
+          <button ref={cancelarRef} type="button" className="btn-secondary px-4" onClick={onCancelar} disabled={submetendo}>
+            Voltar e revisar
+          </button>
+          <button type="button" className="btn-primary px-4" onClick={onConfirmar} disabled={submetendo}>
+            <span aria-hidden="true" className="material-symbols-outlined text-[18px]">send</span>
+            {submetendo ? "Submetendo…" : "Confirmar e enviar"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { formatarData, formatarDataHora, formatarTamanho } from "../../lib/format";
-import { PageHeader, StatusBadge } from "../../components/shared/ui";
+import { ehIdConvex } from "../../lib/convex-id";
+import { ErrorBoundary, PageHeader, StatusBadge } from "../../components/shared/ui";
 import type { InscricaoDto } from "../../../convex/inscricoes/index";
 
 /**
@@ -20,19 +21,36 @@ const FLUXO: { status: InscricaoDto["status"]; rotulo: string }[] = [
   { status: "aprovada", rotulo: "Aprovada e homologada" },
 ];
 
+/** Página de detalhe protegida por ErrorBoundary (erros de query não derrubam a SPA). */
 export function InscricaoDetalhePage() {
+  return (
+    <ComBoundary>
+      <InscricaoDetalheConteudo />
+    </ComBoundary>
+  );
+}
+
+function InscricaoDetalheConteudo() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const protocoloNovo = params.get("protocolo");
 
+  // Id na URL precisa ser um Id do Convex; com lixo na URL o validador do
+  // backend rejeita no cliente antes do handler.
+  const idValido = ehIdConvex(id);
+  const idSeguro = idValido ? (id as Id<"inscricoes">) : undefined;
+
   const detalhe = useQuery(
     api.inscricoes.index.get,
-    id ? { id: id as Id<"inscricoes"> } : "skip",
+    idSeguro ? { id: idSeguro } : "skip",
   );
   const aprovarVinculo = useMutation(api.inscricoes.index.aprovarVinculo);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  if (id && !idValido) {
+    return <NaoEncontrada mensagem="O endereço desta inscrição é inválido ou está corrompido." />;
+  }
   if (detalhe === undefined) {
     return (
       <div className="flex items-center gap-2 p-6 text-sm text-muted">
@@ -45,14 +63,7 @@ export function InscricaoDetalhePage() {
   }
   if (detalhe === null) {
     return (
-      <div className="card flex flex-col items-center gap-3 p-10 text-center">
-        <span aria-hidden="true" className="material-symbols-outlined text-[40px] text-status-bad">
-          search_off
-        </span>
-        <h1 className="font-display text-xl font-bold text-navy">Inscrição não encontrada</h1>
-        <p className="text-sm text-muted">Verifique o link ou volte para a lista de inscrições.</p>
-        <Link to="/minhas-inscricoes" className="btn-primary px-4">Minhas Inscrições</Link>
-      </div>
+      <NaoEncontrada mensagem="Esta inscrição não existe ou você não tem acesso a ela." />
     );
   }
 
@@ -249,6 +260,35 @@ export function InscricaoDetalhePage() {
         </div>
       </div>
     </section>
+  );
+}
+
+function NaoEncontrada({ mensagem }: { mensagem: string }) {
+  return (
+    <div className="card flex flex-col items-center gap-3 p-10 text-center">
+      <span aria-hidden="true" className="material-symbols-outlined text-[40px] text-status-bad">
+        search_off
+      </span>
+      <h1 className="font-display text-xl font-bold text-navy">Inscrição não disponível</h1>
+      <p className="text-sm text-muted">{mensagem}</p>
+      <Link to="/minhas-inscricoes" className="btn-primary px-4">Minhas Inscrições</Link>
+    </div>
+  );
+}
+
+/**
+ * Rede de segurança: erros da query reativa (sessão expirada, ConvexError
+ * residual) derrubavam a página em branco — agora caem num estado com CTA.
+ */
+function ComBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary
+      fallback={
+        <NaoEncontrada mensagem="Não foi possível carregar esta inscrição agora. Sua sessão pode ter expirado — recarregue a página ou volte para a lista." />
+      }
+    >
+      {children}
+    </ErrorBoundary>
   );
 }
 

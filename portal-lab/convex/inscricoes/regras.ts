@@ -7,6 +7,21 @@
 /** RN06 / RNF09: anexos apenas em PDF e até 10 MB. */
 export const MAX_ANEXO_BYTES = 10 * 1024 * 1024;
 
+/**
+ * RN02 — prazo do edital: criação de rascunho e submissão exigem edital
+ * publicado e dentro do período de inscrições. Pura para teste unitário.
+ */
+export function editalEncerrado(
+  edital: { status: string; dataAbertura: number; dataEncerramento: number },
+  agora: number,
+): boolean {
+  return (
+    edital.status !== "publicado" ||
+    agora < edital.dataAbertura ||
+    agora > edital.dataEncerramento
+  );
+}
+
 export function validarAnexo(input: { nome: string; mimeType: string; tamanho: number }): string | null {
   const nome = input.nome.toLowerCase();
   const ehPdf = input.mimeType === "application/pdf" || nome.endsWith(".pdf");

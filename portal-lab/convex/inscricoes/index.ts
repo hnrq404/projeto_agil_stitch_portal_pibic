@@ -3,7 +3,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { mutation, query } from "../_generated/server";
 import { requireRole, requireUser, toDto } from "../users/index";
 import { gerarProtocolo } from "./protocolo";
-import { pendenciasSubmissao, validarAnexo } from "./regras";
+import { editalEncerrado, pendenciasSubmissao, validarAnexo } from "./regras";
 
 /**
  * Sprint 3 — Inscrição de Pesquisa (M3).
@@ -151,11 +151,10 @@ export const get = query({
       inscricao.discenteId === user._id ||
       inscricao.orientadorId === user._id ||
       user.papel === "admin";
+    // Sem vazamento de existência: acesso negado é indistinguível de
+    // inexistente (resposta `null` em vez de erro, cf. revisão S3).
     if (!autorizado) {
-      throw new ConvexError({
-        code: "FORBIDDEN",
-        message: "Você não tem acesso a esta inscrição.",
-      });
+      return null;
     }
     const edital = await ctx.db.get(inscricao.editalId);
     const discente = await ctx.db.get(inscricao.discenteId);
@@ -187,11 +186,10 @@ export const urlDownload = query({
     }
     const inscricao = await ctx.db.get(arquivo.inscricaoId);
     const autorizado =
-      (inscricao &&
-        (inscricao.discenteId === user._id ||
-          inscricao.orientadorId === user._id ||
-          user.papel === "admin")) ||
-      user.papel === "admin";
+      inscricao !== null &&
+      (inscricao.discenteId === user._id ||
+        inscricao.orientadorId === user._id ||
+        user.papel === "admin");
     if (!autorizado) {
       throw new ConvexError({ code: "FORBIDDEN", message: "Acesso negado ao anexo." });
     }
@@ -209,10 +207,14 @@ export const criarRascunho = mutation({
   handler: async (ctx, { editalId }) => {
     const user = await requireUser(ctx);
     const edital = await ctx.db.get(editalId);
-    if (!edital || edital.status !== "publicado") {
+    if (!edital) {
+      throw new ConvexError({ code: "NOT_FOUND", message: "Edital não encontrado." });
+    }
+    // RN02 — prazo: exige edital publicado e dentro do período de inscrições.
+    if (editalEncerrado(edital, Date.now())) {
       throw new ConvexError({
-        code: "INVALID",
-        message: "Edital indisponível para inscrição.",
+        code: "DEADLINE",
+        message: "Este edital não está com inscrições abertas (fora do prazo ou encerrado).",
       });
     }
     const agora = Date.now();
@@ -262,6 +264,17 @@ export const salvarRascunho = mutation({
         code: "INVALID",
         message: "Inscrição submetida é somente-leitura (RN05).",
       });
+    }
+    // Vínculo de orientação só com docente real (evita vínculo pendente
+    // eterno apontando para aluno ou auto-vínculo).
+    if (dados.orientadorId !== undefined) {
+      const docente = await ctx.db.get(dados.orientadorId);
+      if (!docente || (docente.papel ?? "aluno") !== "docente") {
+        throw new ConvexError({
+          code: "INVALID",
+          message: "Orientador informado não é um Professor Orientador ativo.",
+        });
+      }
     }
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     for (const [campo, valor] of Object.entries(dados)) {
@@ -320,6 +333,19 @@ export const registrarAnexo = mutation({
     const erro = validarAnexo({ nome: args.nome, mimeType: args.mimeType, tamanho: args.tamanho });
     if (erro) {
       throw new ConvexError({ code: "INVALID", message: erro });
+    }
+    // Substituição: remove do storage e do banco o anexo anterior do mesmo
+    // tipo antes de vincular o novo (evita órfãos e duplicidade na listagem).
+    const anteriorId =
+      args.tipo === "plano_trabalho"
+        ? inscricao.planoTrabalhoFileId
+        : inscricao.lattesFileId;
+    if (anteriorId) {
+      const anterior = await ctx.db.get(anteriorId);
+      if (anterior) {
+        await ctx.storage.delete(anterior.storageId);
+        await ctx.db.delete(anterior._id);
+      }
     }
     const agora = Date.now();
     const arquivoId = await ctx.db.insert("arquivos", {
@@ -387,6 +413,15 @@ export const submeter = mutation({
     }
     if (inscricao.status !== "rascunho") {
       throw new ConvexError({ code: "INVALID", message: "Inscrição já submetida (RN05)." });
+    }
+    // RN02 — submissão exige edital dentro do prazo: rascunho criado antes
+    // do encerramento não pode ser enviado depois.
+    const edital = await ctx.db.get(inscricao.editalId);
+    if (!edital || editalEncerrado(edital, Date.now())) {
+      throw new ConvexError({
+        code: "DEADLINE",
+        message: "Prazo de submissão do edital encerrado (RN02).",
+      });
     }
     const pendencias = pendenciasSubmissao({
       titulo: inscricao.titulo,
@@ -467,7 +502,9 @@ export const aprovarVinculo = mutation({
 export const seedEditalDemo = mutation({
   args: {},
   handler: async (ctx) => {
-    await requireUser(ctx);
+    // Escrita em `editais` é exclusiva do gestor (RN11). Sem isso, o seed de
+    // demonstração vira vazamento quando a S2 entregar o CRUD do gestor.
+    await requireRole(ctx, "admin");
     const existente = await ctx.db
       .query("editais")
       .withIndex("status", (q) => q.eq("status", "publicado"))

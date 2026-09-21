@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 
 type StatusKind = "ok" | "warn" | "done" | "bad";
 
@@ -35,6 +35,32 @@ export function StatusBadge({ status }: { status: string }) {
       {cfg.label}
     </span>
   );
+}
+
+/**
+ * ErrorBoundary de UI: captura erros de render/queries reativas (ex.:
+ * ConvexError lançado no cliente) e exibe um fallback com CTA em vez de
+ * derrubar a SPA em página branca. Sem lógica de domínio — genérico.
+ */
+type ErrorBoundaryProps = {
+  children: ReactNode;
+  fallback: ReactNode;
+};
+
+export class ErrorBoundary extends Component<ErrorBoundaryProps, { falhou: boolean }> {
+  state = { falhou: false };
+
+  static getDerivedStateFromError() {
+    return { falhou: true };
+  }
+
+  componentDidCatch(error: unknown, info: ErrorInfo) {
+    console.error("[ui] ErrorBoundary capturou:", error, info.componentStack);
+  }
+
+  render() {
+    return this.state.falhou ? this.props.fallback : this.props.children;
+  }
 }
 
 /** Estado vazio com CTA (polish pass — mockups Stitch). */

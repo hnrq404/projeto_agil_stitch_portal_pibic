@@ -2,9 +2,35 @@ import { describe, expect, it } from "vitest";
 import { PROTOCOLO_REGEX, gerarProtocolo } from "../../convex/inscricoes/protocolo";
 import {
   MAX_ANEXO_BYTES,
+  editalEncerrado,
   pendenciasSubmissao,
   validarAnexo,
 } from "../../convex/inscricoes/regras";
+
+describe("editalEncerrado (RN02 — prazo do edital)", () => {
+  const abertura = new Date("2026-10-01T00:00:00Z").getTime();
+  const encerramento = new Date("2026-11-05T23:59:59Z").getTime();
+  const edital = { status: "publicado", dataAbertura: abertura, dataEncerramento: encerramento };
+
+  it("aceita dentro do período de inscrições", () => {
+    const agora = new Date("2026-10-20T12:00:00Z").getTime();
+    expect(editalEncerrado(edital, agora)).toBe(false);
+  });
+
+  it("rejeita após o encerramento (submissão tardia de rascunho)", () => {
+    const agora = encerramento + 1;
+    expect(editalEncerrado(edital, agora)).toBe(true);
+  });
+
+  it("rejeita antes da abertura", () => {
+    expect(editalEncerrado(edital, abertura - 1)).toBe(true);
+  });
+
+  it("rejeita edital não publicado", () => {
+    expect(editalEncerrado({ ...edital, status: "encerrado" }, abertura + 1000)).toBe(true);
+    expect(editalEncerrado({ ...edital, status: "rascunho" }, abertura + 1000)).toBe(true);
+  });
+});
 
 describe("gerarProtocolo (S3 — protocolo único no backend)", () => {
   it("segue o formato CNPq 23076.014821/2026-11", () => {
