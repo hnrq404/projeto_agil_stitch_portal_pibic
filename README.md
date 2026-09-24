@@ -131,8 +131,9 @@ Detalhes, riscos e critérios de saída de cada sprint em [Sprints.md](./institu
 - [Backlog.md](./institutional_scientific_portal/Backlog.md) — requisitos funcionais (RF), não funcionais (RNF), regras de negócio (RN) e backlog priorizado
 - [Sprints.md](./institutional_scientific_portal/Sprints.md) — planejamento e critérios de saída por sprint (S0–S8)
 - [Arquitetura.md](./institutional_scientific_portal/Arquitetura.md) — módulos, camadas, modelo de dados Convex e convenções de código
+- [Usabilidade.md](./institutional_scientific_portal/Usabilidade.md) — aplicação das 10 heurísticas de Nielsen e checklist de UI para PRs
 
-Demais páginas da wiki (Qualidade, Usabilidade, Definition-of-Done, Gestão de Projeto) são referenciadas via wikilinks `[[...]]` a partir do `PROJECT_BRAIN.md`.
+Demais páginas da wiki (Qualidade, Definition-of-Done, Gestão de Projeto) são referenciadas via wikilinks `[[...]]` a partir do `PROJECT_BRAIN.md`.
 
 ## 🛠️ Stack
 
