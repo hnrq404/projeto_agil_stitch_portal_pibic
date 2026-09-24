@@ -1,12 +1,9 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { can, ROLES, ROLE_LABELS } from "../../../convex/roles";
 import { PASSWORD_RULES } from "../../../convex/passwordRules";
-import { useCurrentUser } from "../../hooks/useCurrentUser";
-import { AppShell } from "../layout/AppShell";
 import { NAV_ITEMS } from "../layout/nav";
 import { SHORTCUTS } from "../layout/useKeyboardShortcuts";
-import { FullScreenSpinner } from "../Spinner";
+import { PublicOrShell } from "../PublicOrShell";
 
 type Topic = { id: string; question: string; steps: string[] };
 
@@ -61,6 +58,36 @@ const TOPICS: Topic[] = [
       "Em “Gestão de Usuários”, use a busca para encontrar a pessoa pelo nome, e-mail ou matrícula.",
       "Escolha o novo perfil na coluna “Alterar perfil”.",
       "Confirme a mudança no diálogo. A alteração vale imediatamente e pode ser desfeita logo em seguida.",
+    ],
+  },
+  {
+    id: "criar-edital",
+    question: "(Gestor PRPq) Como crio e publico um edital?",
+    steps: [
+      "Abra “Editais” no menu lateral e clique em “Novo edital”.",
+      "Preencha título, programa, datas e as bolsas de cada grande área CNPq. O sistema avisa na hora se algo estiver inconsistente.",
+      "Salve: o edital fica como rascunho, visível só para a gestão.",
+      "Na página do edital, clique em “Publicar edital” e confirme. Toda a comunidade recebe uma notificação.",
+    ],
+  },
+  {
+    id: "editar-edital",
+    question: "(Gestor PRPq) Posso alterar um edital já publicado?",
+    steps: [
+      "Em rascunho, todos os dados podem ser alterados.",
+      "Com as inscrições abertas, só é possível prorrogar a data de encerramento.",
+      "Em análise ou finalizado, o edital não pode mais ser alterado.",
+      "Toda alteração fica registrada no histórico, na página do edital.",
+    ],
+  },
+  {
+    id: "situacao-edital",
+    question: "O que significa cada situação do edital?",
+    steps: [
+      "Rascunho: em preparação pela PRPq, ainda não visível para a comunidade.",
+      "Inscrições abertas: é possível se inscrever até a data de encerramento.",
+      "Em análise: as inscrições fecharam (manualmente ou no fim do prazo) e as propostas estão sendo avaliadas.",
+      "Finalizado: resultado concluído. Um edital finalizado não pode ser reaberto.",
     ],
   },
   {
@@ -212,29 +239,9 @@ function HelpContent() {
 
 /** `/ajuda` funciona logado (dentro da shell) e deslogado (a partir do login). */
 export function AjudaPage() {
-  const { isLoading, user } = useCurrentUser();
-  if (isLoading) return <FullScreenSpinner label="Carregando ajuda…" />;
-  if (user) {
-    return (
-      <AppShell user={user}>
-        <HelpContent />
-      </AppShell>
-    );
-  }
   return (
-    <div className="min-h-screen bg-canvas">
-      <main className="mx-auto w-full max-w-[960px] px-4 py-8 lg:px-8">
-        <Link
-          to="/login"
-          className="mb-6 inline-flex items-center gap-1 text-sm text-teal hover:underline"
-        >
-          <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
-            arrow_back
-          </span>
-          Voltar para a entrada
-        </Link>
-        <HelpContent />
-      </main>
-    </div>
+    <PublicOrShell loadingLabel="Carregando ajuda…">
+      <HelpContent />
+    </PublicOrShell>
   );
 }

@@ -2,6 +2,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
+import { AREAS_CNPQ } from "../../../convex/areas";
 import { PASSWORD_RULES, passwordIssues } from "../../../convex/passwordRules";
 import { ROLE, ROLE_LABELS } from "../../../convex/roles";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
@@ -20,14 +21,6 @@ const DEPARTAMENTOS = [
   "FAFICH — Filosofia e Ciências Humanas",
   "Escola de Engenharia",
   "Faculdade de Medicina",
-];
-
-const AREAS_CNPQ = [
-  "Ciências Exatas e da Terra",
-  "Ciências Biológicas",
-  "Engenharias",
-  "Ciências da Saúde",
-  "Ciências Humanas e Sociais",
 ];
 
 /** Papéis solicitáveis no cadastro (gestor entra na fila de homologação). */
@@ -82,7 +75,7 @@ export function AuthPage({ mode }: AuthPageProps) {
   const [name, setName] = useState("");
   const [matricula, setMatricula] = useState("");
   const [departamento, setDepartamento] = useState(DEPARTAMENTOS[0]);
-  const [areaCnpq, setAreaCnpq] = useState(AREAS_CNPQ[0]);
+  const [areaCnpq, setAreaCnpq] = useState<string>(AREAS_CNPQ[0]);
   const [papelSolicitado, setPapelSolicitado] = useState<string>(ROLE.ALUNO);
   const [touched, setTouched] = useState<Partial<Record<RegisterField, boolean>>>({});
 
