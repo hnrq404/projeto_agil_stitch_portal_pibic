@@ -1,7 +1,9 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import { ProtectedPage } from "./ProtectedPage";
+import { AjudaPage } from "./pages/AjudaPage";
 import { AuthPage } from "./pages/AuthPage";
 import { GestaoUsuariosPage } from "./pages/GestaoUsuariosPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { RecuperarSenhaPage } from "./pages/RecuperarSenhaPage";
 import { RootRedirect } from "./pages/RootRedirect";
@@ -11,6 +13,7 @@ export const router = createBrowserRouter([
   { path: "/login", element: <AuthPage mode="login" /> },
   { path: "/cadastro", element: <AuthPage mode="register" /> },
   { path: "/recuperar-senha", element: <RecuperarSenhaPage /> },
+  { path: "/ajuda", element: <AjudaPage /> },
   {
     path: "/gestao-usuarios",
     element: (
@@ -23,7 +26,7 @@ export const router = createBrowserRouter([
     path: "/dashboard",
     element: (
       <ProtectedPage perm="dashboard">
-        <PlaceholderPage title="Dashboard do Gestor" sprint="S5" />
+        <PlaceholderPage title="Dashboard do Gestor" />
       </ProtectedPage>
     ),
   },
@@ -31,7 +34,7 @@ export const router = createBrowserRouter([
     path: "/editais",
     element: (
       <ProtectedPage perm="editais">
-        <PlaceholderPage title="Editais & Publicação" sprint="S2" />
+        <PlaceholderPage title="Editais & Publicação" />
       </ProtectedPage>
     ),
   },
@@ -39,7 +42,7 @@ export const router = createBrowserRouter([
     path: "/triagem",
     element: (
       <ProtectedPage perm="triagem">
-        <PlaceholderPage title="Central de Triagem" sprint="S4" />
+        <PlaceholderPage title="Central de Triagem" />
       </ProtectedPage>
     ),
   },
@@ -47,7 +50,7 @@ export const router = createBrowserRouter([
     path: "/triagem-orientador",
     element: (
       <ProtectedPage perm="triagem-orientador">
-        <PlaceholderPage title="Triagem dos Meus Projetos" sprint="S4" />
+        <PlaceholderPage title="Triagem dos Meus Projetos" />
       </ProtectedPage>
     ),
   },
@@ -55,7 +58,7 @@ export const router = createBrowserRouter([
     path: "/nova-inscricao",
     element: (
       <ProtectedPage perm="nova-inscricao">
-        <PlaceholderPage title="Nova Inscrição" sprint="S3" />
+        <PlaceholderPage title="Nova Inscrição" />
       </ProtectedPage>
     ),
   },
@@ -63,7 +66,7 @@ export const router = createBrowserRouter([
     path: "/minhas-inscricoes",
     element: (
       <ProtectedPage perm="minhas-inscricoes">
-        <PlaceholderPage title="Minhas Inscrições" sprint="S3" />
+        <PlaceholderPage title="Minhas Inscrições" />
       </ProtectedPage>
     ),
   },
@@ -71,7 +74,7 @@ export const router = createBrowserRouter([
     path: "/meus-projetos",
     element: (
       <ProtectedPage perm="meus-projetos">
-        <PlaceholderPage title="Meus Projetos" sprint="S3" />
+        <PlaceholderPage title="Meus Projetos" />
       </ProtectedPage>
     ),
   },
@@ -79,13 +82,13 @@ export const router = createBrowserRouter([
     path: "/minhas-avaliacoes",
     element: (
       <ProtectedPage perm="minhas-avaliacoes">
-        <PlaceholderPage title="Minhas Avaliações" sprint="S4" />
+        <PlaceholderPage title="Minhas Avaliações" />
       </ProtectedPage>
     ),
   },
   {
     path: "/vitrine",
-    element: <PlaceholderPage title="Vitrine Pública" sprint="S6" />,
+    element: <PlaceholderPage title="Vitrine Pública" />,
   },
-  { path: "*", element: <Navigate to="/" replace /> },
+  { path: "*", element: <NotFoundPage /> },
 ]);

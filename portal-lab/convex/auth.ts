@@ -3,17 +3,18 @@ import { convexAuth } from "@convex-dev/auth/server";
 import { ConvexError } from "convex/values";
 import { z } from "zod";
 import type { DataModel } from "./_generated/dataModel";
+import { passwordIssues } from "./passwordRules";
 import { ROLE } from "./roles";
 
 /** Papel default de novos cadastros: aluno (liberação automática, RN11). */
 export const DEFAULT_ROLE = ROLE.ALUNO;
 
-const passwordSchema = z
-  .string()
-  .min(8, "A senha deve ter ao menos 8 caracteres")
-  .regex(/\d/, "A senha deve conter ao menos um número")
-  .regex(/[a-z]/, "A senha deve conter uma letra minúscula")
-  .regex(/[A-Z]/, "A senha deve conter uma letra maiúscula");
+// Mesmas regras exibidas no checklist do formulário de cadastro.
+const passwordSchema = z.string().superRefine((password, ctx) => {
+  for (const issue of passwordIssues(password)) {
+    ctx.addIssue({ code: "custom", message: issue.toLowerCase() });
+  }
+});
 
 export const SignUpSchema = z.object({
   email: z.string().email("E-mail institucional inválido"),
@@ -57,7 +58,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         const parsed = passwordSchema.safeParse(password);
         if (!parsed.success) {
           throw new ConvexError(
-            `Senha inválida: ${parsed.error.issues.map((i) => i.message).join("; ")}`,
+            `A senha precisa ter: ${parsed.error.issues.map((i) => i.message).join(", ")}.`,
           );
         }
       },
