@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import {
@@ -88,6 +88,18 @@ export function NovaInscricaoPage() {
   const [submetendo, setSubmetendo] = useState(false);
   const [erroSubmissao, setErroSubmissao] = useState<string | null>(null);
   const [criando, setCriando] = useState(false);
+
+  // Vindo do botão "Inscrever-se" de /editais-abertos (S2.4): pré-seleciona o
+  // edital da URL, mas só se ele estiver entre os abertos agora. Assim um link
+  // antigo não cria rascunho em edital fechado.
+  const [searchParams] = useSearchParams();
+  const editalDaUrl = searchParams.get("edital");
+  useEffect(() => {
+    if (id || form.editalId || !editalDaUrl || !editais) return;
+    if (editais.some((e) => e._id === editalDaUrl)) {
+      setForm((f) => ({ ...f, editalId: editalDaUrl }));
+    }
+  }, [id, form.editalId, editalDaUrl, editais]);
 
   // Cria o rascunho assim que um edital é escolhido no modo "nova inscrição".
   useEffect(() => {

@@ -104,6 +104,11 @@
 | S2.3 | Como gestor, quero que o edital transite entre estados (Ativa/Em Análise/Finalizada/Recusada) automaticamente por data ou manualmente | Badge de status reflete o estado correto; transições inválidas são bloqueadas (ex.: reabrir Finalizada) | 🔴 |
 | S2.4 | Como pesquisador, quero ver a lista pública de editais ativos com cotas restantes para decidir se vou me inscrever | Lista mostra apenas editais Ativa/Em Análise; cota exibida como "14/20 Bolsas Alocadas" | 🟡 |
 
+**Status no `portal-lab` (Convex):** S2.1 a S2.4 entregues na branch `feat/S2-editais`, com notificação in-app de edital publicado e botão "Inscrever-se" integrado à S3.
+
+- Estados implementados conforme [[Arquitetura]]: `rascunho`, `publicado` (Ativa), `em_avaliacao` (Em Análise), `encerrado` (Finalizada). O estado "Recusada" citado em S2.3 não foi implementado e aguarda decisão do time.
+- Existe também uma implementação da S2 em `server/` + `web/` (Express + Prisma). A escolha da implementação oficial está pendente.
+
 ## S3 — Inscrições (`inscricoes`)
 
 > Referência visual: `cadastro_e_edi_o_de_pesquisa/`, `detalhes_da_pesquisa_submiss_o/`

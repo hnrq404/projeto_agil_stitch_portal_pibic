@@ -24,6 +24,19 @@ Este documento registra **como cada heurística foi aplicada** no `portal-lab` e
 
 ---
 
+### Telas da S2 (Editais)
+
+| # | Heurística | O que foi feito | Onde |
+|---|---|---|---|
+| 1 | Visibilidade do status | Badge de situação com cor, ícone e texto; linha do tempo das etapas na página do edital; prazo relativo ("faltam 3 dias"); contador de notificações não lidas. | `ui/StatusBadge.tsx`, `pages/editais/EditalDetalhePage.tsx`, `layout/NotificationBell.tsx` |
+| 2 | Mundo real | Situações com nomes do usuário ("Inscrições abertas", "Em análise", "Finalizado") em vez dos códigos internos. | `convex/editais/rules.ts` |
+| 3 | Controle e liberdade | "Cancelar" no formulário; excluir rascunho nunca publicado; painel de notificações fecha com Esc ou clique fora. | `pages/editais/*` |
+| 5 | Prevenção de erros | Confirmação que explica a consequência antes de publicar, encerrar, finalizar e excluir; aviso ao sair com alterações não salvas; após publicar, só a prorrogação do prazo fica liberada (RN02). | `pages/editais/EditalFormPage.tsx` |
+| 6 | Reconhecer em vez de lembrar | Botão "Inscrever-se neste edital" em cada edital aberto, que leva à inscrição com o edital já escolhido; para visitantes, "Entrar para se inscrever". | `pages/editais/EditaisAbertosPage.tsx` |
+| 7 | Eficiência | Busca e filtros por situação na lista do gestor; filtro por programa na lista pública. | `pages/editais/EditaisPage.tsx` |
+| 9 | Recuperar-se de erros | Erros junto ao campo; página "Edital não encontrado" para link quebrado ou id inválido. | `pages/editais/EditalDetalhePage.tsx` |
+| 10 | Ajuda | Três tópicos novos na Central de Ajuda: criar/publicar, alterar edital publicado e significado de cada situação. | `pages/AjudaPage.tsx` |
+
 ## 2. Checklist para novos PRs de interface
 
 Copie para a descrição do PR e marque o que se aplica:

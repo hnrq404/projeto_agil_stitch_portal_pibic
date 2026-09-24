@@ -64,6 +64,18 @@ gantt
 
 **Risco:** modelagem de cotas por área (mitigação: spike de schema no 1º dia; revisão por pares com Ana).
 
+**Status no `portal-lab`:** entregue (branch `feat/S2-editais`).
+
+- [x] CRUD de editais com ciclo de vida `rascunho`, `publicado`, `em_avaliacao`, `encerrado` (nomes da [[Arquitetura]]), com encerramento automático por data e histórico de auditoria (RN03)
+- [x] Cotas por grande área CNPq com validação de consistência (mesmas regras no formulário e no backend)
+- [x] Listagem pública em `/editais-abertos`, sem login, com botão "Inscrever-se" que leva à inscrição da S3
+- [x] Notificação in-app de "edital publicado"
+- [x] Testes unitários das regras de edital
+- [ ] Testes de integração das functions (dependem da adoção do `convex-test`)
+- [ ] E2E do fluxo do gestor
+
+**Pendências de decisão:** estado "Recusada" do [[Backlog]] e a coexistência com a implementação em `server/` + `web/`.
+
 ---
 
 ## Sprint 3 — Inscrição de Pesquisa (M3)

@@ -1,8 +1,13 @@
 import { useQuery } from "convex/react";
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../../../../convex/_generated/api";
 import { PROGRAMAS, formatData, totalCotas } from "../../../../convex/editais/rules";
 import type { Programa } from "../../../../convex/editais/rules";
+import type { EditalDto } from "../../../../convex/editais/queries";
+import { editalEncerrado } from "../../../../convex/inscricoes/regras";
+import { can } from "../../../../convex/roles";
+import { useCurrentUser } from "../../../hooks/useCurrentUser";
 import { prazoRelativo } from "../../../lib/dates";
 import { PublicOrShell } from "../../PublicOrShell";
 import { CotaIndicator, StatusBadge } from "../../ui/StatusBadge";
@@ -111,11 +116,73 @@ function EditaisAbertos() {
                   {e.status === "em_avaliacao" &&
                     " As inscrições já encerraram e as propostas estão sendo avaliadas."}
                 </p>
+                <AcaoInscricao edital={e} />
               </li>
             );
           })}
         </ul>
       )}
     </section>
+  );
+}
+
+/**
+ * Nielsen #6: o caminho para se inscrever fica no próprio edital, em vez de a
+ * pessoa ter que lembrar onde fica "Nova Inscrição". Usa a mesma regra de
+ * prazo do backend da inscrição (S3), então o botão só aparece quando a
+ * inscrição de fato será aceita.
+ */
+function AcaoInscricao({ edital }: { edital: EditalDto }) {
+  const { user } = useCurrentUser();
+  const agora = Date.now();
+
+  if (edital.status !== "publicado") return null;
+
+  if (agora < edital.dataAbertura) {
+    return (
+      <p className="flex items-center gap-1 border-t border-hairline pt-3 text-xs text-muted">
+        <span aria-hidden="true" className="material-symbols-outlined text-[16px]">
+          schedule
+        </span>
+        As inscrições abrem em {formatData(edital.dataAbertura)}.
+      </p>
+    );
+  }
+  if (editalEncerrado(edital, agora)) {
+    return (
+      <p className="border-t border-hairline pt-3 text-xs text-muted">
+        O prazo de inscrição terminou. O edital passará para análise em instantes.
+      </p>
+    );
+  }
+
+  const destino = `/nova-inscricao?edital=${edital._id}`;
+
+  if (!user) {
+    return (
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-hairline pt-3">
+        <span className="text-xs text-muted">É preciso ter conta no portal para se inscrever.</span>
+        <Link to="/login" state={{ from: destino }} className="btn-primary px-4">
+          Entrar para se inscrever
+        </Link>
+      </div>
+    );
+  }
+  if (!can(user.papel, "nova-inscricao")) {
+    return (
+      <p className="border-t border-hairline pt-3 text-xs text-muted">
+        Seu perfil não envia inscrições. Alunos e docentes podem se inscrever neste edital.
+      </p>
+    );
+  }
+  return (
+    <div className="flex justify-end border-t border-hairline pt-3">
+      <Link to={destino} className="btn-primary px-4">
+        <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+          edit_note
+        </span>
+        Inscrever-se neste edital
+      </Link>
+    </div>
   );
 }
