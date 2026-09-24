@@ -126,6 +126,19 @@ export function validateCotas(cotas: Cota[]): string | undefined {
   return undefined;
 }
 
+/** Rótulo usado para editais legados da S3, que só tinham o total geral. */
+export const AREA_LEGADO = "Todas as áreas";
+
+/**
+ * Cotas de qualquer edital, inclusive os gravados pelo seed da S3 antes da
+ * S2 (só `totalCotas`): viram uma única linha "Todas as áreas".
+ */
+export function cotasDoEdital(e: { cotasPorArea?: Cota[]; totalCotas?: number }): Cota[] {
+  if (e.cotasPorArea) return e.cotasPorArea;
+  if (e.totalCotas) return [{ area: AREA_LEGADO, total: e.totalCotas, ocupadas: 0 }];
+  return [];
+}
+
 export function totalCotas(cotas: Cota[]): { total: number; ocupadas: number } {
   return cotas.reduce(
     (acc, c) => ({ total: acc.total + c.total, ocupadas: acc.ocupadas + c.ocupadas }),

@@ -5,6 +5,7 @@ import type { MutationCtx } from "../_generated/server";
 import { requireRole } from "../users/index";
 import {
   canTransition,
+  cotasDoEdital,
   cotaValidator,
   editMode,
   formatData,
@@ -106,7 +107,7 @@ export const atualizar = mutation({
         args.programa !== edital.programa ||
         args.dataAbertura !== edital.dataAbertura ||
         JSON.stringify(args.cotasPorArea.map((c) => [c.area, c.total])) !==
-          JSON.stringify(edital.cotasPorArea.map((c) => [c.area, c.total]));
+          JSON.stringify(cotasDoEdital(edital).map((c) => [c.area, c.total]));
       if (outrosCamposMudaram) {
         throw new ConvexError({
           code: "INVALID",
@@ -133,7 +134,7 @@ export const atualizar = mutation({
     // Mantém a ocupação atual de cada área.
     const cotasPorArea = args.cotasPorArea.map((c) => ({
       ...c,
-      ocupadas: edital.cotasPorArea.find((o) => o.area === c.area)?.ocupadas ?? 0,
+      ocupadas: cotasDoEdital(edital).find((o) => o.area === c.area)?.ocupadas ?? 0,
     }));
     const input = { ...args, titulo: args.titulo.trim(), cotasPorArea };
     assertValid(input);
@@ -147,7 +148,7 @@ export const atualizar = mutation({
     ) {
       mudou.push("datas");
     }
-    if (JSON.stringify(cotasPorArea) !== JSON.stringify(edital.cotasPorArea)) mudou.push("cotas");
+    if (JSON.stringify(cotasPorArea) !== JSON.stringify(cotasDoEdital(edital))) mudou.push("cotas");
     if (mudou.length === 0) return { ok: true };
 
     await ctx.db.patch(id, input);
@@ -180,7 +181,7 @@ export const publicar = mutation({
   args: { id: v.id("editais") },
   handler: async (ctx, { id }) => {
     const atual = await loadEdital(ctx, id);
-    assertValid(atual);
+    assertValid({ ...atual, cotasPorArea: cotasDoEdital(atual) });
     if (atual.dataEncerramento <= Date.now()) {
       throw new ConvexError({
         code: "INVALID",

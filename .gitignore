@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+server/src/infra/prisma/dev.db
+server/src/infra/prisma/dev.db-journal
+web/test-results/
+web/playwright-report/
+web/blob-report/
+server.log

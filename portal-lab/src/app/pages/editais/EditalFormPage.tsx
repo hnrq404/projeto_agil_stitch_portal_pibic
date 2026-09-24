@@ -98,8 +98,12 @@ function EditalForm({ edital }: { edital?: EditalDto }) {
     })),
   };
   const errors: EditalErrors = validateEdital(input);
-  if (mode === "somente-prazo" && edital && input.dataEncerramento <= edital.dataEncerramento) {
-    errors.datas = `Escolha uma data depois de ${formatData(edital.dataEncerramento)} (apenas prorrogação).`;
+  if (mode === "somente-prazo" && edital) {
+    // Só o prazo é editável; os demais campos (inclusive cotas legadas) ficam como estão.
+    for (const k of ["titulo", "programa", "cotas"] as const) delete errors[k];
+    if (input.dataEncerramento <= edital.dataEncerramento) {
+      errors.datas = `Escolha uma data depois de ${formatData(edital.dataEncerramento)} (apenas prorrogação).`;
+    }
   }
   const show = (k: keyof EditalErrors) => (tentouSalvar ? errors[k] : undefined);
 

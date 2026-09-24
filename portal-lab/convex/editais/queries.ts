@@ -2,12 +2,16 @@ import { v } from "convex/values";
 import type { Doc } from "../_generated/dataModel";
 import { query } from "../_generated/server";
 import { requireRole } from "../users/index";
-import { isPublic } from "./rules";
+import { cotasDoEdital, isPublic } from "./rules";
+import type { Cota } from "./rules";
 
-export type EditalDto = Omit<Doc<"editais">, "criadoPor">;
+export type EditalDto = Omit<Doc<"editais">, "criadoPor" | "totalCotas" | "cotasPorArea"> & {
+  cotasPorArea: Cota[];
+};
 
-function toDto({ criadoPor: _criadoPor, ...rest }: Doc<"editais">): EditalDto {
-  return rest;
+function toDto(edital: Doc<"editais">): EditalDto {
+  const { criadoPor: _criadoPor, totalCotas: _totalCotas, ...rest } = edital;
+  return { ...rest, cotasPorArea: cotasDoEdital(edital) };
 }
 
 /** Lista completa para o gestor (todas as situações). */

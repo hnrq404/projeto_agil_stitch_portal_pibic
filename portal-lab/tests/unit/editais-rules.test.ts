@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  AREA_LEGADO,
   canTransition,
+  cotasDoEdital,
   editMode,
   formatData,
   formatNumero,
@@ -129,5 +131,23 @@ describe("formatação", () => {
   it("formata datas no fuso de Brasília, mesmo quando o UTC já virou o dia", () => {
     // 01/11/2026 23:59 em Brasília = 02/11/2026 02:59 UTC
     expect(formatData(Date.UTC(2026, 10, 2, 2, 59))).toBe("01/11/2026");
+  });
+});
+
+describe("compatibilidade com editais da S3", () => {
+  it("usa as cotas por área quando existem", () => {
+    expect(cotasDoEdital({ cotasPorArea: valido.cotasPorArea, totalCotas: 99 })).toBe(
+      valido.cotasPorArea,
+    );
+  });
+
+  it("converte o total legado em uma linha única", () => {
+    expect(cotasDoEdital({ totalCotas: 20 })).toEqual([
+      { area: AREA_LEGADO, total: 20, ocupadas: 0 },
+    ]);
+  });
+
+  it("devolve lista vazia sem nenhuma informação de cota", () => {
+    expect(cotasDoEdital({})).toEqual([]);
   });
 });
