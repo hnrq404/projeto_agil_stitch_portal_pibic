@@ -1,0 +1,79 @@
+// Schema Prisma — persistência REAL da aplicação (SQLite, zero-config).
+// Para PostgreSQL: troque provider para "postgresql" e aponte DATABASE_URL.
+//
+//   npx prisma generate --schema src/infra/prisma/schema.prisma
+//   npx prisma db push   --schema src/infra/prisma/schema.prisma
+//
+// Nota: SQLite não suporta enums do Prisma — status/roles são String validados
+// na camada de domínio (mesma regra do núcleo hexagonal).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senhaHash String
+  /// "GESTOR" | "USUARIO" (visitante) — validado na camada de domínio.
+  role      String
+  criadoEm  DateTime @default(now())
+
+  notificacoes Notificacao[]
+}
+
+model Edital {
+  id                   String   @id @default(uuid())
+  numero               String   @unique
+  titulo               String
+  descricao            String   @default("")
+  /// "RASCUNHO" | "PUBLICADO" | "ENCERRADO"
+  status               String   @default("RASCUNHO")
+  /// "PIBIC" | "PIBITI" | "PIBIC_AF" | "VOLUNTARIO"
+  tipoBolsa            String
+  totalCotas           Int
+  dataInicioInscricoes DateTime
+  dataFimInscricoes    DateTime
+  publicadoEm          DateTime?
+  encerradoEm          DateTime?
+  criadoEm             DateTime @default(now())
+  atualizadoEm         DateTime @updatedAt
+
+  cotas CotaSubarea[]
+
+  @@index([status, dataFimInscricoes])
+}
+
+model CotaSubarea {
+  id          String @id @default(uuid())
+  editalId    String
+  edital      Edital @relation(fields: [editalId], references: [id], onDelete: Cascade)
+  subareaCode String
+  subareaNome String
+  quantidade  Int
+
+  @@unique([editalId, subareaCode])
+  @@index([subareaCode])
+}
+
+model Notificacao {
+  id          String   @id @default(uuid())
+  userId      String
+  user        Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// "EDITAL_PUBLICADO" | "EDITAL_ENCERRADO"
+  tipo        String
+  titulo      String
+  mensagem    String
+  referenceId String?
+  lida        Boolean  @default(false)
+  criadoEm    DateTime @default(now())
+
+  @@index([userId, lida])
+  @@index([referenceId])
+}

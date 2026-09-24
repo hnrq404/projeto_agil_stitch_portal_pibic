@@ -7,6 +7,9 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { RecuperarSenhaPage } from "./pages/RecuperarSenhaPage";
 import { RootRedirect } from "./pages/RootRedirect";
+import { MinhasInscricoesPage } from "../features/inscricao/MinhasInscricoesPage";
+import { NovaInscricaoPage } from "../features/inscricao/NovaInscricaoPage";
+import { InscricaoDetalhePage } from "../features/inscricao/InscricaoDetalhePage";
 
 export const router = createBrowserRouter([
   { path: "/", element: <RootRedirect /> },
@@ -58,7 +61,15 @@ export const router = createBrowserRouter([
     path: "/nova-inscricao",
     element: (
       <ProtectedPage perm="nova-inscricao">
-        <PlaceholderPage title="Nova Inscrição" />
+        <NovaInscricaoPage />
+      </ProtectedPage>
+    ),
+  },
+  {
+    path: "/nova-inscricao/:id",
+    element: (
+      <ProtectedPage perm="nova-inscricao">
+        <NovaInscricaoPage />
       </ProtectedPage>
     ),
   },
@@ -66,7 +77,15 @@ export const router = createBrowserRouter([
     path: "/minhas-inscricoes",
     element: (
       <ProtectedPage perm="minhas-inscricoes">
-        <PlaceholderPage title="Minhas Inscrições" />
+        <MinhasInscricoesPage />
+      </ProtectedPage>
+    ),
+  },
+  {
+    path: "/inscricoes/:id",
+    element: (
+      <ProtectedPage>
+        <InscricaoDetalhePage />
       </ProtectedPage>
     ),
   },
