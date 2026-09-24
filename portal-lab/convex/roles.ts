@@ -27,10 +27,26 @@ export const roleValidator = v.union(...ROLES.map((r) => v.literal(r)));
  * nas guards do backend (`requireRole`) quanto no menu lateral.
  */
 export const ROLE_PERMISSIONS: Record<Role, string[]> = {
-  admin: ["vitrine", "minhas-inscricoes", "nova-inscricao", "gestao-usuarios", "triagem", "dashboard", "editais"],
-  docente: ["vitrine", "minhas-inscricoes", "nova-inscricao", "meus-projetos", "triagem-orientador"],
-  avaliador: ["vitrine", "triagem", "minhas-avaliacoes"],
-  aluno: ["vitrine", "minhas-inscricoes", "nova-inscricao"],
+  admin: [
+    "vitrine",
+    "editais-abertos",
+    "minhas-inscricoes",
+    "nova-inscricao",
+    "gestao-usuarios",
+    "triagem",
+    "dashboard",
+    "editais",
+  ],
+  docente: [
+    "vitrine",
+    "editais-abertos",
+    "minhas-inscricoes",
+    "nova-inscricao",
+    "meus-projetos",
+    "triagem-orientador",
+  ],
+  avaliador: ["vitrine", "editais-abertos", "triagem", "minhas-avaliacoes"],
+  aluno: ["vitrine", "editais-abertos", "minhas-inscricoes", "nova-inscricao"],
 };
 
 export function can(role: Role, permission: string): boolean {

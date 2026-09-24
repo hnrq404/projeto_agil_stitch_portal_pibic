@@ -2,6 +2,10 @@ import { createBrowserRouter } from "react-router-dom";
 import { ProtectedPage } from "./ProtectedPage";
 import { AjudaPage } from "./pages/AjudaPage";
 import { AuthPage } from "./pages/AuthPage";
+import { EditaisAbertosPage } from "./pages/editais/EditaisAbertosPage";
+import { EditaisPage } from "./pages/editais/EditaisPage";
+import { EditalDetalhePage } from "./pages/editais/EditalDetalhePage";
+import { EditalFormPage } from "./pages/editais/EditalFormPage";
 import { GestaoUsuariosPage } from "./pages/GestaoUsuariosPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
@@ -37,10 +41,35 @@ export const router = createBrowserRouter([
     path: "/editais",
     element: (
       <ProtectedPage perm="editais">
-        <PlaceholderPage title="Editais & Publicação" />
+        <EditaisPage />
       </ProtectedPage>
     ),
   },
+  {
+    path: "/editais/novo",
+    element: (
+      <ProtectedPage perm="editais">
+        <EditalFormPage />
+      </ProtectedPage>
+    ),
+  },
+  {
+    path: "/editais/:id",
+    element: (
+      <ProtectedPage perm="editais">
+        <EditalDetalhePage />
+      </ProtectedPage>
+    ),
+  },
+  {
+    path: "/editais/:id/editar",
+    element: (
+      <ProtectedPage perm="editais">
+        <EditalFormPage />
+      </ProtectedPage>
+    ),
+  },
+  { path: "/editais-abertos", element: <EditaisAbertosPage /> },
   {
     path: "/triagem",
     element: (

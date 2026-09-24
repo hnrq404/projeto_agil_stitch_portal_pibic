@@ -24,6 +24,13 @@ export const NAV_ITEMS: NavItem[] = [
     description: "Crie, publique e encerre editais de iniciação científica.",
   },
   {
+    to: "/editais-abertos",
+    label: "Editais Abertos",
+    icon: "campaign",
+    perm: "editais-abertos",
+    description: "Editais com inscrições abertas ou em análise e as bolsas disponíveis por área.",
+  },
+  {
     to: "/triagem",
     label: "Central de Triagem",
     icon: "fact_check",
@@ -90,8 +97,9 @@ export const HELP_ITEM = {
 
 /** Título/descrição da página atual para o cabeçalho e a aba do navegador (Nielsen #1). */
 export function pageMeta(pathname: string): { label: string; description: string } | null {
-  if (pathname.startsWith(HELP_ITEM.to)) return HELP_ITEM;
-  return NAV_ITEMS.find((item) => pathname.startsWith(item.to)) ?? null;
+  const matches = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
+  if (matches(HELP_ITEM.to)) return HELP_ITEM;
+  return NAV_ITEMS.find((item) => matches(item.to)) ?? null;
 }
 
 /** Rota inicial por papel (landing pós-login). */

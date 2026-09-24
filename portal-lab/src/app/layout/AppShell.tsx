@@ -9,6 +9,7 @@ import { friendlyError } from "../../lib/errors";
 import { Alert } from "../ui/Alert";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { HELP_ITEM, NAV_ITEMS, pageMeta } from "./nav";
+import { NotificationBell } from "./NotificationBell";
 import { Sidebar } from "./Sidebar";
 import { useKeyboardShortcuts } from "./useKeyboardShortcuts";
 
@@ -141,6 +142,7 @@ export function AppShell({ user, children }: AppShellProps) {
           </nav>
 
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <Link
               to={HELP_ITEM.to}
               className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-canvas hover:text-navy"

@@ -504,7 +504,7 @@ export const seedEditalDemo = mutation({
   handler: async (ctx) => {
     // Escrita em `editais` é exclusiva do gestor (RN11). Sem isso, o seed de
     // demonstração vira vazamento quando a S2 entregar o CRUD do gestor.
-    await requireRole(ctx, "admin");
+    const gestor = await requireRole(ctx, "admin");
     const existente = await ctx.db
       .query("editais")
       .withIndex("status", (q) => q.eq("status", "publicado"))
@@ -514,13 +514,20 @@ export const seedEditalDemo = mutation({
     }
     const agora = Date.now();
     const editalId = await ctx.db.insert("editais", {
-      numero: "01/2026",
+      numero: "001/2026",
       titulo: "PIBIC 2026–2027 — Programa Institucional de Bolsas de Iniciação Científica",
       programa: "PIBIC",
       status: "publicado",
       dataAbertura: agora - 7 * 24 * 60 * 60 * 1000,
       dataEncerramento: agora + 45 * 24 * 60 * 60 * 1000,
-      totalCotas: 20,
+      // Formato da S2 (cotas por área CNPq).
+      ano: new Date(agora).getFullYear(),
+      cotasPorArea: [
+        { area: "Ciências Exatas e da Terra", total: 8, ocupadas: 0 },
+        { area: "Engenharias", total: 7, ocupadas: 0 },
+        { area: "Ciências Biológicas", total: 5, ocupadas: 0 },
+      ],
+      criadoPor: gestor._id,
     });
     return { editalId, criado: true };
   },
