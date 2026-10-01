@@ -1,6 +1,7 @@
 import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { cotaValidator, programaValidator, statusValidator } from "./editais/rules";
 import { roleValidator } from "./roles";
 
 // Tabelas de auth (users, authSessions, authAccounts) vêm do @convex-dev/auth;
@@ -23,23 +24,41 @@ export default defineSchema({
     .index("email", ["email"])
     .index("papel", ["papel"]),
 
-  // ── Sprint 2/S3 — Edital (bridge de leitura para as inscrições) ──────────
-  // CRUD completo do gestor é entregue na S2/S5; aqui o modelo já reflete o
-  // esboço de dados do [[Arquitetura]] §4.
+  // M2 — Edital & Publicação (S2)
+  // Substitui a tabela "ponte" criada na S3. Os campos opcionais existem para
+  // aceitar os editais já gravados pelo seed da S3 (só com `totalCotas`);
+  // use `cotasDoEdital()` para ler as cotas de qualquer edital.
   editais: defineTable({
-    numero: v.string(), // ex.: "01/2026"
+    numero: v.string(), // "003/2026", gerado no backend
+    ano: v.optional(v.number()),
     titulo: v.string(),
-    programa: v.string(), // "PIBIC" | "PIBITI" | "INTERNO"
-    status: v.union(
-      v.literal("rascunho"),
-      v.literal("publicado"),
-      v.literal("em_avaliacao"),
-      v.literal("encerrado"),
-    ),
+    programa: programaValidator,
+    status: statusValidator,
     dataAbertura: v.number(), // epoch ms
     dataEncerramento: v.number(), // epoch ms
-    totalCotas: v.number(),
-  }).index("status", ["status"]),
+    cotasPorArea: v.optional(v.array(cotaValidator)),
+    totalCotas: v.optional(v.number()), // legado S3
+    criadoPor: v.optional(v.id("users")),
+  })
+    .index("status", ["status"])
+    .index("ano", ["ano"]),
+
+  // RN03: toda alteração em edital fica registrada.
+  editalHistorico: defineTable({
+    editalId: v.id("editais"),
+    autorId: v.optional(v.id("users")), // ausente = ação automática do sistema
+    acao: v.string(),
+    detalhe: v.optional(v.string()),
+  }).index("edital", ["editalId"]),
+
+  // Notificações in-app (S2: "edital publicado").
+  notificacoes: defineTable({
+    userId: v.id("users"),
+    titulo: v.string(),
+    mensagem: v.string(),
+    link: v.optional(v.string()),
+    lida: v.boolean(),
+  }).index("user_lida", ["userId", "lida"]),
 
   // ── Sprint 3 — Inscrição de Pesquisa (M3) ────────────────────────────────
   // Estados: rascunho → submetida → em_triagem → avaliada → aprovada/recusada

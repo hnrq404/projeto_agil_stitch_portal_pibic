@@ -12,14 +12,16 @@ export const setRole = mutation({
   args: {
     userId: v.id("users"),
     papel: roleValidator,
+    /** Usado pelo "Desfazer" da tela de gestão para restaurar a fila (Nielsen #3). */
+    papeisSolicitados: v.optional(v.array(roleValidator)),
   },
-  handler: async (ctx, { userId, papel }) => {
+  handler: async (ctx, { userId, papel, papeisSolicitados }) => {
     await requireRole(ctx, "admin");
     const target = await ctx.db.get(userId);
     if (!target) {
       throw new ConvexError({ code: "NOT_FOUND", message: "Usuário não encontrado." });
     }
-    await ctx.db.patch(userId, { papel, papeisSolicitados: [] });
+    await ctx.db.patch(userId, { papel, papeisSolicitados: papeisSolicitados ?? [] });
     return { ok: true };
   },
 });
@@ -37,7 +39,10 @@ export const grantRequestedRole = mutation({
     }
     const [papel] = target.papeisSolicitados ?? [];
     if (!papel) {
-      throw new ConvexError({ code: "INVALID", message: "Usuário não possui solicitação pendente." });
+      throw new ConvexError({
+        code: "INVALID",
+        message: "Usuário não possui solicitação pendente.",
+      });
     }
     await ctx.db.patch(userId, { papel, papeisSolicitados: [] });
     return { ok: true, papel };
@@ -63,7 +68,8 @@ export const claimBootstrapAdmin = mutation({
     if (admins) {
       throw new ConvexError({
         code: "FORBIDDEN",
-        message: "A instalação já possui um Gestor PRPq. Use a Gestão de Usuários para solicitar papel elevado.",
+        message:
+          "A instalação já possui um Gestor PRPq. Use a Gestão de Usuários para solicitar papel elevado.",
       });
     }
     await ctx.db.patch(user._id, { papel: "admin", papeisSolicitados: [] });

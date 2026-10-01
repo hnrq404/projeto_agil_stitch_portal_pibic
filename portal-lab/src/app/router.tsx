@@ -1,7 +1,13 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import { ProtectedPage } from "./ProtectedPage";
+import { AjudaPage } from "./pages/AjudaPage";
 import { AuthPage } from "./pages/AuthPage";
+import { EditaisAbertosPage } from "./pages/editais/EditaisAbertosPage";
+import { EditaisPage } from "./pages/editais/EditaisPage";
+import { EditalDetalhePage } from "./pages/editais/EditalDetalhePage";
+import { EditalFormPage } from "./pages/editais/EditalFormPage";
 import { GestaoUsuariosPage } from "./pages/GestaoUsuariosPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 import { RecuperarSenhaPage } from "./pages/RecuperarSenhaPage";
 import { RootRedirect } from "./pages/RootRedirect";
@@ -14,6 +20,7 @@ export const router = createBrowserRouter([
   { path: "/login", element: <AuthPage mode="login" /> },
   { path: "/cadastro", element: <AuthPage mode="register" /> },
   { path: "/recuperar-senha", element: <RecuperarSenhaPage /> },
+  { path: "/ajuda", element: <AjudaPage /> },
   {
     path: "/gestao-usuarios",
     element: (
@@ -26,7 +33,7 @@ export const router = createBrowserRouter([
     path: "/dashboard",
     element: (
       <ProtectedPage perm="dashboard">
-        <PlaceholderPage title="Dashboard do Gestor" sprint="S5" />
+        <PlaceholderPage title="Dashboard do Gestor" />
       </ProtectedPage>
     ),
   },
@@ -34,15 +41,40 @@ export const router = createBrowserRouter([
     path: "/editais",
     element: (
       <ProtectedPage perm="editais">
-        <PlaceholderPage title="Editais & Publicação" sprint="S2" />
+        <EditaisPage />
       </ProtectedPage>
     ),
   },
   {
+    path: "/editais/novo",
+    element: (
+      <ProtectedPage perm="editais">
+        <EditalFormPage />
+      </ProtectedPage>
+    ),
+  },
+  {
+    path: "/editais/:id",
+    element: (
+      <ProtectedPage perm="editais">
+        <EditalDetalhePage />
+      </ProtectedPage>
+    ),
+  },
+  {
+    path: "/editais/:id/editar",
+    element: (
+      <ProtectedPage perm="editais">
+        <EditalFormPage />
+      </ProtectedPage>
+    ),
+  },
+  { path: "/editais-abertos", element: <EditaisAbertosPage /> },
+  {
     path: "/triagem",
     element: (
       <ProtectedPage perm="triagem">
-        <PlaceholderPage title="Central de Triagem" sprint="S4" />
+        <PlaceholderPage title="Central de Triagem" />
       </ProtectedPage>
     ),
   },
@@ -50,7 +82,7 @@ export const router = createBrowserRouter([
     path: "/triagem-orientador",
     element: (
       <ProtectedPage perm="triagem-orientador">
-        <PlaceholderPage title="Triagem dos Meus Projetos" sprint="S4" />
+        <PlaceholderPage title="Triagem dos Meus Projetos" />
       </ProtectedPage>
     ),
   },
@@ -90,7 +122,7 @@ export const router = createBrowserRouter([
     path: "/meus-projetos",
     element: (
       <ProtectedPage perm="meus-projetos">
-        <PlaceholderPage title="Meus Projetos" sprint="S5" />
+        <PlaceholderPage title="Meus Projetos" />
       </ProtectedPage>
     ),
   },
@@ -98,13 +130,13 @@ export const router = createBrowserRouter([
     path: "/minhas-avaliacoes",
     element: (
       <ProtectedPage perm="minhas-avaliacoes">
-        <PlaceholderPage title="Minhas Avaliações" sprint="S4" />
+        <PlaceholderPage title="Minhas Avaliações" />
       </ProtectedPage>
     ),
   },
   {
     path: "/vitrine",
-    element: <PlaceholderPage title="Vitrine Pública" sprint="S6" />,
+    element: <PlaceholderPage title="Vitrine Pública" />,
   },
-  { path: "*", element: <Navigate to="/" replace /> },
+  { path: "*", element: <NotFoundPage /> },
 ]);

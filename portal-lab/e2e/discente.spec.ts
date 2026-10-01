@@ -54,13 +54,14 @@ test("discente submete proposta completa com plano de trabalho", async ({ page }
   await expect(page.getByText(/plano-de-trabalho\.pdf/i)).toBeVisible();
   await page.getByRole("button", { name: /Avançar/i }).click();
 
-  // 6. Etapa 4 — revisão, declaração e submissão (aceita o confirm nativo)
-  page.on("dialog", (d) => d.accept());
+  // 6. Etapa 4 — revisão, declaração e submissão via modal do design system
   await page.getByLabel(/Declaro a veracidade/i).check();
   await page.getByRole("button", { name: /Submeter inscrição final/i }).click();
+  await expect(page.getByRole("dialog", { name: /Confirmar submissão final/i })).toBeVisible();
+  await page.getByRole("button", { name: /Confirmar e enviar/i }).click();
 
   // 7. Detalhe com protocolo gerado no backend (formato CNPq)
-  await expect(page).toHaveURL(/inscricoes\//);
+  await expect(page).toHaveURL(/inscricoes\//, { timeout: 20_000 });
   await expect(page.getByText(/Inscrição submetida com sucesso/i)).toBeVisible();
   await expect(page.locator("code.font-mono, span.font-mono").first()).toBeVisible();
   await expect(page.getByText(/Submetida ao edital/i)).toBeVisible();
