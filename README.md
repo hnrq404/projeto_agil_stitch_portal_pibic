@@ -4,7 +4,7 @@ Portal institucional para gestão do ciclo de iniciação científica: editais (
 
 Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda a documentação de produto e arquitetura versionada como uma wiki interna via wikilinks.
 
-**Status atual:** Sprint 2 (Edital & Publicação — M2) **full-stack concluída**: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server), e SPA **React + Vite + Tailwind** navegável em [`web/`](./web) — cadastro/login com redirecionamento por papel, painel do gestor, vitrine pública, notificações in-app. **90 testes de integração/unitários + 2 E2E de API + 1 E2E de browser (Playwright)**, todos verdes. Sprint 1 (Convex Auth no portal-lab) segue em andamento.
+**Status atual:** Sprint 2 (Edital & Publicação — M2) **full-stack concluída e verificada**: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server), e SPA **React + Vite + Tailwind** navegável em [`web/`](./web) — cadastro/login com redirecionamento por papel, painel do gestor, vitrine pública, notificações in-app. **90 testes de integração/unitários + 2 E2E de API + 1 E2E de browser (Playwright)**, todos verdes, com `tsc --noEmit` limpo nos dois projetos. Sprint 1 (Convex Auth no portal-lab) segue em andamento. Sprint 3 (Inscrição) já tem implementação em [`portal-lab/`](./portal-lab) — formulário multi-etapas, upload de PDF, protocolo único e autosave — com **48 testes unitários verdes** e typecheck limpo; falta o E2E de browser.
 
 ## 👥 Equipe
 
@@ -88,7 +88,7 @@ portal-lab/
 | --- | --- | --- |
 | M1 — Autenticação & Acesso | Login, papéis, guards de rota, shell do app | S1 *(em andamento)* |
 | M2 — Edital & Publicação | CRUD de editais, cotas por área, ciclo de vida | S2 *(full-stack: `server/` + `web/`)* |
-| M3 — Inscrição de Pesquisa | Formulário multi-etapas, upload de plano de trabalho | S3 |
+| M3 — Inscrição de Pesquisa | Formulário multi-etapas, upload de plano de trabalho | S3 *(implementado em `portal-lab/`; E2E pendente)* |
 | M4 — Central de Triagem | Distribuição de propostas, rubrica 0–10, pareceres | S4 |
 | M5 — Painel do Gestor | KPIs, cotas preenchidas, exportação CSV | S5 |
 | M6 — Vitrine Pública | Pesquisas aprovadas, sem login, filtros por área/ano | S6 |
@@ -115,7 +115,7 @@ O sistema de design formal (cores, tipografia, componentes, WCAG 2.1 AA) está e
 | S0 | Fundação: documentação, ferramentação, design system aprovado | ✅ Concluída |
 | S1 | Autenticação e níveis de acesso | 🔵 Em andamento |
 | S2 | Edital & Publicação | ✅ Full-stack concluída ([`server/`](./server) + [`web/`](./web)) |
-| S3 | Inscrição de Pesquisa | ⬜ Planejada |
+| S3 | Inscrição de Pesquisa | 🔵 Em andamento ([`portal-lab/`](./portal-lab) — 48 testes unitários verdes; E2E de browser pendente) |
 | S4 | Central de Triagem e Avaliação | ⬜ Planejada |
 | S5 | Homologação e Painel do Gestor | ⬜ Planejada |
 | S6 | Relatórios e Vitrine Pública | ⬜ Planejada |
