@@ -6,6 +6,8 @@ Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda
 
 **Status atual:** aplicação full-stack cobrindo o ciclo S1 a S6: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server) e SPA **React + Vite + Tailwind** em [`web/`](./web). Quatro papéis (discente, docente, avaliador, gestor); editais; inscrição em etapas com auto-save e upload de PDF; vínculo com o orientador; triagem com conflito de interesse; rubrica 0–10; homologação por cota; relatórios com versões; painel do gestor; vitrine pública. Testes unitários, de integração e E2E (API e browser) verdes. O protótipo com Convex segue em [`portal-lab/`](./portal-lab).
 
+**Previsão de conclusão da versão funcional:** `18/11/2026`. A estimativa considera a entrega das funcionalidades principais até o fim da Sprint 4, prevista para o período de `09/11/2026` a `20/11/2026`, mantendo o limite de conclusão em novembro de 2026. Como referência de ritmo, os commits registrados entre `10/09/2026` e `21/09/2026` ocorreram ao longo de 12 dias corridos; a data permanece uma previsão e pode mudar conforme o andamento das próximas sprints. As etapas de homologação, métricas, relatórios, acessibilidade e apresentação podem ser realizadas posteriormente.
+
 ## 👥 Equipe
 
 - Ana Pellegrino
