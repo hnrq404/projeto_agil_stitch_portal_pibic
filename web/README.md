@@ -1,45 +1,85 @@
-# web/ — SPA Portal PIBIC (React + Vite + Tailwind)
+# web/ — SPA do Portal PIBIC
 
-Frontend da Sprint 2: autenticação completa (cadastro/login/JWT), painel do gestor, vitrine pública e notificações — todas as páginas navegáveis entre si.
+React 18 + Vite + TypeScript + Tailwind, com TanStack Query (estado de servidor), react-hook-form + Zod (formulários) e lucide-react (ícones). Consome a API de [`server/`](../server).
 
 ## Rodando
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173 (proxy /api → :3000)
-npm run build      # build de produção em dist/ (servida pelo server/)
-npm run test:e2e   # Playwright contra o server full-stack (:3000)
+npm run dev        # http://localhost:5173 (proxy /api → :3000; suba o server/ antes)
+npm run build      # build de produção em dist/ (servida pelo server/ na :3000)
+npm test           # testes unitários (Vitest)
+npm run test:e2e   # Playwright contra o server full-stack (:3000), após o build
 ```
-
-## Mapa de páginas (sem becos sem saída)
-
-| Rota | Acesso | Conteúdo |
-| --- | --- | --- |
-| `/login` | público | Login + link "Cadastre-se" |
-| `/cadastro` | público | Nome, e-mail, senha, confirmação, perfil (GESTOR/VISITANTE) |
-| `/editais` | público | **Vitrine** — cards dos editais abertos + botão "Área do Gestor" |
-| `/editais/:id` | público | Detalhe público do edital + voltar |
-| `/gestor/editais` | GESTOR | Tabela com Ver Detalhes / Editar / Publicar + "+ Criar Novo Edital" + "Ver Vitrine Pública" |
-| `/gestor/editais/novo` | GESTOR | Formulário com cotas dinâmicas e validação em tempo real |
-| `/gestor/editais/:id/editar` | GESTOR | Mesmo formulário (só RASCUNHO) |
-| `/gestor/editais/:id` | GESTOR | Detalhe administrativo + Publicar/Encerrar |
-| `/notificacoes` | autenticado | Notificações in-app + marcar lida |
-| `*` | público | 404 com links de saída |
-
-**Redirecionamento inteligente após login:** GESTOR → `/gestor/editais`; USUARIO → `/editais`.
-
-**Guards de rota** (`App.tsx`): `RequireAuth` (qualquer logado) e `RequireGestor` (role GESTOR; não-gestor cai na vitrine). O header global sempre mostra o estado de auth (nome + Sair, ou Entrar/Cadastrar).
-
-**Validação de cotas em tempo real:** o formulário exibe `Soma distribuída: N de TOTAL` e bloqueia salvar quando a soma excede o total do edital (regra RN de consistência, também validada no backend).
 
 ## Estrutura
 
+Organização por **feature** (um módulo do produto por pasta), com uma camada `shared/` sem regra de negócio.
+
 ```
 src/
-├── auth/AuthContext.tsx   # login/register/logout + bootstrap /auth/me
-├── components/Layout.tsx  # header global + estado de autenticação
-├── pages/                 # 9 páginas navegáveis
-├── services/api.ts        # fetch com JWT + erros tipados
-└── types.ts               # tipos espelhando os DTOs da API
-tests/e2e/                 # Playwright (jornada completa)
+├── app/                 # composição: rotas, guards de papel, navegação e layouts
+│   ├── router.tsx       # mapa de rotas (páginas carregadas sob demanda)
+│   ├── guards.tsx       # RequireAuth (RN12), RequireRole (RN11), GuestOnly
+│   ├── navigation.ts    # menu por papel e página inicial de cada papel
+│   └── layout/          # AppShell (sidebar + topo), PublicLayout
+├── features/            # um módulo por pasta: api.ts (hooks de dados) + páginas
+│   ├── auth/            # AuthProvider, login, cadastro
+│   ├── editais/         # gestão (S2) e vitrine de editais abertos
+│   ├── inscricoes/      # formulário em etapas com auto-save (S3), detalhe, orientações
+│   ├── triagem/         # central de triagem, atribuição, homologação, ranking (S4/S5)
+│   ├── avaliacoes/      # rubrica 0–10 em painel duplo com o PDF (S4)
+│   ├── projetos/        # relatórios parciais/finais, histórico, exportação CSV (S6)
+│   ├── dashboard/       # início por papel e painel do gestor (S5/S6)
+│   ├── vitrine/         # pesquisas aprovadas, sem login (S6)
+│   ├── notificacoes/    # lista e contador do sino
+│   └── usuarios/        # gestão de papéis e departamentos (S1.2)
+└── shared/
+    ├── api/             # cliente HTTP (JWT, erros, upload com progresso), QueryClient
+    ├── ui/              # kit de componentes do DESIGN.md (Button, Field, Card, StatusBadge...)
+    ├── hooks/           # useAutoSave, useDocumentTitle
+    ├── lib/             # formatadores pt-BR, rótulos de status, cn()
+    └── types/api.ts     # contrato da API (espelha os DTOs do backend)
 ```
+
+### Regras de dependência
+
+- `shared/` não importa nada de `features/` nem de `app/`.
+- Uma feature usa de outra apenas o que ela expõe de propósito (o `api.ts` e componentes como `PropostaConteudo`), nunca detalhes internos.
+- Páginas não chamam `fetch`: todo acesso à API passa pelos hooks do `api.ts` da feature, com query keys centralizadas. Assim cache e invalidação ficam num lugar só.
+
+### Convenções
+
+| Tema | Como fazemos |
+| --- | --- |
+| Estado de servidor | TanStack Query; nada de copiar resposta da API para `useState` |
+| Formulários | react-hook-form + Zod; os mínimos espelham as regras do backend, que segue sendo a autoridade |
+| Erros | `ApiError` com a mensagem do backend; telas usam `ErrorState`, ações usam toast |
+| Sessão | token em `localStorage`; 401 com sessão ativa dispara `session-expired` e leva ao login (RN12) |
+| Permissões | menu e rotas por papel são conveniência de navegação; a autorização real é no backend |
+| Estilo | só tokens do `tailwind.config.js` (cores, fontes, raios do DESIGN.md); sem cores soltas |
+| Acessibilidade | `Field` liga label, dica e erro ao campo; foco visível; status sempre com texto; atalho "pular para o conteúdo" |
+| Exports | componentes com named export; sem default export |
+
+## Rotas
+
+| Rota | Papel | Conteúdo |
+| --- | --- | --- |
+| `/editais`, `/editais/:id` | público | editais com inscrições abertas e bolsas alocadas |
+| `/pesquisas` | público | vitrine de pesquisas aprovadas, com busca e filtros na URL |
+| `/login`, `/cadastro` | público | o cadastro oferece Discente, Docente ou Visitante |
+| `/inicio` | autenticado | página inicial por papel; para o gestor, o painel de indicadores |
+| `/notificacoes` | autenticado | avisos com link para o item relacionado |
+| `/gestor/editais...` | gestor | criar, editar (rascunho), publicar e encerrar editais |
+| `/triagem`, `/triagem/:id`, `/triagem/ranking/:edital` | gestor | fila, distribuição, consolidado, homologação, ranking |
+| `/usuarios` | gestor | papéis e departamentos |
+| `/inscricoes`, `/inscricoes/nova`, `/inscricoes/:id/editar` | discente | inscrições e formulário em 5 etapas com auto-save |
+| `/inscricoes/:id` | dono, orientador, avaliador, gestor | detalhe; o orientador confirma ou recusa o vínculo aqui |
+| `/orientacoes` | docente | pedidos de orientação |
+| `/avaliacoes`, `/avaliacoes/:id` | avaliador | atribuições e rubrica |
+| `/projetos`, `/projetos/:id` | discente, docente, gestor | relatórios, histórico e exportação CSV |
+
+## Testes
+
+- **Unitários (Vitest):** regras puras do front, como a soma de cotas e a média e obrigatoriedade do parecer da rubrica.
+- **E2E (Playwright):** `tests/e2e/jornada.spec.ts` percorre o ciclo inteiro com os quatro papéis: edital, inscrição, orientação, triagem, parecer, homologação e vitrine. Também verifica os guards de rota. O teste cria o próprio edital e a conta de discente, então pode rodar várias vezes.

@@ -17,6 +17,8 @@ export interface Edital {
   totalCotas: number;
   /** Cotas distribuídas por subárea CNPq (soma ≤ totalCotas). */
   cotas: CotaSubarea[];
+  /** Nota mínima (0–10) para aprovação; abaixo dela o parecer é obrigatório (RN07). */
+  notaCorte: number;
   /** Início das inscrições (inclusive). */
   dataInicioInscricoes: Date;
   /** Prazo final das inscrições (inclusive até 23:59:59.999). */
@@ -35,6 +37,7 @@ export interface CreateEditalInput {
   tipoBolsa: BolsaTipo;
   totalCotas: number;
   cotas: CreateCotaInput[];
+  notaCorte?: number;
   dataInicioInscricoes: string;
   dataFimInscricoes: string;
 }
@@ -46,6 +49,7 @@ export interface UpdateEditalInput {
   tipoBolsa?: BolsaTipo;
   totalCotas?: number;
   cotas?: CreateCotaInput[];
+  notaCorte?: number;
   dataInicioInscricoes?: string;
   dataFimInscricoes?: string;
 }

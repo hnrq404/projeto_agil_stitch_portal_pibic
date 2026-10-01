@@ -28,7 +28,7 @@ if (fs.existsSync(webDist)) {
 container.app.listen(PORT, () => {
   console.log(`[portal-pibic-server] HTTP on http://localhost:${PORT}`);
   console.log(`[portal-pibic-server] Persistência: ${USE_PRISMA ? 'Prisma/SQLite (real)' : 'in-memory'}`);
-  console.log('[portal-pibic-server] Fluxo: /cadastro → /login → /gestor/editais ou /editais (vitrine)');
+  console.log('[portal-pibic-server] Contas de demonstração: npm run db:seed (ver README).');
 });
 
 export { container };

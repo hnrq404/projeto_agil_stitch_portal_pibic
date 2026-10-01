@@ -2,17 +2,18 @@
   "name": "portal-pibic",
   "version": "1.0.0",
   "private": true,
-  "description": "Portal de Gestão de Laboratório — Sprint 2 (Edital & Publicação): API Node/Prisma + SPA React",
+  "description": "Portal de Gestão de Laboratório (PIBIC): API Node/Express/Prisma + SPA React (S1 a S6)",
   "scripts": {
     "setup": "npm install --prefix server && npm install --prefix web && npm run db:push --prefix server && npm run db:seed --prefix server && npm run build --prefix web",
-    "dev": "npm run dev --prefix server",
+    "dev": "npx concurrently -n api,web \"npm run dev --prefix server\" \"npm run dev --prefix web\"",
+    "start": "npm run build --prefix web && npm run dev --prefix server",
     "build": "npm run build --prefix web",
     "typecheck": "npm run typecheck --prefix server && npm run typecheck --prefix web",
-    "test": "npm test --prefix server",
-    "test:unit": "npm run test:unit --prefix server",
+    "test": "npm test --prefix server && npm test --prefix web",
+    "test:unit": "npm run test:unit --prefix server && npm test --prefix web",
     "test:integration": "npm run test:integration --prefix server",
     "test:e2e:api": "npm run test:e2e --prefix server",
-    "test:e2e:ui": "npm run test:e2e --prefix web",
+    "test:e2e:ui": "npm run build --prefix web && npm run test:e2e --prefix web",
     "db:seed": "npm run db:seed --prefix server",
     "db:studio": "npm run db:studio --prefix server"
   }

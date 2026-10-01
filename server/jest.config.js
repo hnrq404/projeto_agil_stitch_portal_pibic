@@ -16,6 +16,10 @@ const makeProject = (displayName, testRegex) => ({
     '^@editais/(.*)$': '<rootDir>/src/modules/editais/$1',
     '^@notificacoes/(.*)$': '<rootDir>/src/modules/notificacoes/$1',
     '^@publico/(.*)$': '<rootDir>/src/modules/publico/$1',
+    '^@inscricoes/(.*)$': '<rootDir>/src/modules/inscricoes/$1',
+    '^@avaliacoes/(.*)$': '<rootDir>/src/modules/avaliacoes/$1',
+    '^@projetos/(.*)$': '<rootDir>/src/modules/projetos/$1',
+    '^@dashboard/(.*)$': '<rootDir>/src/modules/dashboard/$1',
   },
   clearMocks: true,
 });

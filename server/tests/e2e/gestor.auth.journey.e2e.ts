@@ -1,6 +1,6 @@
 /**
  * E2E (API) — Jornada completa com AUTENTICAÇÃO REAL + persistência REAL:
- *   1. cadastra uma conta GESTOR (bcrypt no banco SQLite)
+ *   1. cria uma conta GESTOR (bcrypt no banco SQLite), como o seed
  *   2. faz login e recebe JWT
  *   3. cria edital com cotas por subárea CNPq
  *   4. tenta quebrar a regra de consistência de cotas (bloqueado)
@@ -14,6 +14,7 @@ import request from 'supertest';
 import { buildApp, type AppContainer } from '../../src/infra/config/app.container';
 import { loadEnv } from '../../src/infra/config/env';
 import { FixedClock } from '../../src/shared/testing/fixed-clock';
+import { criarUsuario } from '../helpers/usuarios';
 
 jest.setTimeout(60000);
 
@@ -55,15 +56,13 @@ const editalPayload = () => ({
 });
 
 it('E2E: cadastro → login → criar edital → cotas → publicar → vitrine → encerrar', async () => {
-  // ── 1. Cadastro da conta GESTOR (persistida com hash bcrypt)
-  const registered = await request(container.app).post('/api/auth/register').send({
+  // ── 1. Conta GESTOR com hash bcrypt (papel atribuído pela instituição, como no seed)
+  await criarUsuario(container, {
     nome: 'Gestor E2E',
     email: GESTOR_EMAIL,
     senha: GESTOR_SENHA,
     role: 'GESTOR',
   });
-  expect(registered.status).toBe(201);
-  expect(registered.body.usuario.role).toBe('GESTOR');
 
   // ── 2. Login do MESMO usuário → JWT
   const login = await request(container.app).post('/api/auth/login').send({

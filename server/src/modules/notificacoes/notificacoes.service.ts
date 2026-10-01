@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto';
 
-import type { EditalPublicadoEvent, Notificacao } from './domain/notificacoes.types';
+import type {
+  EditalPublicadoEvent,
+  Notificacao,
+  NotificacaoInput,
+} from './domain/notificacoes.types';
 import type { NotificacoesRepository } from './repositories/notificacoes.repository';
 
 /**
@@ -51,11 +55,37 @@ export class NotificacoesService {
     return created;
   }
 
+  /** Notificação direcionada: usada pelos módulos de inscrição, avaliação e projetos. */
+  async notify(userIds: readonly string[], input: NotificacaoInput): Promise<Notificacao[]> {
+    const now = new Date();
+    const unique = [...new Set(userIds)];
+    return Promise.all(
+      unique.map((userId) =>
+        this.repository.create({
+          id: randomUUID(),
+          userId,
+          tipo: input.tipo,
+          titulo: input.titulo,
+          mensagem: input.mensagem,
+          referenceId: input.referenceId,
+          lida: false,
+          criadoEm: now,
+        }),
+      ),
+    );
+  }
+
   async listByUser(userId: string, onlyUnread = false): Promise<Notificacao[]> {
     return this.repository.listByUser(userId, onlyUnread);
   }
 
   async markAsRead(userId: string, notificacaoId: string): Promise<Notificacao> {
     return this.repository.markAsRead(userId, notificacaoId);
+  }
+
+  async markAllAsRead(userId: string): Promise<number> {
+    const unread = await this.repository.listByUser(userId, true);
+    await Promise.all(unread.map((n) => this.repository.markAsRead(userId, n.id)));
+    return unread.length;
   }
 }

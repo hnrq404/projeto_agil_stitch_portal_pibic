@@ -24,6 +24,8 @@ const isoDate = z
   .string()
   .refine((value) => !Number.isNaN(Date.parse(value)), { message: 'Data ISO inválida.' });
 
+const notaCorteSchema = z.number().min(0, 'notaCorte deve ser ≥ 0').max(10, 'notaCorte deve ser ≤ 10');
+
 export const createEditalSchema = z
   .object({
     numero: z.string().trim().min(3, 'numero deve ter ao menos 3 caracteres'),
@@ -32,6 +34,7 @@ export const createEditalSchema = z
     tipoBolsa: z.enum(['PIBIC', 'PIBITI', 'PIBIC_AF', 'VOLUNTARIO']),
     totalCotas: z.number().int().min(1),
     cotas: z.array(createCotaSchema).min(1, 'Informe ao menos uma cota por subárea'),
+    notaCorte: notaCorteSchema.optional(),
     dataInicioInscricoes: isoDate,
     dataFimInscricoes: isoDate,
   })
@@ -50,6 +53,7 @@ export const updateEditalSchema = z
     tipoBolsa: z.enum(['PIBIC', 'PIBITI', 'PIBIC_AF', 'VOLUNTARIO']).optional(),
     totalCotas: z.number().int().min(1).optional(),
     cotas: z.array(createCotaSchema).min(1).optional(),
+    notaCorte: notaCorteSchema.optional(),
     dataInicioInscricoes: isoDate.optional(),
     dataFimInscricoes: isoDate.optional(),
   })
@@ -76,6 +80,7 @@ export function toEditalResponse(edital: Edital) {
     tipoBolsa: edital.tipoBolsa,
     totalCotas: edital.totalCotas,
     cotas: edital.cotas.map((cota) => ({ ...cota })),
+    notaCorte: edital.notaCorte,
     dataInicioInscricoes: edital.dataInicioInscricoes.toISOString(),
     dataFimInscricoes: edital.dataFimInscricoes.toISOString(),
     publicadoEm: edital.publicadoEm ? edital.publicadoEm.toISOString() : null,

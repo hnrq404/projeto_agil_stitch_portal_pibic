@@ -21,9 +21,13 @@ model Usuario {
   nome      String
   email     String   @unique
   senhaHash String
-  /// "GESTOR" | "USUARIO" (visitante) — validado na camada de domínio.
-  role      String
-  criadoEm  DateTime @default(now())
+  /// "DISCENTE" | "DOCENTE" | "AVALIADOR" | "GESTOR" | "ADMIN" | "USUARIO" — validado na camada de domínio.
+  role         String
+  /// Departamento/unidade — usado na checagem de conflito de interesse.
+  departamento String   @default("")
+  /// Matrícula (discentes) — mascarada em exportações (RN09).
+  matricula    String?
+  criadoEm     DateTime @default(now())
 
   notificacoes Notificacao[]
 }
@@ -38,6 +42,8 @@ model Edital {
   /// "PIBIC" | "PIBITI" | "PIBIC_AF" | "VOLUNTARIO"
   tipoBolsa            String
   totalCotas           Int
+  /// Nota mínima (0–10); abaixo dela o parecer é obrigatório (RN07).
+  notaCorte            Float    @default(6)
   dataInicioInscricoes DateTime
   dataFimInscricoes    DateTime
   publicadoEm          DateTime?
@@ -45,7 +51,8 @@ model Edital {
   criadoEm             DateTime @default(now())
   atualizadoEm         DateTime @updatedAt
 
-  cotas CotaSubarea[]
+  cotas      CotaSubarea[]
+  inscricoes Inscricao[]
 
   @@index([status, dataFimInscricoes])
 }
@@ -76,4 +83,91 @@ model Notificacao {
 
   @@index([userId, lida])
   @@index([referenceId])
+}
+
+model Inscricao {
+  id                       String    @id
+  protocolo                String?   @unique
+  editalId                 String
+  edital                   Edital    @relation(fields: [editalId], references: [id], onDelete: Restrict)
+  discenteId               String
+  orientadorId             String?
+  titulo                   String    @default("")
+  subareaCode              String    @default("")
+  subareaNome              String    @default("")
+  palavrasChave            String    @default("")
+  resumo                   String    @default("")
+  objetivos                String    @default("")
+  metodologia              String    @default("")
+  /// "RASCUNHO" | "SUBMETIDA" | "EM_AVALIACAO" | "AVALIADA" | "APROVADA" | "RECUSADA"
+  status                   String    @default("RASCUNHO")
+  /// "PENDENTE" | "CONFIRMADO" | "RECUSADO"
+  vinculoStatus            String?
+  vinculoComentario        String?
+  homologacaoJustificativa String?
+  submetidaEm              DateTime?
+  homologadaEm             DateTime?
+  criadoEm                 DateTime
+  atualizadoEm             DateTime
+
+  anexos     Anexo[]
+  avaliacoes Avaliacao[]
+  relatorios Relatorio[]
+
+  @@unique([editalId, discenteId])
+  @@index([status])
+  @@index([orientadorId])
+}
+
+model Anexo {
+  id          String    @id
+  inscricaoId String
+  inscricao   Inscricao @relation(fields: [inscricaoId], references: [id], onDelete: Cascade)
+  /// "PLANO_TRABALHO" | "LATTES"
+  tipo        String
+  storageKey  String
+  nome        String
+  tamanho     Int
+  mimeType    String
+  enviadoEm   DateTime
+
+  @@unique([inscricaoId, tipo])
+}
+
+model Avaliacao {
+  id          String    @id
+  inscricaoId String
+  inscricao   Inscricao @relation(fields: [inscricaoId], references: [id], onDelete: Cascade)
+  avaliadorId String
+  /// "PENDENTE" | "CONCLUIDA"
+  status      String
+  /// JSON: [{ criterio, nota }]
+  notas       String    @default("[]")
+  notaFinal   Float?
+  parecer     String    @default("")
+  atribuidaEm DateTime
+  concluidaEm DateTime?
+
+  @@unique([inscricaoId, avaliadorId])
+  @@index([avaliadorId, status])
+}
+
+model Relatorio {
+  id                   String    @id
+  inscricaoId          String
+  inscricao            Inscricao @relation(fields: [inscricaoId], references: [id], onDelete: Cascade)
+  /// "PARCIAL" | "FINAL"
+  tipo                 String
+  versao               Int
+  /// "ENVIADO" | "APROVADO" | "DEVOLVIDO"
+  status               String
+  comentarioOrientador String?
+  storageKey           String
+  nome                 String
+  tamanho              Int
+  mimeType             String
+  enviadoEm            DateTime
+  avaliadoEm           DateTime?
+
+  @@unique([inscricaoId, tipo, versao])
 }

@@ -1,5 +1,6 @@
 import type { PrismaClient } from './prisma.client';
 
+import type { UserRole } from '../../shared/auth/auth.types';
 import type { Usuario } from '../../modules/auth/domain/auth.types';
 import type { UsuariosRepository } from '../../modules/auth/repositories/usuarios.repository';
 
@@ -15,6 +16,8 @@ export class PrismaUsuariosRepository implements UsuariosRepository {
         email: usuario.email,
         senhaHash: usuario.senhaHash,
         role: usuario.role,
+        departamento: usuario.departamento,
+        matricula: usuario.matricula,
         criadoEm: usuario.criadoEm,
       },
     });
@@ -34,12 +37,39 @@ export class PrismaUsuariosRepository implements UsuariosRepository {
     return found ? toDomain(found) : undefined;
   }
 
-  async list(): Promise<Usuario[]> {
-    const all = await this.prisma.usuario.findMany({ orderBy: { criadoEm: 'asc' } });
+  async findManyByIds(ids: readonly string[]): Promise<Usuario[]> {
+    if (ids.length === 0) return [];
+    const rows = await this.prisma.usuario.findMany({ where: { id: { in: [...ids] } } });
+    return rows.map(toDomain);
+  }
+
+  async list(role?: UserRole): Promise<Usuario[]> {
+    const all = await this.prisma.usuario.findMany({
+      where: role ? { role } : undefined,
+      orderBy: { nome: 'asc' },
+    });
     return all.map(toDomain);
   }
 
+  async update(usuario: Usuario): Promise<Usuario> {
+    const updated = await this.prisma.usuario.update({
+      where: { id: usuario.id },
+      data: {
+        nome: usuario.nome,
+        role: usuario.role,
+        departamento: usuario.departamento,
+        matricula: usuario.matricula,
+      },
+    });
+    return toDomain(updated);
+  }
+
+  /** Limpa TODAS as tabelas na ordem das FKs — usado pelos testes E2E. */
   async clear(): Promise<void> {
+    await this.prisma.relatorio.deleteMany();
+    await this.prisma.avaliacao.deleteMany();
+    await this.prisma.anexo.deleteMany();
+    await this.prisma.inscricao.deleteMany();
     await this.prisma.notificacao.deleteMany();
     await this.prisma.cotaSubarea.deleteMany();
     await this.prisma.edital.deleteMany();
@@ -53,6 +83,8 @@ type UsuarioRow = {
   email: string;
   senhaHash: string;
   role: string;
+  departamento: string;
+  matricula: string | null;
   criadoEm: Date;
 };
 
@@ -62,7 +94,9 @@ function toDomain(row: UsuarioRow): Usuario {
     nome: row.nome,
     email: row.email,
     senhaHash: row.senhaHash,
-    role: row.role as Usuario['role'],
+    role: row.role as UserRole,
+    departamento: row.departamento,
+    matricula: row.matricula,
     criadoEm: row.criadoEm,
   };
 }

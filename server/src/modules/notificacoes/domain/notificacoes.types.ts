@@ -1,5 +1,21 @@
-/** Tipos de notificação in-app do portal (Sprint 2 entrega o evento de publicação de edital). */
-export type NotificacaoTipo = 'EDITAL_PUBLICADO' | 'EDITAL_ENCERRADO';
+/** Tipos de notificação in-app do portal, um por evento de domínio relevante ao usuário. */
+export type NotificacaoTipo =
+  | 'EDITAL_PUBLICADO'
+  | 'EDITAL_ENCERRADO'
+  | 'VINCULO_SOLICITADO'
+  | 'VINCULO_RESPONDIDO'
+  | 'AVALIACAO_ATRIBUIDA'
+  | 'INSCRICAO_RESULTADO'
+  | 'RELATORIO_ENVIADO'
+  | 'RELATORIO_AVALIADO';
+
+/** Conteúdo de uma notificação direcionada (sem destinatário nem metadados). */
+export interface NotificacaoInput {
+  tipo: NotificacaoTipo;
+  titulo: string;
+  mensagem: string;
+  referenceId?: string;
+}
 
 export interface Notificacao {
   id: string;
