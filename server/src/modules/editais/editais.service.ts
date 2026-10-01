@@ -17,6 +17,7 @@ import {
   assertEditable,
   assertPublishable,
   assertTransition,
+  NOTA_CORTE_PADRAO,
   resolveAutomaticStatus,
   validateCotas,
 } from './domain/editais.rules';
@@ -68,6 +69,7 @@ export class EditaisService {
       tipoBolsa: input.tipoBolsa,
       totalCotas: input.totalCotas,
       cotas: cotasNormalizadas,
+      notaCorte: input.notaCorte ?? NOTA_CORTE_PADRAO,
       dataInicioInscricoes: new Date(input.dataInicioInscricoes),
       dataFimInscricoes: new Date(input.dataFimInscricoes),
       publicadoEm: null,
@@ -130,6 +132,7 @@ export class EditaisService {
       tipoBolsa: input.tipoBolsa ?? edital.tipoBolsa,
       totalCotas,
       cotas,
+      notaCorte: input.notaCorte ?? edital.notaCorte,
       dataInicioInscricoes: dataInicio,
       dataFimInscricoes: dataFim,
       atualizadoEm: this.clock.now(),

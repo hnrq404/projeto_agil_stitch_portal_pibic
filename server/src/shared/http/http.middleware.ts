@@ -1,5 +1,5 @@
-import type { NextFunction, Request, Response } from 'express';
-import { ZodError, type ZodSchema } from 'zod';
+import express, { type NextFunction, type Request, type Response } from 'express';
+import { ZodError, type z, type ZodTypeAny } from 'zod';
 
 import { DomainError, ValidationError } from '../errors/domain.errors';
 import { UnauthorizedError } from '../auth/auth.types';
@@ -38,10 +38,31 @@ export function errorHandler(
     return;
   }
 
+  // Erros do body-parser (JSON malformado, corpo acima do limite).
+  if (isBodyParserError(error)) {
+    const tooLarge = error.type === 'entity.too.large';
+    res.status(tooLarge ? 413 : 400).json({
+      error: {
+        code: tooLarge ? 'PAYLOAD_TOO_LARGE' : 'VALIDATION_ERROR',
+        message: tooLarge ? 'Arquivo acima do limite de 10 MB.' : 'Corpo da requisição malformado.',
+      },
+    });
+    return;
+  }
+
   console.error('[unhandled-error]', error);
   res.status(500).json({
     error: { code: 'INTERNAL_ERROR', message: 'Erro interno inesperado.' },
   });
+}
+
+function isBodyParserError(error: unknown): error is { type: string; status: number } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    typeof (error as { type?: unknown }).type === 'string' &&
+    typeof (error as { status?: unknown }).status === 'number'
+  );
 }
 
 /** Envolve handlers síncronos/assíncronos garantindo propagação ao errorHandler. */
@@ -53,8 +74,37 @@ export function asyncHandler(
   };
 }
 
+/** Corpo binário de upload de PDF. O limite fica acima de 10 MB para a regra de domínio responder com a mensagem amigável. */
+export const pdfBodyParser = express.raw({ type: 'application/pdf', limit: '11mb' });
+
+/** Lê o nome original do arquivo do header `X-Filename` (enviado com encodeURIComponent). */
+export function readUploadFilename(req: Request): string {
+  const raw = req.headers['x-filename'];
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (!value) return '';
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+/** Corpo binário do upload (express.raw). Vazio quando o Content-Type não casou. */
+export function readUploadBody(req: Request): Buffer {
+  return Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+}
+
+/** Envia um PDF inline (pré-visualização no navegador) com nome seguro. */
+export function sendPdf(res: Response, content: Buffer, nome: string): void {
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Length', String(content.length));
+  res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(nome)}`);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.send(content);
+}
+
 /** Valida o corpo da requisição com um schema Zod, lançando ValidationError tipado. */
-export function parseBody<T>(schema: ZodSchema<T>, body: unknown): T {
+export function parseBody<S extends ZodTypeAny>(schema: S, body: unknown): z.output<S> {
   const result = schema.safeParse(body);
   if (!result.success) {
     throw new ValidationError('Corpo da requisição inválido.', result.error.flatten());

@@ -32,14 +32,15 @@ export class PrismaNotificacoesRepository implements NotificacoesRepository {
   }
 
   async markAsRead(userId: string, notificacaoId: string): Promise<Notificacao> {
-    const updated = await this.prisma.notificacao.update({
-      where: { id: notificacaoId },
+    // Filtra pelo dono na própria escrita: nunca altera notificação de outro usuário.
+    const { count } = await this.prisma.notificacao.updateMany({
+      where: { id: notificacaoId, userId },
       data: { lida: true },
     });
-    if (updated.userId !== userId) {
-      // Não vaza notificações de outros usuários.
+    if (count === 0) {
       throw new Error('Notificação não encontrada para este usuário.');
     }
+    const updated = await this.prisma.notificacao.findUniqueOrThrow({ where: { id: notificacaoId } });
     return toDomain(updated);
   }
 

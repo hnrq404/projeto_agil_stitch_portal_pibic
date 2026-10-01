@@ -9,6 +9,7 @@ import { NotificacoesService } from './notificacoes.service';
  * Rotas de notificações in-app (usuário autenticado):
  * GET   /api/notificacoes          → lista as minhas notificações (?somenteNaoLidas=true)
  * PATCH /api/notificacoes/:id/leitura → marca uma notificação como lida
+ * POST  /api/notificacoes/leitura     → marca todas as minhas como lidas
  */
 export function registerNotificacoesRoutes(
   router: Router,
@@ -33,6 +34,15 @@ export function registerNotificacoesRoutes(
         })),
         total: data.length,
       });
+    }),
+  );
+
+  router.post(
+    '/api/notificacoes/leitura',
+    authenticationGuard,
+    asyncHandler(async (req, res) => {
+      const marcadas = await service.markAllAsRead(req.user!.id);
+      res.json({ marcadas });
     }),
   );
 

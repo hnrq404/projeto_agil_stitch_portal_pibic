@@ -4,7 +4,7 @@ Portal institucional para gestão do ciclo de iniciação científica: editais (
 
 Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda a documentação de produto e arquitetura versionada como uma wiki interna via wikilinks.
 
-**Status atual:** Sprint 2 (Edital & Publicação — M2) **full-stack concluída**: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server), e SPA **React + Vite + Tailwind** navegável em [`web/`](./web) — cadastro/login com redirecionamento por papel, painel do gestor, vitrine pública, notificações in-app. **90 testes de integração/unitários + 2 E2E de API + 1 E2E de browser (Playwright)**, todos verdes. Sprint 1 (Convex Auth no portal-lab) segue em andamento.
+**Status atual:** aplicação full-stack cobrindo o ciclo S1 a S6: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server) e SPA **React + Vite + Tailwind** em [`web/`](./web). Quatro papéis (discente, docente, avaliador, gestor); editais; inscrição em etapas com auto-save e upload de PDF; vínculo com o orientador; triagem com conflito de interesse; rubrica 0–10; homologação por cota; relatórios com versões; painel do gestor; vitrine pública. Testes unitários, de integração e E2E (API e browser) verdes. O protótipo com Convex segue em [`portal-lab/`](./portal-lab).
 
 ## 👥 Equipe
 
@@ -16,83 +16,77 @@ Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda
 
 ## 🚀 Rodando o projeto
 
-A aplicação atual roda full-stack em [`server/`](./server) + [`web/`](./web), usando SQLite local.
+A aplicação roda full-stack em [`server/`](./server) + [`web/`](./web), usando SQLite local.
 
 ```bash
 cd caminho/para/projeto_agil_stitch_portal_pibic
-npm install --prefix server
-npm install --prefix web
-npm run db:push --prefix server
-npm run db:seed --prefix server
+cp server/.env.example server/.env      # ajuste o JWT_SECRET
+npm run setup                           # instala, cria o banco, aplica o seed e faz o build do web/
 ```
 
-Para iniciar a API e o frontend em um único terminal, execute na raiz do projeto:
+Para desenvolver com recarga automática (API em `http://localhost:3000`, front em `http://localhost:5173`):
 
 ```bash
-npx.cmd concurrently -n api,web "npm.cmd run dev --prefix server" "npm.cmd run dev --prefix web"
+npm run dev
 ```
 
-Esse comando inicia a API em `http://localhost:3000` e o frontend em `http://localhost:5173`.
-Para encerrar os dois serviços, pressione `Ctrl + C`. Como alternativa, a API e o frontend
-podem ser iniciados separadamente em dois terminais.
+Para ver a versão de produção servida pela própria API em `http://localhost:3000`:
+
+```bash
+npm start
+```
 
 No PowerShell, se `npm` for bloqueado pela política de scripts, use `npm.cmd` no lugar de `npm`.
 
-Contas de demonstração criadas pelo seed:
+Contas de demonstração criadas pelo seed (senha = papel + `123`):
 
-| Perfil | E-mail | Senha | Acesso inicial |
+| Perfil | E-mail | Senha | O que dá para testar |
 | --- | --- | --- | --- |
-| Gestor | `gestor@pibic.edu.br` | `gestor123` | `/gestor/editais` |
-| Visitante | `visitante@pibic.edu.br` | `visitante123` | `/editais` |
+| Gestor | `gestor@pibic.edu.br` | `gestor123` | painel, editais, triagem, homologação, usuários, CSV |
+| Docente | `docente@pibic.edu.br` | `docente123` | confirmar orientação pendente, avaliar relatórios |
+| Avaliador | `avaliador@pibic.edu.br` | `avaliador123` | rubrica de avaliação |
+| Discente | `discente@pibic.edu.br` | `discente123` | projeto aprovado com relatórios; nova inscrição no edital aberto |
+| Visitante | `visitante@pibic.edu.br` | `visitante123` | parte pública |
 
-Fluxo: acesse `/cadastro` para criar uma conta ou `/login` para entrar. O Gestor administra editais; o Visitante consulta a vitrine pública.
+O cadastro em `/cadastro` oferece Discente, Docente ou Visitante. Gestor e Avaliador são atribuídos por um gestor em **Usuários**.
 
-Detalhes e endpoints em [`server/README.md`](./server/README.md) e [`web/README.md`](./web/README.md).
+Detalhes, regras de negócio e endpoints em [`server/README.md`](./server/README.md); estrutura e convenções do front em [`web/README.md`](./web/README.md).
 
 | Comando (raiz) | Descrição |
 | --- | --- |
-| `npm test` | unit + integração (Jest, 90 testes) |
-| `npm run test:e2e:api` | E2E de API com JWT + Prisma real |
-| `npm run test:e2e:ui` | E2E de browser (Playwright) |
-| `npm run typecheck` | tsc nos dois projetos |
-| `npm run db:seed` | contas demo + edital de exemplo |
+| `npm test` | unitários + integração do server (Jest) e unitários do web (Vitest) |
+| `npm run test:e2e:api` | E2E de API com JWT + Prisma real (**limpa o banco**: rode `npm run db:seed` depois) |
+| `npm run test:e2e:ui` | build + E2E de browser (Playwright): ciclo completo com os quatro papéis |
+| `npm run typecheck` | `tsc` nos dois projetos |
+| `npm run db:seed` | contas e dados de demonstração (idempotente) |
 
 ## 🏗️ Arquitetura
 
-SPA em **React + Vite + TypeScript**, com backend **Convex** (banco reativo + funções serverless), **Convex Auth** para autenticação e **Tailwind CSS + shadcn/ui** para a UI.
+SPA **React + Vite + TypeScript** consumindo uma API REST **Express + Prisma** organizada em arquitetura hexagonal. Os mesmos papéis e regras valem no front (navegação) e no back (autorização de fato).
 
 ```text
-Cliente (React SPA) ──useQuery/useMutation──> Convex Functions ──> Banco Convex / File Storage
-                     └──────────────────────> Convex Auth
+web/ (React SPA)  ──HTTP + JWT──>  server/ (Express)
+  TanStack Query                     controllers → services → portas (repositórios, storage, clock, notifier)
+  react-hook-form + Zod                                        ↓
+                                     adapters: Prisma/SQLite · PDFs em disco
 ```
 
-Estrutura de pastas em `portal-lab/`:
+- **Back-end** ([`server/`](./server)): um módulo por domínio (`auth`, `editais`, `inscricoes`, `avaliacoes`, `projetos`, `dashboard`, `notificacoes`, `publico`), cada um com regras puras testáveis, DTOs Zod, porta de repositório, service e controller. O container de DI liga as portas aos adapters Prisma; os testes ligam a implementações em memória.
+- **Front-end** ([`web/`](./web)): organizado por feature (`features/<módulo>` com `api.ts` de hooks e páginas), `shared/ui` com o kit do [DESIGN.md](./institutional_scientific_portal/DESIGN.md) e `app/` com rotas, guards e layouts. Páginas carregadas sob demanda.
 
-```text
-portal-lab/
-├── convex/            # backend: schema, auth, roles e functions por domínio
-│   └── users/         # módulo de usuários/papéis (implementado)
-├── src/
-│   ├── app/           # roteamento, layout (AppShell/Sidebar), guards de papel, páginas
-│   ├── hooks/         # hooks transversais (useCurrentUser…)
-│   ├── styles/        # design tokens / globals.css
-│   └── types/         # tipos compartilhados
-└── tests/             # unit, integration (Vitest) e e2e (Playwright)
-```
-
-**Papéis de acesso** (fonte única de verdade em `convex/roles.ts`): `admin` (Gestor PRPq), `docente` (Orientador), `avaliador` e `aluno`. Permissões por papel são checadas no backend (`requireRole`) e refletidas no menu lateral do frontend — nunca só no cliente.
+**Papéis de acesso**: `DISCENTE`, `DOCENTE` (orientador), `AVALIADOR`, `GESTOR`/`ADMIN` e `USUARIO` (visitante). Toda rota da API valida o papel; o guard recarrega o usuário a cada requisição, então uma troca de papel vale na hora.
 
 **Módulos do produto** (ver detalhes em [Arquitetura.md](./institutional_scientific_portal/Arquitetura.md)):
 
-| Módulo | Responsabilidade | Sprint |
+| Módulo | Responsabilidade | Situação |
 | --- | --- | --- |
-| M1 — Autenticação & Acesso | Login, papéis, guards de rota, shell do app | S1 *(em andamento)* |
-| M2 — Edital & Publicação | CRUD de editais, cotas por área, ciclo de vida | S2 *(full-stack: `server/` + `web/`)* |
-| M3 — Inscrição de Pesquisa | Formulário multi-etapas, upload de plano de trabalho | S3 |
-| M4 — Central de Triagem | Distribuição de propostas, rubrica 0–10, pareceres | S4 |
-| M5 — Painel do Gestor | KPIs, cotas preenchidas, exportação CSV | S5 |
-| M6 — Vitrine Pública | Pesquisas aprovadas, sem login, filtros por área/ano | S6 |
-| M7 — Relatórios & Acompanhamento | Relatórios parciais/finais, histórico da bolsa | S6 |
+| M1 — Autenticação & Acesso | Login, cadastro, papéis, guards de rota, gestão de usuários | ✅ `server/` + `web/` |
+| M2 — Edital & Publicação | CRUD de editais, cotas por área, nota de corte, ciclo de vida | ✅ |
+| M3 — Inscrição de Pesquisa | Formulário em 5 etapas, auto-save, upload de PDF, protocolo, vínculo com orientador | ✅ |
+| M4 — Central de Triagem | Distribuição com conflito de interesse, rubrica 0–10, pareceres, consolidação, ranking | ✅ |
+| M5 — Painel do Gestor | Homologação por cota, KPIs, cotas por subárea, alertas, exportação CSV | ✅ |
+| M6 — Vitrine Pública | Editais abertos e pesquisas aprovadas, sem login, com filtros | ✅ |
+| M7 — Relatórios & Acompanhamento | Relatórios parciais/finais com versões, prazos e histórico do bolsista | ✅ |
 
 ## 🎨 Mockups de design (Stitch)
 
@@ -113,12 +107,12 @@ O sistema de design formal (cores, tipografia, componentes, WCAG 2.1 AA) está e
 | Sprint | Objetivo | Status |
 | --- | --- | --- |
 | S0 | Fundação: documentação, ferramentação, design system aprovado | ✅ Concluída |
-| S1 | Autenticação e níveis de acesso | 🔵 Em andamento |
-| S2 | Edital & Publicação | ✅ Full-stack concluída ([`server/`](./server) + [`web/`](./web)) |
-| S3 | Inscrição de Pesquisa | ⬜ Planejada |
-| S4 | Central de Triagem e Avaliação | ⬜ Planejada |
-| S5 | Homologação e Painel do Gestor | ⬜ Planejada |
-| S6 | Relatórios e Vitrine Pública | ⬜ Planejada |
+| S1 | Autenticação e níveis de acesso | ✅ Concluída (sem recuperação de senha por e-mail) |
+| S2 | Edital & Publicação | ✅ Concluída |
+| S3 | Inscrição de Pesquisa | ✅ Concluída |
+| S4 | Central de Triagem e Avaliação | ✅ Concluída |
+| S5 | Homologação e Painel do Gestor | ✅ Concluída |
+| S6 | Relatórios e Vitrine Pública | ✅ Concluída |
 | S7 | Endurecimento e Acessibilidade (WCAG AA, cobertura ≥ 80%) | ⬜ Planejada |
 | S8 | Release e Apresentação | ⬜ Planejada |
 
@@ -137,11 +131,11 @@ Demais páginas da wiki (Qualidade, Definition-of-Done, Gestão de Projeto) são
 
 ## 🛠️ Stack
 
-TypeScript · React 19 · Vite · Convex · Convex Auth · react-router-dom · Tailwind CSS 4 · shadcn/ui · Zod · Vitest · Playwright
+TypeScript · React 18 · Vite · TanStack Query · react-hook-form · Zod · Tailwind CSS · Express · Prisma · SQLite · JWT · Jest · Vitest · Playwright
 
 ## 📐 Convenções
 
 - Commits: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`…)
 - Branches: `feat/SN-descrição` a partir de `main`
-- Papéis e autorização sempre validados no backend Convex, nunca só no frontend
+- Papéis e autorização sempre validados no backend, nunca só no frontend
 - Sem `any`; `tsc --noEmit` limpo é obrigatório antes de PR

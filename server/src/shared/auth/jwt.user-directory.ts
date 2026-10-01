@@ -5,22 +5,21 @@ import type { AuthService } from '../../modules/auth/auth.service';
 
 /**
  * Adapter UserDirectory que verifica o JWT e recarrega o usuário do repositório.
- * Implementa a mesma porta usada pelos guards — testes continuam injetando
- * directories falsos sem JWT; produção usa este adapter.
+ * Recarregar (em vez de confiar no papel embutido no token) garante que uma
+ * troca de papel feita pelo gestor vale na próxima requisição (RN11) e que
+ * contas removidas perdem o acesso imediatamente.
  */
 export class JwtUserDirectory implements UserDirectory {
   constructor(private readonly authService: AuthService) {}
 
-  resolveUser(token: string): AuthenticatedUser | undefined {
+  async resolveUser(token: string): Promise<AuthenticatedUser | undefined> {
     try {
-      // resolveUser é síncrono pela porta do guard; o AuthService.resolveToken
-      // é async, então usamos o payload do JWT (fonte já verificada).
-      const payload = this.authService.verifyTokenSync(token);
+      const usuario = await this.authService.resolveToken(token);
       return {
-        id: payload.sub,
-        name: payload.nome,
-        email: payload.email,
-        role: payload.role,
+        id: usuario.id,
+        name: usuario.nome,
+        email: usuario.email,
+        role: usuario.role,
       };
     } catch {
       return undefined;

@@ -11,6 +11,9 @@ import type { Edital, EditalStatus } from './editais.types';
 
 export const EDITAL_STATUS: readonly EditalStatus[] = ['RASCUNHO', 'PUBLICADO', 'ENCERRADO'] as const;
 
+/** Nota de corte padrão quando o gestor não define uma (escala 0–10). */
+export const NOTA_CORTE_PADRAO = 6;
+
 /** Transições válidas do ciclo de vida — RN01/S2.3. */
 export const EDITAL_TRANSITIONS: Record<EditalStatus, readonly EditalStatus[]> = {
   RASCUNHO: ['PUBLICADO'],

@@ -1,3 +1,42 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-canvas text-ink antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight text-ink;
+  }
+
+  /* Foco visível em toda a interface (WCAG 2.4.7) — 3px conforme DESIGN.md. */
+  :focus-visible {
+    outline: 3px solid theme('colors.focus');
+    outline-offset: 2px;
+  }
+
+  /* Números tabulares para cotas, notas e protocolos. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .input-base {
+    @apply block h-10 w-full rounded-lg border border-line-strong bg-surface px-3 text-sm text-ink shadow-none transition placeholder:text-ink-subtle focus:border-primary focus:outline-none focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:bg-canvas disabled:text-ink-subtle aria-[invalid=true]:border-rose-600;
+  }
+}

@@ -11,13 +11,15 @@ import { ForbiddenError } from '../errors/domain.errors';
 /**
  * Camada de autenticação/autorização (RBAC).
  *
- * Sprint 1 (M1) entregará o Convex Auth real; até lá o guard aceita tokens
- * `Bearer <userSeedId>` resolvendo o usuário a partir de um UserDirectory
- * (implementado com o seed em memória/testes e, em produção, pelo serviço de
- * identidade). A assinatura do guard não muda quando o provedor trocar.
+ * O guard resolve o token Bearer por meio de um UserDirectory: em produção o
+ * JwtUserDirectory (verifica o JWT e recarrega o usuário do banco, para que uma
+ * troca de papel valha na próxima requisição — RN11); nos testes, directories
+ * falsos síncronos. A porta aceita retorno síncrono ou assíncrono.
  */
 export interface UserDirectory {
-  resolveUser(token: string): AuthenticatedUser | undefined;
+  resolveUser(
+    token: string,
+  ): AuthenticatedUser | undefined | Promise<AuthenticatedUser | undefined>;
 }
 
 declare global {
@@ -42,17 +44,22 @@ export function extractBearerToken(header: string | undefined): string {
 
 export function createAuthenticationGuard(directory: UserDirectory) {
   return (req: Request, _res: Response, next: NextFunction): void => {
+    let token: string;
     try {
-      const token = extractBearerToken(req.headers.authorization);
-      const user = directory.resolveUser(token);
-      if (!user) {
-        throw new UnauthorizedError('Token inválido ou usuário inexistente.');
-      }
-      req.user = user;
-      next();
+      token = extractBearerToken(req.headers.authorization);
     } catch (error) {
       next(error);
+      return;
     }
+    Promise.resolve(directory.resolveUser(token))
+      .then((user) => {
+        if (!user) {
+          throw new UnauthorizedError('Token inválido ou usuário inexistente.');
+        }
+        req.user = user;
+        next();
+      })
+      .catch(next);
   };
 }
 

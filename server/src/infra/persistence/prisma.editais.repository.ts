@@ -24,6 +24,7 @@ export class PrismaEditaisRepository implements EditaisRepository {
         status: edital.status,
         tipoBolsa: edital.tipoBolsa,
         totalCotas: edital.totalCotas,
+        notaCorte: edital.notaCorte,
         dataInicioInscricoes: edital.dataInicioInscricoes,
         dataFimInscricoes: edital.dataFimInscricoes,
         publicadoEm: edital.publicadoEm,
@@ -74,6 +75,7 @@ export class PrismaEditaisRepository implements EditaisRepository {
         status: edital.status,
         tipoBolsa: edital.tipoBolsa,
         totalCotas: edital.totalCotas,
+        notaCorte: edital.notaCorte,
         dataInicioInscricoes: edital.dataInicioInscricoes,
         dataFimInscricoes: edital.dataFimInscricoes,
         publicadoEm: edital.publicadoEm,
@@ -93,6 +95,11 @@ export class PrismaEditaisRepository implements EditaisRepository {
   }
 
   async clear(): Promise<void> {
+    // Inscrições referenciam o edital (FK restrict): saem antes, com seus dependentes.
+    await this.prisma.relatorio.deleteMany();
+    await this.prisma.avaliacao.deleteMany();
+    await this.prisma.anexo.deleteMany();
+    await this.prisma.inscricao.deleteMany();
     await this.prisma.cotaSubarea.deleteMany();
     await this.prisma.edital.deleteMany();
   }
@@ -106,6 +113,7 @@ type EditalRow = {
   status: string;
   tipoBolsa: string;
   totalCotas: number;
+  notaCorte: number;
   dataInicioInscricoes: Date;
   dataFimInscricoes: Date;
   publicadoEm: Date | null;
@@ -130,6 +138,7 @@ function toDomain(row: EditalRow): Edital {
     tipoBolsa: row.tipoBolsa as BolsaTipo,
     totalCotas: row.totalCotas,
     cotas,
+    notaCorte: row.notaCorte,
     dataInicioInscricoes: row.dataInicioInscricoes,
     dataFimInscricoes: row.dataFimInscricoes,
     publicadoEm: row.publicadoEm,

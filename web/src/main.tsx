@@ -1,17 +1,28 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider } from 'react-router-dom';
 
-import App from './App';
-import { AuthProvider } from './auth/AuthContext';
+import { router } from '@/app/router';
+import { AuthProvider } from '@/features/auth/AuthProvider';
+import { createQueryClient } from '@/shared/api/query-client';
+import { ToastProvider } from '@/shared/ui/Toast';
+
 import './index.css';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <BrowserRouter>
+const queryClient = createQueryClient();
+
+const root = document.getElementById('root');
+if (!root) throw new Error('Elemento #root não encontrado em index.html.');
+
+createRoot(root).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <App />
+        <ToastProvider>
+          <RouterProvider router={router} />
+        </ToastProvider>
       </AuthProvider>
-    </BrowserRouter>
-  </React.StrictMode>,
+    </QueryClientProvider>
+  </StrictMode>,
 );

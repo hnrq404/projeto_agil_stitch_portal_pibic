@@ -38,14 +38,18 @@ export interface RegisterInput {
   email: string;
   senha: string;
   role: RegistroRole;
+  departamento?: string;
+  matricula?: string;
 }
 
-function toPublic(usuario: Usuario): PublicUsuario {
+export function toPublicUsuario(usuario: Usuario): PublicUsuario {
   return {
     id: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
     role: usuario.role,
+    departamento: usuario.departamento,
+    matricula: usuario.matricula,
     criadoEm: usuario.criadoEm.toISOString(),
   };
 }
@@ -76,6 +80,8 @@ export class AuthService {
       email,
       senhaHash,
       role: input.role,
+      departamento: input.departamento?.trim().toUpperCase() ?? '',
+      matricula: input.matricula?.trim() || null,
       // bcrypt já impõe custo; criadoEm é preenchido pelo repositório/banco
       criadoEm: new Date(),
     });
@@ -105,7 +111,7 @@ export class AuthService {
     if (!usuario) {
       throw new UnauthorizedError('Token válido, mas usuário não existe mais.');
     }
-    return toPublic(usuario);
+    return toPublicUsuario(usuario);
   }
 
   /** Versão síncrona (só verifica a assinatura JWT) — usada pelo guard. */
@@ -120,7 +126,7 @@ export class AuthService {
       email: usuario.email,
       role: usuario.role,
     });
-    return { token, usuario: toPublic(usuario) };
+    return { token, usuario: toPublicUsuario(usuario) };
   }
 
   /** Helper para seeds/testes: cria usuário já com hash bcrypt. */

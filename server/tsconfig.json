@@ -23,7 +23,11 @@
       "@auth/*": ["src/modules/auth/*"],
       "@editais/*": ["src/modules/editais/*"],
       "@notificacoes/*": ["src/modules/notificacoes/*"],
-      "@publico/*": ["src/modules/publico/*"]
+      "@publico/*": ["src/modules/publico/*"],
+      "@inscricoes/*": ["src/modules/inscricoes/*"],
+      "@avaliacoes/*": ["src/modules/avaliacoes/*"],
+      "@projetos/*": ["src/modules/projetos/*"],
+      "@dashboard/*": ["src/modules/dashboard/*"]
     }
   },
   "include": ["src/**/*.ts"],

@@ -27,6 +27,7 @@ function buildEdital(overrides: Partial<Edital> = {}): Edital {
       { subareaCode: '1.03', subareaNome: 'Ciencia da Computacao', quantidade: 3 },
       { subareaCode: '1.01', subareaNome: 'Matematica', quantidade: 2 },
     ],
+    notaCorte: 6,
     dataInicioInscricoes: new Date('2026-09-15T00:00:00.000Z'),
     dataFimInscricoes: new Date('2026-10-31T23:59:59.000Z'),
     publicadoEm: null,

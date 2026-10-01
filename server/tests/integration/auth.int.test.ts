@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { buildApp, type AppContainer } from '../../src/infra/config/app.container';
+import { criarELogar, criarUsuario } from '../helpers/usuarios';
 
 jest.setTimeout(20000);
 
@@ -10,11 +11,13 @@ beforeEach(() => {
   container = buildApp({ jwtSecret: 'test-secret' });
 });
 
-const gestorPayload = () => ({
-  nome: 'Maria Gestora',
-  email: 'maria.gestora@pibic.edu.br',
+const discentePayload = () => ({
+  nome: 'Maria Discente',
+  email: 'maria.discente@pibic.edu.br',
   senha: 'senha-segura-123',
-  role: 'GESTOR',
+  role: 'DISCENTE',
+  departamento: 'dcc',
+  matricula: '2023001234',
 });
 
 const usuarioPayload = () => ({
@@ -25,18 +28,19 @@ const usuarioPayload = () => ({
 });
 
 describe('POST /api/auth/register', () => {
-  it('cadastra GESTOR com hash bcrypt e retorna JWT válido', async () => {
-    const res = await request(container.app).post('/api/auth/register').send(gestorPayload());
+  it('cadastra DISCENTE com hash bcrypt e retorna JWT válido', async () => {
+    const res = await request(container.app).post('/api/auth/register').send(discentePayload());
 
     expect(res.status).toBe(201);
     expect(res.body.token).toBeTruthy();
-    expect(res.body.usuario.nome).toBe('Maria Gestora');
-    expect(res.body.usuario.email).toBe('maria.gestora@pibic.edu.br');
-    expect(res.body.usuario.role).toBe('GESTOR');
+    expect(res.body.usuario.nome).toBe('Maria Discente');
+    expect(res.body.usuario.email).toBe('maria.discente@pibic.edu.br');
+    expect(res.body.usuario.role).toBe('DISCENTE');
+    expect(res.body.usuario.departamento).toBe('DCC');
     // O hash NUNCA atravessa a API:
     expect(JSON.stringify(res.body)).not.toContain('senhaHash');
 
-    const stored = await container.usuariosRepository.findByEmail('maria.gestora@pibic.edu.br');
+    const stored = await container.usuariosRepository.findByEmail('maria.discente@pibic.edu.br');
     expect(stored).toBeDefined();
     expect(stored!.senhaHash).not.toBe('senha-segura-123');
     expect(stored!.senhaHash.startsWith('$2')).toBe(true); // formato bcrypt
@@ -48,18 +52,28 @@ describe('POST /api/auth/register', () => {
     expect(res.body.usuario.role).toBe('USUARIO');
   });
 
+  it('não permite escolher GESTOR, AVALIADOR ou ADMIN no auto-cadastro (400)', async () => {
+    for (const role of ['GESTOR', 'AVALIADOR', 'ADMIN']) {
+      const res = await request(container.app)
+        .post('/api/auth/register')
+        .send({ ...discentePayload(), role });
+      expect(res.status).toBe(400);
+    }
+    expect(await container.usuariosRepository.list()).toHaveLength(0);
+  });
+
   it('rejeita e-mail duplicado (409)', async () => {
-    await request(container.app).post('/api/auth/register').send(gestorPayload());
-    const res = await request(container.app).post('/api/auth/register').send(gestorPayload());
+    await request(container.app).post('/api/auth/register').send(discentePayload());
+    const res = await request(container.app).post('/api/auth/register').send(discentePayload());
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe('CONFLICT');
   });
 
   it('rejeita payload inválido (400) — senha curta, e-mail malformado, role inválida', async () => {
     const cases = [
-      { ...gestorPayload(), senha: '123' },
-      { ...gestorPayload(), email: 'nao-e-email' },
-      { ...gestorPayload(), role: 'SUPERUSER' },
+      { ...discentePayload(), senha: '123' },
+      { ...discentePayload(), email: 'nao-e-email' },
+      { ...discentePayload(), role: 'SUPERUSER' },
       { nome: 'x', email: 'x@x.com', senha: '123456' }, // sem role
     ];
     for (const payload of cases) {
@@ -71,16 +85,16 @@ describe('POST /api/auth/register', () => {
 
 describe('POST /api/auth/login', () => {
   it('o MESMO usuário cadastrado autentica no login (fluxo completo)', async () => {
-    await request(container.app).post('/api/auth/register').send(gestorPayload());
+    await request(container.app).post('/api/auth/register').send(discentePayload());
 
     const res = await request(container.app).post('/api/auth/login').send({
-      email: 'maria.gestora@pibic.edu.br',
+      email: 'maria.discente@pibic.edu.br',
       senha: 'senha-segura-123',
     });
     expect(res.status).toBe(200);
     expect(res.body.token).toBeTruthy();
-    expect(res.body.usuario.email).toBe('maria.gestora@pibic.edu.br');
-    expect(res.body.usuario.role).toBe('GESTOR');
+    expect(res.body.usuario.email).toBe('maria.discente@pibic.edu.br');
+    expect(res.body.usuario.role).toBe('DISCENTE');
   });
 
   it('autentica com e-mail em caixa diferente (normalização)', async () => {
@@ -94,9 +108,9 @@ describe('POST /api/auth/login', () => {
   });
 
   it('rejeita senha incorreta (401)', async () => {
-    await request(container.app).post('/api/auth/register').send(gestorPayload());
+    await request(container.app).post('/api/auth/register').send(discentePayload());
     const res = await request(container.app).post('/api/auth/login').send({
-      email: 'maria.gestora@pibic.edu.br',
+      email: 'maria.discente@pibic.edu.br',
       senha: 'errada!',
     });
     expect(res.status).toBe(401);
@@ -113,10 +127,15 @@ describe('POST /api/auth/login', () => {
 
 describe('JWT nas rotas protegidas (integração auth ↔ editais)', () => {
   async function registerAndLogin(role: 'GESTOR' | 'USUARIO') {
-    const payload =
-      role === 'GESTOR'
-        ? gestorPayload()
-        : usuarioPayload();
+    if (role === 'GESTOR') {
+      const { auth } = await criarELogar(container, {
+        nome: 'Maria Gestora',
+        email: 'maria.gestora@pibic.edu.br',
+        role: 'GESTOR',
+      });
+      return auth.Authorization.replace('Bearer ', '');
+    }
+    const payload = usuarioPayload();
     await request(container.app).post('/api/auth/register').send(payload);
     const login = await request(container.app).post('/api/auth/login').send({
       email: payload.email,
@@ -164,5 +183,66 @@ describe('JWT nas rotas protegidas (integração auth ↔ editais)', () => {
       .set('Authorization', 'Bearer header.forjado.signature')
       .send(validEdital());
     expect(res.status).toBe(401);
+  });
+});
+
+describe('Gestão de usuários (S1.2) e papéis no token', () => {
+  it('troca de papel vale na próxima requisição, com o mesmo token (RN11)', async () => {
+    const gestor = await criarELogar(container, {
+      nome: 'Gestora',
+      email: 'gestora@pibic.edu.br',
+      role: 'GESTOR',
+    });
+    const reg = await request(container.app).post('/api/auth/register').send(usuarioPayload());
+    const tokenVisitante = `Bearer ${reg.body.token as string}`;
+
+    const antes = await request(container.app)
+      .get('/api/avaliacoes/minhas')
+      .set('Authorization', tokenVisitante);
+    expect(antes.status).toBe(403);
+
+    const promovido = await request(container.app)
+      .patch(`/api/usuarios/${reg.body.usuario.id as string}`)
+      .set(gestor.auth)
+      .send({ role: 'AVALIADOR', departamento: 'fis' });
+    expect(promovido.status).toBe(200);
+    expect(promovido.body.role).toBe('AVALIADOR');
+    expect(promovido.body.departamento).toBe('FIS');
+
+    const depois = await request(container.app)
+      .get('/api/avaliacoes/minhas')
+      .set('Authorization', tokenVisitante);
+    expect(depois.status).toBe(200);
+  });
+
+  it('gestor não altera o próprio papel (422)', async () => {
+    const gestor = await criarELogar(container, {
+      nome: 'Gestora',
+      email: 'gestora@pibic.edu.br',
+      role: 'GESTOR',
+    });
+    const proprio = await request(container.app)
+      .patch(`/api/usuarios/${gestor.usuario.id}`)
+      .set(gestor.auth)
+      .send({ role: 'DISCENTE' });
+    expect(proprio.status).toBe(422);
+  });
+
+  it('lista de usuários é restrita ao gestor; a de docentes é aberta a autenticados', async () => {
+    await criarUsuario(container, {
+      nome: 'Prof. Paulo',
+      email: 'paulo@pibic.edu.br',
+      role: 'DOCENTE',
+      departamento: 'DCC',
+    });
+    const reg = await request(container.app).post('/api/auth/register').send(usuarioPayload());
+    const auth = { Authorization: `Bearer ${reg.body.token as string}` };
+
+    expect((await request(container.app).get('/api/usuarios').set(auth)).status).toBe(403);
+    const docentes = await request(container.app).get('/api/usuarios/docentes').set(auth);
+    expect(docentes.status).toBe(200);
+    expect(docentes.body.data).toEqual([
+      { id: expect.any(String), nome: 'Prof. Paulo', departamento: 'DCC' },
+    ]);
   });
 });

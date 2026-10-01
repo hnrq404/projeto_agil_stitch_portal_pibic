@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import express, { type Express, type Router } from 'express';
 
 import { SystemClock, type Clock } from '@shared/time/clock';
@@ -6,10 +8,20 @@ import {
   type UserDirectory,
 } from '@shared/auth/auth.middleware';
 import { JwtUserDirectory } from '@shared/auth/jwt.user-directory';
+import {
+  DiskArquivoStorage,
+  InMemoryArquivoStorage,
+  type ArquivoStorage,
+} from '@shared/storage/arquivo.storage';
 
 import { AuthService, JwtTokenSigner } from '@auth/auth.service';
 import { registerAuthRoutes } from '@auth/auth.controller';
-import type { UsuariosRepository } from '@auth/repositories/usuarios.repository';
+import {
+  InMemoryUsuariosRepository,
+  type UsuariosRepository,
+} from '@auth/repositories/usuarios.repository';
+import { UsuariosService } from '@auth/usuarios.service';
+import { registerUsuariosRoutes } from '@auth/usuarios.controller';
 
 import { EditaisService, type EditalEventsPort } from '@editais/editais.service';
 import { InMemoryEditaisRepository, type EditaisRepository } from '@editais/repositories/editais.repository';
@@ -21,6 +33,26 @@ import {
 } from '@notificacoes/repositories/notificacoes.repository';
 import { registerNotificacoesRoutes } from '@notificacoes/notificacoes.controller';
 import { registerPublicoRoutes } from '@publico/publico.controller';
+import { InscricoesService } from '@inscricoes/inscricoes.service';
+import {
+  InMemoryInscricoesRepository,
+  type InscricoesRepository,
+} from '@inscricoes/repositories/inscricoes.repository';
+import { registerInscricoesRoutes } from '@inscricoes/inscricoes.controller';
+import { AvaliacoesService } from '@avaliacoes/avaliacoes.service';
+import {
+  InMemoryAvaliacoesRepository,
+  type AvaliacoesRepository,
+} from '@avaliacoes/repositories/avaliacoes.repository';
+import { registerAvaliacoesRoutes } from '@avaliacoes/avaliacoes.controller';
+import { ProjetosService } from '@projetos/projetos.service';
+import {
+  InMemoryRelatoriosRepository,
+  type RelatoriosRepository,
+} from '@projetos/repositories/relatorios.repository';
+import { registerProjetosRoutes } from '@projetos/projetos.controller';
+import { DashboardService } from '@dashboard/dashboard.service';
+import { registerDashboardRoutes } from '@dashboard/dashboard.controller';
 import { errorHandler } from '@shared/http/http.middleware';
 import { registerCnpqRoutes } from '@shared/domain/cnpq.routes';
 
@@ -28,15 +60,21 @@ import { createPrismaClient } from '../persistence/prisma.client';
 import { PrismaEditaisRepository } from '../persistence/prisma.editais.repository';
 import { PrismaNotificacoesRepository } from '../persistence/prisma.notificacoes.repository';
 import { PrismaUsuariosRepository } from '../persistence/prisma.usuarios.repository';
-import { InMemoryUsuariosRepository } from '@auth/repositories/usuarios.repository';
+import { PrismaInscricoesRepository } from '../persistence/prisma.inscricoes.repository';
+import { PrismaAvaliacoesRepository } from '../persistence/prisma.avaliacoes.repository';
+import { PrismaRelatoriosRepository } from '../persistence/prisma.relatorios.repository';
 
 export interface AppContainerOptions {
   clock?: Clock;
-  /** Ativa persistência REAL (Prisma/SQLite). Padrão: in-memory (testes/CI). */
+  /** Ativa persistência REAL (Prisma/SQLite + PDFs em disco). Padrão: in-memory (testes/CI). */
   usePrisma?: boolean;
   editaisRepository?: EditaisRepository;
   notificacoesRepository?: NotificacoesRepository;
   usuariosRepository?: UsuariosRepository;
+  inscricoesRepository?: InscricoesRepository;
+  avaliacoesRepository?: AvaliacoesRepository;
+  relatoriosRepository?: RelatoriosRepository;
+  arquivoStorage?: ArquivoStorage;
   userDirectory?: UserDirectory & { listUsers(): { id: string }[] };
   jwtSecret?: string;
 }
@@ -47,9 +85,15 @@ export interface AppContainer {
   editaisRepository: EditaisRepository;
   notificacoesRepository: NotificacoesRepository;
   usuariosRepository: UsuariosRepository;
+  inscricoesRepository: InscricoesRepository;
+  avaliacoesRepository: AvaliacoesRepository;
+  relatoriosRepository: RelatoriosRepository;
   editaisService: EditaisService;
   notificacoesService: NotificacoesService;
   authService: AuthService;
+  inscricoesService: InscricoesService;
+  avaliacoesService: AvaliacoesService;
+  projetosService: ProjetosService;
   /** Fecha a conexão Prisma quando a persistência real está ativa. */
   disconnect?: () => Promise<void>;
 }
@@ -63,30 +107,43 @@ function createEditalEventsAdapter(notificacoesService: NotificacoesService): Ed
 
 /**
  * Composição de dependências da aplicação.
- * - Bootstrap (index.ts): Prisma REAL (SQLite) + JWT — persistência durável.
+ * - Bootstrap (index.ts): Prisma REAL (SQLite) + JWT + PDFs em disco.
  * - Testes: repositórios in-memory, clock congelado e directories falsos.
  */
 export function buildApp(options: AppContainerOptions = {}): AppContainer {
   const clock = options.clock ?? new SystemClock();
+  const prisma = options.usePrisma ? createPrismaClientOnce() : undefined;
 
   // ── Persistência: Prisma real ou in-memory ─────────────────────────────
   const editaisRepository =
     options.editaisRepository ??
-    (options.usePrisma ? new PrismaEditaisRepository(createPrismaClientOnce()) : new InMemoryEditaisRepository());
-
+    (prisma ? new PrismaEditaisRepository(prisma) : new InMemoryEditaisRepository());
   const notificacoesRepository =
     options.notificacoesRepository ??
-    (options.usePrisma ? new PrismaNotificacoesRepository(createPrismaClientOnce()) : new InMemoryNotificacoesRepository());
-
+    (prisma ? new PrismaNotificacoesRepository(prisma) : new InMemoryNotificacoesRepository());
   const usuariosRepository =
     options.usuariosRepository ??
-    (options.usePrisma ? new PrismaUsuariosRepository(createPrismaClientOnce()) : new InMemoryUsuariosRepository());
-  const usingPrisma = !options.editaisRepository && !options.notificacoesRepository && !options.usuariosRepository && options.usePrisma === true;
+    (prisma ? new PrismaUsuariosRepository(prisma) : new InMemoryUsuariosRepository());
+  const inscricoesRepository =
+    options.inscricoesRepository ??
+    (prisma ? new PrismaInscricoesRepository(prisma) : new InMemoryInscricoesRepository());
+  const avaliacoesRepository =
+    options.avaliacoesRepository ??
+    (prisma ? new PrismaAvaliacoesRepository(prisma) : new InMemoryAvaliacoesRepository());
+  const relatoriosRepository =
+    options.relatoriosRepository ??
+    (prisma ? new PrismaRelatoriosRepository(prisma) : new InMemoryRelatoriosRepository());
+  const arquivoStorage =
+    options.arquivoStorage ??
+    (prisma
+      ? new DiskArquivoStorage(path.resolve(__dirname, '..', '..', '..', process.env['UPLOADS_DIR'] ?? 'uploads'))
+      : new InMemoryArquivoStorage());
 
   // ── Auth (JWT + bcrypt) ────────────────────────────────────────────────
   const jwtSecret = options.jwtSecret ?? process.env['JWT_SECRET'] ?? 'dev-secret-change-me';
   const authService = new AuthService(usuariosRepository, new JwtTokenSigner(jwtSecret));
   const userDirectory: UserDirectory = options.userDirectory ?? new JwtUserDirectory(authService);
+  const usuariosService = new UsuariosService(usuariosRepository);
 
   const notificacoesService = new NotificacoesService(notificacoesRepository, {
     listUsers: async () => {
@@ -103,22 +160,73 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
     createEditalEventsAdapter(notificacoesService),
   );
 
+  // Avaliações e inscrições se conhecem por portas: o service de avaliações
+  // implementa AvaliadorAccessPort (acesso do avaliador às propostas).
+  const avaliacoesService = new AvaliacoesService(
+    avaliacoesRepository,
+    inscricoesRepository,
+    editaisRepository,
+    usuariosRepository,
+    clock,
+    notificacoesService,
+  );
+  const inscricoesService = new InscricoesService(
+    inscricoesRepository,
+    editaisRepository,
+    usuariosRepository,
+    arquivoStorage,
+    clock,
+    notificacoesService,
+    avaliacoesService,
+  );
+  const projetosService = new ProjetosService(
+    inscricoesRepository,
+    inscricoesService,
+    relatoriosRepository,
+    arquivoStorage,
+    clock,
+    notificacoesService,
+  );
+  const dashboardService = new DashboardService(
+    editaisRepository,
+    inscricoesRepository,
+    avaliacoesRepository,
+    relatoriosRepository,
+    clock,
+  );
+
   const app = express();
+  app.disable('x-powered-by');
   app.use(express.json({ limit: '1mb' }));
 
   const router: Router = express.Router();
   const authenticationGuard = createAuthenticationGuard(userDirectory);
 
   registerAuthRoutes(router, authService);
+  registerUsuariosRoutes(router, usuariosService, authenticationGuard);
   registerEditaisRoutes(router, editaisService, authenticationGuard);
   registerNotificacoesRoutes(router, notificacoesService, authenticationGuard);
-  registerPublicoRoutes(router, editaisService, clock);
+  registerInscricoesRoutes(router, inscricoesService, authenticationGuard);
+  registerAvaliacoesRoutes(router, avaliacoesService, inscricoesService, usuariosRepository, authenticationGuard);
+  registerProjetosRoutes(router, projetosService, inscricoesService, authenticationGuard);
+  registerDashboardRoutes(router, dashboardService, authenticationGuard);
+  registerPublicoRoutes(router, {
+    editaisService,
+    inscricoes: inscricoesRepository,
+    usuarios: usuariosRepository,
+    clock,
+  });
   registerCnpqRoutes(router);
 
   app.use(router);
 
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', service: 'portal-pibic-server', sprint: 'S2' });
+    res.json({ status: 'ok', service: 'portal-pibic-server' });
+  });
+
+  // Rotas /api inexistentes respondem JSON (e não caem no fallback da SPA).
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Rota da API não encontrada.' } });
   });
 
   app.use(errorHandler);
@@ -129,10 +237,16 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
     editaisRepository,
     notificacoesRepository,
     usuariosRepository,
+    inscricoesRepository,
+    avaliacoesRepository,
+    relatoriosRepository,
     editaisService,
     notificacoesService,
     authService,
-    disconnect: usingPrisma ? () => createPrismaClientOnce().$disconnect() : undefined,
+    inscricoesService,
+    avaliacoesService,
+    projetosService,
+    disconnect: prisma ? () => prisma.$disconnect() : undefined,
   };
 }
 
