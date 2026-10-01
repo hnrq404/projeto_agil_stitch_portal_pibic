@@ -35,8 +35,11 @@ test('jornada: cadastro → login → criar edital → cotas → publicar → vi
   await page.getByLabel('Título').fill('Edital PIBIC via UI 2026/2027');
   await page.getByLabel('Descrição').fill('Criado pelo teste E2E de browser.');
   await page.getByLabel('Total de bolsas').fill('4');
-  const dataFim = new Date(Date.now() + 100 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  await page.getByLabel('Início das inscrições').fill('2026-10-01');
+  // As datas do formulário usam máscara DD/MM/AAAA (pt-BR), não ISO.
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  const br = (d: Date): string => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+  const dataFim = br(new Date(Date.now() + 100 * 24 * 60 * 60 * 1000));
+  await page.getByLabel('Início das inscrições').fill(br(new Date()));
   await page.getByLabel('Fim das inscrições').fill(dataFim);
 
   // Cota inicial já existe (1.03, qtd 1) — ajusta para 2
