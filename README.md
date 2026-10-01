@@ -6,6 +6,8 @@ Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda
 
 **Status atual:** Sprint 2 (Edital & Publicação — M2) **full-stack concluída e verificada**: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server), e SPA **React + Vite + Tailwind** navegável em [`web/`](./web) — cadastro/login com redirecionamento por papel, painel do gestor, vitrine pública, notificações in-app. **90 testes de integração/unitários + 2 E2E de API + 1 E2E de browser (Playwright)**, todos verdes, com `tsc --noEmit` limpo nos dois projetos. Sprint 1 (Convex Auth no portal-lab) segue em andamento. Sprint 3 (Inscrição) já tem implementação em [`portal-lab/`](./portal-lab) — formulário multi-etapas, upload de PDF, protocolo único e autosave — com **48 testes unitários verdes** e typecheck limpo; falta o E2E de browser.
 
+**Previsão de conclusão da versão funcional:** `18/11/2026`. A estimativa considera a entrega das funcionalidades principais até o fim da Sprint 4, prevista para o período de `09/11/2026` a `20/11/2026`, mantendo o limite de conclusão em novembro de 2026. Como referência de ritmo, os commits registrados entre `10/09/2026` e `21/09/2026` ocorreram ao longo de 12 dias corridos; a data permanece uma previsão e pode mudar conforme o andamento das próximas sprints. As etapas de homologação, métricas, relatórios, acessibilidade e apresentação podem ser realizadas posteriormente.
+
 ## 👥 Equipe
 
 - Ana Pellegrino
