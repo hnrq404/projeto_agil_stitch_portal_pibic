@@ -1,6 +1,8 @@
 import path from 'node:path';
 import fs from 'node:fs';
 
+import express from 'express';
+
 import { loadEnv } from './infra/config/env';
 import { buildApp } from './infra/config/app.container';
 
@@ -16,7 +18,6 @@ const container = buildApp({ usePrisma: USE_PRISMA });
 // ── Frontend SPA (web/dist) — mesma origem da API ──────────────────────────
 const webDist = path.resolve(__dirname, '..', '..', 'web', 'dist');
 if (fs.existsSync(webDist)) {
-  const express = require('express') as typeof import('express');
   container.app.use(express.static(webDist));
   // Fallback SPA: qualquer rota não-API cai no index.html (react-router).
   container.app.get(/^\/(?!api\/).*/, (_req, res) => {

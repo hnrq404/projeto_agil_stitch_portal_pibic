@@ -78,5 +78,5 @@ function escaparCsv(valor: string | number): string {
 /** CSV separado por ";" com BOM UTF-8 — abre corretamente no Excel em pt-BR. */
 export function gerarCsv(cabecalho: readonly string[], linhas: ReadonlyArray<ReadonlyArray<string | number>>): string {
   const corpo = [cabecalho, ...linhas].map((linha) => linha.map(escaparCsv).join(';')).join('\r\n');
-  return `﻿${corpo}\r\n`;
+  return `\uFEFF${corpo}\r\n`;
 }
