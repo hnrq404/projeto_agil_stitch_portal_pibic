@@ -9,3 +9,6 @@ web/test-results/
 web/playwright-report/
 web/blob-report/
 server.log
+
+# Notas locais do agente Freebuff (caminhos pessoais, launchd)
+.freebuff/

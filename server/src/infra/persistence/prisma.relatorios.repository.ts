@@ -28,8 +28,11 @@ export class PrismaRelatoriosRepository implements RelatoriosRepository {
     return rows.map(toDomain);
   }
 
-  async list(): Promise<Relatorio[]> {
-    const rows = await this.prisma.relatorio.findMany({ orderBy: { enviadoEm: 'asc' } });
+  async list(filtro: { inscricaoIds?: readonly string[] } = {}): Promise<Relatorio[]> {
+    const rows = await this.prisma.relatorio.findMany({
+      where: filtro.inscricaoIds ? { inscricaoId: { in: [...filtro.inscricaoIds] } } : undefined,
+      orderBy: { enviadoEm: 'asc' },
+    });
     return rows.map(toDomain);
   }
 

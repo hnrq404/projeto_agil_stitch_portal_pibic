@@ -24,7 +24,12 @@ const schema = z
   .object({
     nome: z.string().trim().min(3, 'Informe o nome completo.'),
     email: z.string().trim().min(1, 'Informe o e-mail.').email('E-mail inválido.'),
-    senha: z.string().min(6, 'A senha precisa de ao menos 6 caracteres.'),
+    // Mesma política da API (server/src/modules/auth/dto/auth.dto.ts).
+    senha: z
+      .string()
+      .min(8, 'A senha precisa de ao menos 8 caracteres.')
+      .max(72, 'A senha pode ter no máximo 72 caracteres.')
+      .refine((s) => /\p{L}/u.test(s) && /\d/.test(s), 'Combine letras e números.'),
     confirmacao: z.string(),
     role: z.enum(['DISCENTE', 'DOCENTE', 'USUARIO']),
     departamento: z.string().trim().max(60).optional(),
@@ -130,7 +135,12 @@ export function CadastroPage() {
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Senha" hint="Mínimo de 6 caracteres" error={errors.senha?.message} required>
+          <Field
+            label="Senha"
+            hint="Mínimo de 8 caracteres, com letras e números"
+            error={errors.senha?.message}
+            required
+          >
             <Input type="password" autoComplete="new-password" {...register('senha')} />
           </Field>
           <Field label="Confirmar senha" error={errors.confirmacao?.message} required>

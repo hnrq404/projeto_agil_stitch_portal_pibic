@@ -8,6 +8,7 @@ import type { UsuariosRepository } from '../auth/repositories/usuarios.repositor
 import { EditaisService } from '../editais/editais.service';
 import { toPublicEditalResponse } from '../editais/dto/editais.dto';
 import type { Edital } from '../editais/domain/editais.types';
+import { resolveAutomaticStatus } from '../editais/domain/editais.rules';
 import type { InscricoesRepository } from '../inscricoes/repositories/inscricoes.repository';
 
 export interface PublicoDeps {
@@ -46,8 +47,9 @@ export function registerPublicoRoutes(router: Router, deps: PublicoDeps): void {
   router.get(
     '/api/publico/editais',
     asyncHandler(async (_req, res) => {
-      await editaisService.syncAutomaticClosure();
-      const publicados = await editaisService.list('PUBLICADO');
+      // Somente leitura: o encerramento por prazo é gravado pelo job periódico (index.ts);
+      // aqui o filtro de data já esconde os vencidos.
+      const publicados = await editaisService.listSemSincronizar('PUBLICADO');
       const now = clock.now().getTime();
       const vigentes = publicados.filter((edital) => edital.dataFimInscricoes.getTime() >= now);
       res.json({
@@ -61,12 +63,12 @@ export function registerPublicoRoutes(router: Router, deps: PublicoDeps): void {
   router.get(
     '/api/publico/editais/:id',
     asyncHandler(async (req, res) => {
-      await editaisService.syncAutomaticClosure();
       const edital = await editaisService.getById(req.params['id'] as string);
       if (edital.status === 'RASCUNHO') {
         throw new NotFoundError(`Edital ${edital.id} não encontrado.`);
       }
-      res.json(await comAlocacao(edital));
+      // Status derivado na leitura: um edital vencido aparece encerrado mesmo antes do job gravar.
+      res.json(await comAlocacao({ ...edital, status: resolveAutomaticStatus(edital, clock) }));
     }),
   );
 
@@ -85,11 +87,11 @@ export function registerPublicoRoutes(router: Router, deps: PublicoDeps): void {
         ...new Set(aprovadas.flatMap((i) => [i.discenteId, ...(i.orientadorId ? [i.orientadorId] : [])])),
       ]);
       const nomeDe = new Map(pessoas.map((p) => [p.id, p] as const));
-      const editais = new Map<string, Edital>();
-      for (const id of new Set(aprovadas.map((i) => i.editalId))) {
-        const edital = await editaisService.getById(id).catch(() => undefined);
-        if (edital) editais.set(id, edital);
-      }
+      // Editais carregados em paralelo (antes: um await por edital, em sequência).
+      const editaisCarregados = await Promise.all(
+        [...new Set(aprovadas.map((i) => i.editalId))].map((id) => editaisService.getById(id).catch(() => undefined)),
+      );
+      const editais = new Map<string, Edital>(editaisCarregados.flatMap((e) => (e ? [[e.id, e] as const] : [])));
 
       const data = aprovadas
         .map((i) => {

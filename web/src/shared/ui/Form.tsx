@@ -13,7 +13,7 @@ import {
 import { cn } from '@/shared/lib/cn';
 
 /** Marca visual de campo obrigatório (DESIGN.md: asterisco explícito). */
-export const REQUIRED_MARK = "after:ml-0.5 after:text-rose-600 after:content-['*']";
+export const REQUIRED_MARK = "after:ml-0.5 after:text-danger-600 after:content-['*']";
 
 interface FieldProps {
   label: string;
@@ -54,7 +54,7 @@ export function Field({ label, children, hint, error, required, className }: Fie
         </p>
       )}
       {error && (
-        <p id={errorId} className="text-xs font-medium text-rose-700">
+        <p id={errorId} className="text-xs font-medium text-danger-700">
           {error}
         </p>
       )}
@@ -91,7 +91,7 @@ export function CharCounter({ value, min, max }: { value: string; min?: number; 
   const length = value.trim().length;
   const abaixo = min !== undefined && length < min;
   return (
-    <span className={cn('tnum', abaixo ? 'text-amber-700' : 'text-ink-subtle')}>
+    <span className={cn('tnum', abaixo ? 'text-warning-700' : 'text-ink-subtle')}>
       {length}/{max} caracteres{min !== undefined && abaixo ? ` (mínimo ${min})` : ''}
     </span>
   );

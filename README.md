@@ -32,11 +32,21 @@ Para desenvolver com recarga automática (API em `http://localhost:3000`, front 
 npm run dev
 ```
 
-Para ver a versão de produção servida pela própria API em `http://localhost:3000`:
+Para ver o build do front servido pela própria API em `http://localhost:3000` (sem recarga automática, com as configurações de desenvolvimento):
 
 ```bash
 npm start
 ```
+
+Para rodar como em produção (API compilada para `server/dist`, `NODE_ENV=production`):
+
+```bash
+npm run start:prod
+```
+
+Em produção, o `JWT_SECRET` precisa ser aleatório e ter ao menos 32 caracteres (`openssl rand -base64 48`); com o valor de exemplo do `.env.example`, a API se recusa a subir. Atrás de um proxy reverso, defina `TRUST_PROXY=1`.
+
+Depois de atualizar o código, rode `npm run db:push --prefix server` para aplicar mudanças do schema (tabela `SequenciaProtocolo` e índices novos).
 
 No PowerShell, se `npm` for bloqueado pela política de scripts, use `npm.cmd` no lugar de `npm`.
 

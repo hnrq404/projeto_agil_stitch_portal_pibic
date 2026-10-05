@@ -6,8 +6,9 @@
   "scripts": {
     "setup": "npm install --prefix server && npm install --prefix web && npm run db:push --prefix server && npm run db:seed --prefix server && npm run build --prefix web",
     "dev": "npx concurrently -n api,web \"npm run dev --prefix server\" \"npm run dev --prefix web\"",
-    "start": "npm run build --prefix web && npm run dev --prefix server",
-    "build": "npm run build --prefix web",
+    "start": "npm run build --prefix web && npm run serve --prefix server",
+    "start:prod": "npm run build && npm start --prefix server",
+    "build": "npm run build --prefix web && npm run build --prefix server",
     "typecheck": "npm run typecheck --prefix server && npm run typecheck --prefix web",
     "lint": "npm run lint --prefix server && npm run lint --prefix web",
     "format:check": "npm run format:check --prefix server && npm run format:check --prefix web",

@@ -1,3 +1,5 @@
+import { NotFoundError } from '../../shared/errors/domain.errors';
+
 import type { PrismaClient } from './prisma.client';
 
 import type { Notificacao } from '../../modules/notificacoes/domain/notificacoes.types';
@@ -31,6 +33,47 @@ export class PrismaNotificacoesRepository implements NotificacoesRepository {
     return rows.map(toDomain);
   }
 
+  async createMany(notificacoes: readonly Notificacao[]): Promise<void> {
+    if (notificacoes.length === 0) return;
+    // SQLite não aceita createMany no Prisma 5: um INSERT por linha, mas numa única transação.
+    await this.prisma.$transaction(
+      notificacoes.map((n) =>
+        this.prisma.notificacao.create({
+          data: {
+            id: n.id,
+            userId: n.userId,
+            tipo: n.tipo,
+            titulo: n.titulo,
+            mensagem: n.mensagem,
+            referenceId: n.referenceId ?? null,
+            lida: n.lida,
+            criadoEm: n.criadoEm,
+          },
+        }),
+      ),
+    );
+  }
+
+  async listUserIdsNotificados(tipo: Notificacao['tipo'], referenceId: string): Promise<string[]> {
+    const rows = await this.prisma.notificacao.findMany({
+      where: { tipo, referenceId },
+      select: { userId: true },
+    });
+    return rows.map((r) => r.userId);
+  }
+
+  countUnread(userId: string): Promise<number> {
+    return this.prisma.notificacao.count({ where: { userId, lida: false } });
+  }
+
+  async markAllAsRead(userId: string): Promise<number> {
+    const { count } = await this.prisma.notificacao.updateMany({
+      where: { userId, lida: false },
+      data: { lida: true },
+    });
+    return count;
+  }
+
   async markAsRead(userId: string, notificacaoId: string): Promise<Notificacao> {
     // Filtra pelo dono na própria escrita: nunca altera notificação de outro usuário.
     const { count } = await this.prisma.notificacao.updateMany({
@@ -38,7 +81,7 @@ export class PrismaNotificacoesRepository implements NotificacoesRepository {
       data: { lida: true },
     });
     if (count === 0) {
-      throw new Error('Notificação não encontrada para este usuário.');
+      throw new NotFoundError('Notificação não encontrada para este usuário.');
     }
     const updated = await this.prisma.notificacao.findUniqueOrThrow({ where: { id: notificacaoId } });
     return toDomain(updated);

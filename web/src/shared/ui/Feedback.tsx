@@ -9,16 +9,16 @@ import { Button } from './Button';
 type AlertTone = 'info' | 'success' | 'warning' | 'danger';
 
 const ALERT: Record<AlertTone, { box: string; icon: ReactNode }> = {
-  info: { box: 'border-sky-200 bg-sky-50 text-sky-900', icon: <Info className="h-5 w-5 text-sky-700" aria-hidden /> },
+  info: { box: 'border-info-200 bg-info-50 text-info-900', icon: <Info className="h-5 w-5 text-info-700" aria-hidden /> },
   success: {
-    box: 'border-emerald-200 bg-emerald-50 text-emerald-900',
-    icon: <CheckCircle2 className="h-5 w-5 text-emerald-700" aria-hidden />,
+    box: 'border-success-200 bg-success-50 text-success-900',
+    icon: <CheckCircle2 className="h-5 w-5 text-success-700" aria-hidden />,
   },
   warning: {
-    box: 'border-amber-200 bg-amber-50 text-amber-900',
-    icon: <AlertTriangle className="h-5 w-5 text-amber-700" aria-hidden />,
+    box: 'border-warning-200 bg-warning-50 text-warning-900',
+    icon: <AlertTriangle className="h-5 w-5 text-warning-700" aria-hidden />,
   },
-  danger: { box: 'border-rose-200 bg-rose-50 text-rose-900', icon: <XCircle className="h-5 w-5 text-rose-700" aria-hidden /> },
+  danger: { box: 'border-danger-200 bg-danger-50 text-danger-900', icon: <XCircle className="h-5 w-5 text-danger-700" aria-hidden /> },
 };
 
 interface AlertProps {

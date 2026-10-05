@@ -71,7 +71,8 @@ export function mascararMatricula(matricula: string | null): string {
 function escaparCsv(valor: string | number): string {
   const texto = String(valor);
   // Neutraliza fórmulas (CSV injection) e escapa aspas/separadores.
-  const seguro = /^[=+\-@]/.test(texto) ? `'${texto}` : texto;
+  // Tab e CR iniciais também disparam fórmula em algumas planilhas (OWASP).
+  const seguro = /^[=+\-@\t\r]/.test(texto) ? `'${texto}` : texto;
   return /[";\n\r]/.test(seguro) ? `"${seguro.replace(/"/g, '""')}"` : seguro;
 }
 

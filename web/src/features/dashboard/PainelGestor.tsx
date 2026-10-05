@@ -185,9 +185,9 @@ function Conteudo({ painel }: { painel: Painel }) {
             {painel.alertas.map((a) => (
               <li key={a.mensagem} className="flex items-start gap-3 px-5 py-3 text-sm">
                 {a.nivel === 'atencao' ? (
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-label="Atenção" />
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-700" aria-label="Atenção" />
                 ) : (
-                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-700" aria-label="Informação" />
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-info-700" aria-label="Informação" />
                 )}
                 <span className="text-ink">{a.mensagem}</span>
               </li>

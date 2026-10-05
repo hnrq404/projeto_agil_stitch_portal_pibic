@@ -201,6 +201,12 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
 
   const app = express();
   app.disable('x-powered-by');
+  // Atrás de proxy reverso (nginx, Render...), req.ip precisa vir do X-Forwarded-For;
+  // sem isso o rate limit trata todos os usuários como um só IP. Ex.: TRUST_PROXY=1.
+  const trustProxy = process.env['TRUST_PROXY'];
+  if (trustProxy) {
+    app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
+  }
   app.use(securityHeaders());
   app.use(express.json({ limit: '1mb' }));
 

@@ -77,7 +77,7 @@ it('E2E: cadastro → login → criar edital → cotas → publicar → vitrine 
   await request(container.app).post('/api/auth/register').send({
     nome: 'Visitante E2E',
     email: 'visitante.e2e@pibic.edu.br',
-    senha: 'senha-visitante',
+    senha: 'senha-visitante-1',
     role: 'USUARIO',
   });
 
@@ -117,7 +117,7 @@ it('E2E: cadastro → login → criar edital → cotas → publicar → vitrine 
 
   const visitanteLogin = await request(container.app).post('/api/auth/login').send({
     email: 'visitante.e2e@pibic.edu.br',
-    senha: 'senha-visitante',
+    senha: 'senha-visitante-1',
   });
   const visitanteNotifs = await request(container.app)
     .get('/api/notificacoes')

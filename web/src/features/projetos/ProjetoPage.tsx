@@ -141,7 +141,7 @@ function HistoricoRelatorios({ detalhe }: { detalhe: ProjetoDetalhe }) {
       <ul className="divide-y divide-line">
         {[...detalhe.relatorios].reverse().map((r) => (
           <li key={r.id} className="flex flex-wrap items-start gap-4 px-5 py-4">
-            <FileText className="mt-0.5 h-5 w-5 shrink-0 text-rose-700" aria-hidden />
+            <FileText className="mt-0.5 h-5 w-5 shrink-0 text-danger-700" aria-hidden />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-ink">
                 {TIPO_LABEL[r.tipo]}, versão {r.versao}

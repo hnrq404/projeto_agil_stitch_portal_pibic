@@ -108,20 +108,27 @@ export class ProjetosService {
 
     const storageKey = randomUUID();
     await this.storage.save(storageKey, content);
-    const relatorio = await this.relatorios.create({
-      id: randomUUID(),
-      inscricaoId: id,
-      tipo,
-      versao,
-      status: 'ENVIADO',
-      comentarioOrientador: null,
-      storageKey,
-      nome,
-      tamanho: content.length,
-      mimeType: 'application/pdf',
-      enviadoEm: this.clock.now(),
-      avaliadoEm: null,
-    });
+    let relatorio: Relatorio;
+    try {
+      relatorio = await this.relatorios.create({
+        id: randomUUID(),
+        inscricaoId: id,
+        tipo,
+        versao,
+        status: 'ENVIADO',
+        comentarioOrientador: null,
+        storageKey,
+        nome,
+        tamanho: content.length,
+        mimeType: 'application/pdf',
+        enviadoEm: this.clock.now(),
+        avaliadoEm: null,
+      });
+    } catch (error) {
+      // Ex.: dois envios simultâneos disputando a mesma versão (P2002). Não deixa o PDF órfão.
+      await this.storage.remove(storageKey).catch(() => undefined);
+      throw error;
+    }
 
     if (inscricao.orientadorId) {
       await this.notifier.notify([inscricao.orientadorId], {

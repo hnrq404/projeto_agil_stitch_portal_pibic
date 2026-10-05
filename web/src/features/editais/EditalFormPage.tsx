@@ -221,7 +221,7 @@ function EditalForm({ edital, areas }: { edital?: Edital; areas: CnpqArea[] }) {
                   />
                 </div>
               ))}
-              {errors.cotas?.root?.message && <p className="text-sm text-rose-700">{errors.cotas.root.message}</p>}
+              {errors.cotas?.root?.message && <p className="text-sm text-danger-700">{errors.cotas.root.message}</p>}
 
               <Button
                 variant="secondary"
@@ -237,15 +237,15 @@ function EditalForm({ edital, areas }: { edital?: Edital; areas: CnpqArea[] }) {
                 aria-live="polite"
                 className={cn(
                   'rounded-lg px-3 py-2 text-sm',
-                  resumo.excede && 'bg-rose-50 font-medium text-rose-800',
-                  !resumo.excede && resumo.completa && 'bg-emerald-50 text-emerald-800',
+                  resumo.excede && 'bg-danger-50 font-medium text-danger-800',
+                  !resumo.excede && resumo.completa && 'bg-success-50 text-success-800',
                   !resumo.excede && !resumo.completa && 'bg-canvas text-ink-muted',
                 )}
               >
                 {mensagemCotas(Number(totalCotas) || 0, resumo)}
               </div>
               {resumo.duplicadas.length > 0 && (
-                <p className="text-sm font-medium text-rose-700">
+                <p className="text-sm font-medium text-danger-700">
                   Subárea repetida ({resumo.duplicadas.join(', ')}): cada subárea pode aparecer uma única vez.
                 </p>
               )}

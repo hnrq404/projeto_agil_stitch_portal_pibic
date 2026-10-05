@@ -82,7 +82,8 @@ model Notificacao {
   criadoEm    DateTime @default(now())
 
   @@index([userId, lida])
-  @@index([referenceId])
+  @@index([userId, criadoEm])
+  @@index([referenceId, tipo])
 }
 
 model Inscricao {
@@ -117,6 +118,14 @@ model Inscricao {
   @@unique([editalId, discenteId])
   @@index([status])
   @@index([orientadorId])
+  @@index([discenteId])
+  @@index([editalId, subareaCode, status])
+}
+
+/// Último sequencial de protocolo emitido no ano — incrementado atomicamente na submissão.
+model SequenciaProtocolo {
+  ano    Int @id
+  ultimo Int
 }
 
 model Anexo {

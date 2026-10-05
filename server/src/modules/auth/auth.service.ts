@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import { ConflictError, ValidationError } from '@shared/errors/domain.errors';
+import { ConflictError } from '@shared/errors/domain.errors';
 import { UnauthorizedError } from '@shared/auth/auth.types';
 
 import type { AuthResult, JwtPayload, PublicUsuario, RegistroRole, Usuario } from './domain/auth.types';
@@ -9,6 +9,8 @@ import type { UsuariosRepository } from './repositories/usuarios.repository';
 
 const BCRYPT_ROUNDS = 10;
 const TOKEN_TTL_SECONDS = 60 * 60 * 8; // 8h de sessão
+/** Hash de uma senha aleatória, com o mesmo custo dos reais: usado no login de e-mail inexistente. */
+const DUMMY_HASH = bcrypt.hashSync(crypto.randomUUID(), BCRYPT_ROUNDS);
 
 /** Contrato mínimo para emitir/verificar JWT — permite mock determinístico nos testes. */
 export interface TokenSigner {
@@ -92,12 +94,10 @@ export class AuthService {
   async login(input: { email: string; senha: string }): Promise<AuthResult> {
     const email = input.email.trim().toLowerCase();
     const usuario = await this.usuarios.findByEmail(email);
-    if (!usuario) {
-      throw new UnauthorizedError('E-mail ou senha incorretos.');
-    }
-
-    const ok = await bcrypt.compare(input.senha, usuario.senhaHash);
-    if (!ok) {
+    // Compara mesmo sem usuário (contra um hash fictício): o tempo de resposta
+    // não revela quais e-mails têm conta.
+    const ok = await bcrypt.compare(input.senha, usuario?.senhaHash ?? DUMMY_HASH);
+    if (!usuario || !ok) {
       throw new UnauthorizedError('E-mail ou senha incorretos.');
     }
 
@@ -114,11 +114,6 @@ export class AuthService {
     return toPublicUsuario(usuario);
   }
 
-  /** Versão síncrona (só verifica a assinatura JWT) — usada pelo guard. */
-  verifyTokenSync(token: string): JwtPayload {
-    return this.signer.verify(token);
-  }
-
   private issueToken(usuario: Usuario): AuthResult {
     const token = this.signer.sign({
       sub: usuario.id,
@@ -132,12 +127,5 @@ export class AuthService {
   /** Helper para seeds/testes: cria usuário já com hash bcrypt. */
   static async hashSenha(senha: string): Promise<string> {
     return bcrypt.hash(senha, BCRYPT_ROUNDS);
-  }
-}
-
-/** Valida política mínima de senha — usada pelo DTO Zod. */
-export function assertSenhaForte(senha: string): void {
-  if (senha.length < 6) {
-    throw new ValidationError('A senha deve ter ao menos 6 caracteres.');
   }
 }

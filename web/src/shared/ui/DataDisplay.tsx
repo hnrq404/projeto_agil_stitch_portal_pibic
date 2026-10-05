@@ -64,7 +64,7 @@ export function Meter({ value, max, label, tone = 'secondary', className }: Mete
           'h-full rounded-full transition-[width]',
           tone === 'primary' && 'bg-primary',
           tone === 'secondary' && 'bg-secondary',
-          tone === 'warning' && 'bg-amber-500',
+          tone === 'warning' && 'bg-warning-500',
         )}
         style={{ width: `${pct}%` }}
       />

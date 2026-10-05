@@ -81,7 +81,7 @@ export function FileDropzone({
 
       {current && !enviando ? (
         <div className="flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface px-4 py-3">
-          <FileText className="h-8 w-8 shrink-0 text-rose-700" aria-hidden />
+          <FileText className="h-8 w-8 shrink-0 text-danger-700" aria-hidden />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-ink">{current.nome}</p>
             <p className="text-xs text-ink-subtle">PDF, {formatBytes(current.tamanho)}</p>
@@ -151,7 +151,7 @@ export function FileDropzone({
         aria-label={label}
       />
       {erro && (
-        <p role="alert" className="text-sm font-medium text-rose-700">
+        <p role="alert" className="text-sm font-medium text-danger-700">
           {erro}
         </p>
       )}

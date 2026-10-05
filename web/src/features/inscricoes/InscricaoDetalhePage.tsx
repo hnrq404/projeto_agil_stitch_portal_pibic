@@ -39,7 +39,7 @@ function TrilhaStatus({ status }: { status: InscricaoStatus }) {
             className={cn(
               'block h-1.5 rounded-full',
               i < atual && 'bg-secondary',
-              i === atual && (status === 'RECUSADA' ? 'bg-rose-500' : 'bg-primary'),
+              i === atual && (status === 'RECUSADA' ? 'bg-danger-500' : 'bg-primary'),
               i > atual && 'bg-slate-200',
             )}
           />
@@ -196,9 +196,9 @@ function ResponderVinculo({ inscricao }: { inscricao: Inscricao }) {
   }
 
   return (
-    <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
-      <p className="font-semibold text-amber-900">{inscricao.discente?.nome} indicou você como orientador(a).</p>
-      <p className="mt-1 text-sm text-amber-900">
+    <div className="mt-5 rounded-lg border border-warning-200 bg-warning-50 p-4">
+      <p className="font-semibold text-warning-900">{inscricao.discente?.nome} indicou você como orientador(a).</p>
+      <p className="mt-1 text-sm text-warning-900">
         Leia a proposta e os documentos abaixo. Ao confirmar, a proposta segue para a Central de Triagem.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">

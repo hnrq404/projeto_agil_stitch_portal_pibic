@@ -46,7 +46,7 @@ export function PropostaConteudo({ inscricao, mostrarAnexos = true }: { inscrica
                     onClick={() => void abrirPdf(anexoUrl(inscricao.id, a.id)).catch((e) => toast.error(errorMessage(e)))}
                     className="flex w-full items-center gap-3 rounded-lg border border-line px-3 py-2.5 text-left transition hover:border-line-strong hover:bg-canvas"
                   >
-                    <FileText className="h-5 w-5 shrink-0 text-rose-700" aria-hidden />
+                    <FileText className="h-5 w-5 shrink-0 text-danger-700" aria-hidden />
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium text-ink">{ANEXO_LABEL[a.tipo]}</span>
                       <span className="block truncate text-xs text-ink-subtle">

@@ -236,22 +236,29 @@ export class InscricoesService {
 
     // Um anexo por tipo: o novo substitui o anterior.
     const anterior = inscricao.anexos.find((a) => a.tipo === tipo);
-    const saved = await this.inscricoes.update({
-      ...inscricao,
-      anexos: [
-        ...inscricao.anexos.filter((a) => a.tipo !== tipo),
-        {
-          id: randomUUID(),
-          tipo,
-          storageKey,
-          nome,
-          tamanho: content.length,
-          mimeType: 'application/pdf',
-          enviadoEm: this.clock.now(),
-        },
-      ],
-      atualizadoEm: this.clock.now(),
-    });
+    let saved: Inscricao;
+    try {
+      saved = await this.inscricoes.update({
+        ...inscricao,
+        anexos: [
+          ...inscricao.anexos.filter((a) => a.tipo !== tipo),
+          {
+            id: randomUUID(),
+            tipo,
+            storageKey,
+            nome,
+            tamanho: content.length,
+            mimeType: 'application/pdf',
+            enviadoEm: this.clock.now(),
+          },
+        ],
+        atualizadoEm: this.clock.now(),
+      });
+    } catch (error) {
+      // O banco não registrou o anexo: apaga o arquivo para não deixar órfão no storage.
+      await this.storage.remove(storageKey).catch(() => undefined);
+      throw error;
+    }
     if (anterior) {
       await this.storage.remove(anterior.storageKey);
     }
@@ -304,7 +311,7 @@ export class InscricoesService {
     const now = this.clock.now();
     const protocolo =
       inscricao.protocolo ??
-      gerarProtocolo((await this.inscricoes.countProtocolosNoAno(now.getUTCFullYear())) + 1, now.getUTCFullYear());
+      gerarProtocolo(await this.inscricoes.proximoSequencialProtocolo(now.getUTCFullYear()), now.getUTCFullYear());
 
     const saved = await this.inscricoes.update({
       ...inscricao,

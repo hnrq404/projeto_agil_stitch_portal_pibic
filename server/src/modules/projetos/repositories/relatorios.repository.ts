@@ -4,7 +4,8 @@ export interface RelatoriosRepository {
   create(relatorio: Relatorio): Promise<Relatorio>;
   findById(id: string): Promise<Relatorio | undefined>;
   listByInscricao(inscricaoId: string): Promise<Relatorio[]>;
-  list(): Promise<Relatorio[]>;
+  /** Sem filtro, lista todos; com `inscricaoIds`, só os dessas inscrições. */
+  list(filtro?: { inscricaoIds?: readonly string[] }): Promise<Relatorio[]>;
   update(relatorio: Relatorio): Promise<Relatorio>;
   clear(): Promise<void>;
 }
@@ -26,8 +27,9 @@ export class InMemoryRelatoriosRepository implements RelatoriosRepository {
     return (await this.list()).filter((r) => r.inscricaoId === inscricaoId);
   }
 
-  async list(): Promise<Relatorio[]> {
+  async list(filtro: { inscricaoIds?: readonly string[] } = {}): Promise<Relatorio[]> {
     return [...this.store.values()]
+      .filter((r) => !filtro.inscricaoIds || filtro.inscricaoIds.includes(r.inscricaoId))
       .sort((a, b) => a.enviadoEm.getTime() - b.enviadoEm.getTime())
       .map((r) => ({ ...r }));
   }

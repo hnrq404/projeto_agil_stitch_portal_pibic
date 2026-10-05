@@ -157,7 +157,7 @@ export function TriagemPage() {
                       <td className="px-5 py-3 text-right">
                         <span className="font-semibold tnum">{formatNota(consolidado.media)}</span>
                         {consolidado.divergente && (
-                          <span className="mt-1 flex items-center justify-end gap-1 text-xs font-medium text-amber-800">
+                          <span className="mt-1 flex items-center justify-end gap-1 text-xs font-medium text-warning-800">
                             <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
                             Divergência
                           </span>

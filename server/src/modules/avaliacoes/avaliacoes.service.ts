@@ -257,25 +257,29 @@ export class AvaliacoesService {
     if (decisao === 'RECUSAR' && justificativa.trim().length < 10) {
       throw new ValidationError('Justifique a recusa (mínimo de 10 caracteres).');
     }
-    if (decisao === 'APROVAR') {
-      const edital = await this.editais.findById(inscricao.editalId);
-      if (!edital) throw new NotFoundError('Edital da proposta não encontrado.');
-      const aprovadas = await this.inscricoes.list({
-        editalId: edital.id,
-        subareaCode: inscricao.subareaCode,
-        status: ['APROVADA'],
-      });
-      assertCotaDisponivel(edital, inscricao.subareaCode, aprovadas.length);
-    }
-
     const now = this.clock.now();
-    const saved = await this.inscricoes.update({
+    const homologada: Inscricao = {
       ...inscricao,
       status: alvo,
       homologacaoJustificativa: justificativa.trim() || null,
       homologadaEm: now,
       atualizadoEm: now,
-    });
+    };
+
+    let saved: Inscricao;
+    if (decisao === 'APROVAR') {
+      const edital = await this.editais.findById(inscricao.editalId);
+      if (!edital) throw new NotFoundError('Edital da proposta não encontrado.');
+      const limite = edital.cotas.find((c) => c.subareaCode === inscricao.subareaCode)?.quantidade ?? 0;
+      // Contagem e gravação na mesma transação: aprovações simultâneas não estouram a cota.
+      const resultado = await this.inscricoes.aprovarDentroDaCota(homologada, limite);
+      if (!resultado.salva) {
+        assertCotaDisponivel(edital, inscricao.subareaCode, resultado.aprovadas);
+      }
+      saved = resultado.salva as Inscricao;
+    } else {
+      saved = await this.inscricoes.update(homologada);
+    }
 
     // RF18 — discente e orientador recebem o resultado.
     await this.notifier.notify(

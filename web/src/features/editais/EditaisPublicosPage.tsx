@@ -43,9 +43,9 @@ function EditalCard({ edital }: { edital: EditalPublico }) {
       {edital.descricao && <p className="mt-1 line-clamp-2 text-sm text-ink-muted">{edital.descricao}</p>}
 
       <p className="mt-4 flex items-center gap-2 text-sm text-ink-muted">
-        <CalendarClock className="h-4 w-4 text-amber-700" aria-hidden />
+        <CalendarClock className="h-4 w-4 text-warning-700" aria-hidden />
         Inscrições até <strong className="text-ink">{formatDate(edital.dataFimInscricoes)}</strong>
-        <span className="text-amber-800">({dias <= 0 ? 'último dia' : `faltam ${pluralize(dias, 'dia', 'dias')}`})</span>
+        <span className="text-warning-800">({dias <= 0 ? 'último dia' : `faltam ${pluralize(dias, 'dia', 'dias')}`})</span>
       </p>
 
       <div className="mt-4 space-y-3 border-t border-line pt-4">

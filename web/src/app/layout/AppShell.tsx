@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, LogOut, Menu, X } from 'lucide-react';
 
 import { useCurrentUser, useAuth } from '@/features/auth/AuthProvider';
-import { useNotificacoes } from '@/features/notificacoes/api';
+import { useNotificacoesNaoLidas } from '@/features/notificacoes/api';
 import { cn } from '@/shared/lib/cn';
 import { iniciais } from '@/shared/lib/format';
 import { ROLE_LABEL } from '@/shared/lib/labels';
@@ -22,11 +22,19 @@ export function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
-  const { data: notificacoes } = useNotificacoes();
-  const naoLidas = notificacoes?.data.filter((n) => !n.lida).length ?? 0;
+  const { data: naoLidas = 0 } = useNotificacoesNaoLidas();
+  const gavetaRef = useRef<HTMLDialogElement>(null);
 
   // Fecha a gaveta ao navegar.
   useEffect(() => setMenuAberto(false), [location.pathname]);
+
+  // Gaveta sobre o <dialog> nativo: foco preso, Esc fecha e o foco volta ao botão do menu.
+  useEffect(() => {
+    const gaveta = gavetaRef.current;
+    if (!gaveta) return;
+    if (menuAberto && !gaveta.open) gaveta.showModal();
+    if (!menuAberto && gaveta.open) gaveta.close();
+  }, [menuAberto]);
 
   function sair() {
     logout();
@@ -66,7 +74,9 @@ export function AppShell() {
                 <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
                 <span className="flex-1">{label}</span>
                 {to === '/notificacoes' && naoLidas > 0 && (
-                  <span className="rounded-full bg-amber-400 px-1.5 text-xs font-bold text-primary tnum">{naoLidas}</span>
+                  <span className="rounded-full bg-danger-600 px-1.5 text-xs font-bold text-white tnum">
+                    {naoLidas > 9 ? '9+' : naoLidas}
+                  </span>
                 )}
               </NavLink>
             </li>
@@ -122,12 +132,16 @@ export function AppShell() {
 
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[260px] lg:block">{sidebar}</aside>
 
-      {menuAberto && (
-        <div className="fixed inset-0 z-40 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <div className="absolute inset-0 bg-slate-900/50" onClick={() => setMenuAberto(false)} aria-hidden />
-          <aside className="absolute inset-y-0 left-0 w-[280px] max-w-[85vw] shadow-overlay">{sidebar}</aside>
-        </div>
-      )}
+      <dialog
+        ref={gavetaRef}
+        aria-label="Menu"
+        onClose={() => setMenuAberto(false)}
+        // Clique no fundo escurecido (::backdrop) chega ao próprio <dialog>.
+        onClick={(event) => event.target === event.currentTarget && setMenuAberto(false)}
+        className="m-0 h-dvh max-h-none w-[280px] max-w-[85vw] bg-transparent p-0 shadow-overlay backdrop:bg-slate-900/50 lg:hidden"
+      >
+        {menuAberto && sidebar}
+      </dialog>
 
       <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-surface/95 px-4 backdrop-blur sm:px-6 lg:px-8">
         <button
@@ -151,7 +165,7 @@ export function AppShell() {
             <Bell className="h-5 w-5" aria-hidden />
             {naoLidas > 0 && (
               <span
-                className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold text-white tnum"
+                className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger-600 px-1 text-[10px] font-bold text-white tnum"
                 aria-hidden
               >
                 {naoLidas > 9 ? '9+' : naoLidas}

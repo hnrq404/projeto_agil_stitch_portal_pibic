@@ -87,6 +87,11 @@ export class EditaisService {
     return this.repository.list(status);
   }
 
+  /** Listagem só de leitura (rotas públicas): não grava o encerramento automático. */
+  listSemSincronizar(status?: EditalStatusFilter): Promise<Edital[]> {
+    return this.repository.list(status);
+  }
+
   async getById(id: string): Promise<Edital> {
     const edital = await this.repository.findById(id);
     if (!edital) {

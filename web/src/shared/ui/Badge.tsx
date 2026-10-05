@@ -4,11 +4,11 @@ import { cn } from '@/shared/lib/cn';
 import type { StatusInfo, Tone } from '@/shared/lib/labels';
 
 const TONE: Record<Tone, { pill: string; dot: string }> = {
-  success: { pill: 'border-emerald-200 bg-emerald-50 text-emerald-800', dot: 'bg-emerald-500' },
-  warning: { pill: 'border-amber-200 bg-amber-50 text-amber-800', dot: 'bg-amber-500' },
+  success: { pill: 'border-success-200 bg-success-50 text-success-800', dot: 'bg-success-500' },
+  warning: { pill: 'border-warning-200 bg-warning-50 text-warning-800', dot: 'bg-warning-500' },
   neutral: { pill: 'border-slate-200 bg-slate-50 text-slate-700', dot: 'bg-slate-400' },
-  danger: { pill: 'border-rose-200 bg-rose-50 text-rose-800', dot: 'bg-rose-500' },
-  info: { pill: 'border-sky-200 bg-sky-50 text-sky-800', dot: 'bg-sky-500' },
+  danger: { pill: 'border-danger-200 bg-danger-50 text-danger-800', dot: 'bg-danger-500' },
+  info: { pill: 'border-info-200 bg-info-50 text-info-800', dot: 'bg-info-500' },
 };
 
 /** Pílula de status: cor + texto + ponto (o estado nunca depende só da cor). */

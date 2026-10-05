@@ -50,10 +50,30 @@ export function errorHandler(
     return;
   }
 
+  // Erros conhecidos do Prisma (corrida em chave única, registro sumido entre leitura e escrita).
+  const prismaCode = prismaErrorCode(error);
+  if (prismaCode === 'P2002') {
+    res.status(409).json({
+      error: { code: 'CONFLICT', message: 'O registro já existe ou foi alterado ao mesmo tempo. Tente novamente.' },
+    });
+    return;
+  }
+  if (prismaCode === 'P2025') {
+    res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Recurso não encontrado.' } });
+    return;
+  }
+
   console.error('[unhandled-error]', error);
   res.status(500).json({
     error: { code: 'INTERNAL_ERROR', message: 'Erro interno inesperado.' },
   });
+}
+
+/** Código de um PrismaClientKnownRequestError, sem acoplar a camada HTTP ao @prisma/client. */
+function prismaErrorCode(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const { name, code } = error as { name?: unknown; code?: unknown };
+  return name === 'PrismaClientKnownRequestError' && typeof code === 'string' ? code : undefined;
 }
 
 function isBodyParserError(error: unknown): error is { type: string; status: number } {

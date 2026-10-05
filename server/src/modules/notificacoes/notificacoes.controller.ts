@@ -8,6 +8,7 @@ import { NotificacoesService } from './notificacoes.service';
 /**
  * Rotas de notificações in-app (usuário autenticado):
  * GET   /api/notificacoes          → lista as minhas notificações (?somenteNaoLidas=true)
+ * GET   /api/notificacoes/nao-lidas → { total } de não lidas (sino)
  * PATCH /api/notificacoes/:id/leitura → marca uma notificação como lida
  * POST  /api/notificacoes/leitura     → marca todas as minhas como lidas
  */
@@ -34,6 +35,15 @@ export function registerNotificacoesRoutes(
         })),
         total: data.length,
       });
+    }),
+  );
+
+  // Contagem leve para o sino (polling): evita baixar a lista inteira a cada 30 s.
+  router.get(
+    '/api/notificacoes/nao-lidas',
+    authenticationGuard,
+    asyncHandler(async (req, res) => {
+      res.json({ total: await service.countUnread(req.user!.id) });
     }),
   );
 

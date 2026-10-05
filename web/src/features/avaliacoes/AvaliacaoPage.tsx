@@ -138,7 +138,7 @@ function Rubrica({ avaliacao }: { avaliacao: AvaliacaoDetalhe }) {
 
         <div className="flex items-center justify-between rounded-lg bg-canvas px-4 py-3" aria-live="polite">
           <span className="text-sm font-medium text-ink-muted">Nota final (média)</span>
-          <span className={cn('font-display text-2xl font-bold tnum', media !== null && media < notaCorte ? 'text-rose-700' : 'text-ink')}>
+          <span className={cn('font-display text-2xl font-bold tnum', media !== null && media < notaCorte ? 'text-danger-700' : 'text-ink')}>
             {formatNota(media)}
           </span>
         </div>
@@ -159,7 +159,7 @@ function Rubrica({ avaliacao }: { avaliacao: AvaliacaoDetalhe }) {
         </Field>
 
         {tentou && !completa && (
-          <p role="alert" className="text-sm font-medium text-rose-700">
+          <p role="alert" className="text-sm font-medium text-danger-700">
             Atribua nota a todos os critérios.
           </p>
         )}
@@ -201,7 +201,7 @@ function NotaCriterioInput({
       <p id={`desc-${criterio.id}`} className="mb-2 text-xs text-ink-subtle">
         {criterio.descricao}
       </p>
-      <div className={cn('grid grid-cols-11 gap-1', erro && 'rounded-lg ring-2 ring-rose-300 ring-offset-2')}>
+      <div className={cn('grid grid-cols-11 gap-1', erro && 'rounded-lg ring-2 ring-danger-300 ring-offset-2')}>
         {ESCALA.map((n) => (
           <label key={n} className="relative">
             <input

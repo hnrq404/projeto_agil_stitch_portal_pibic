@@ -204,7 +204,7 @@ function Atribuicao({ item }: { item: ItemTriagem }) {
                         {av.departamento || 'Sem departamento'}, {av.pendentes} pendente(s)
                       </span>
                       {conflito && (
-                        <span className="mt-1 flex items-center gap-1 text-xs font-medium text-amber-800">
+                        <span className="mt-1 flex items-center gap-1 text-xs font-medium text-warning-800">
                           <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
                           Conflito: mesmo departamento do orientador
                         </span>

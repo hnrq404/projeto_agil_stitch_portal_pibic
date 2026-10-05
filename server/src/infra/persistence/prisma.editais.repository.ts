@@ -63,34 +63,36 @@ export class PrismaEditaisRepository implements EditaisRepository {
   }
 
   async update(edital: Edital): Promise<Edital> {
-    // Substitui o conjunto de cotas (deleteMany + recreate) — o service já
-    // validou a consistência antes de chamar o repositório.
-    await this.prisma.cotaSubarea.deleteMany({ where: { editalId: edital.id } });
-    const updated = await this.prisma.edital.update({
-      where: { id: edital.id },
-      data: {
-        numero: edital.numero,
-        titulo: edital.titulo,
-        descricao: edital.descricao,
-        status: edital.status,
-        tipoBolsa: edital.tipoBolsa,
-        totalCotas: edital.totalCotas,
-        notaCorte: edital.notaCorte,
-        dataInicioInscricoes: edital.dataInicioInscricoes,
-        dataFimInscricoes: edital.dataFimInscricoes,
-        publicadoEm: edital.publicadoEm,
-        encerradoEm: edital.encerradoEm,
-        atualizadoEm: edital.atualizadoEm,
-        cotas: {
-          create: edital.cotas.map((cota) => ({
-            subareaCode: cota.subareaCode,
-            subareaNome: cota.subareaNome,
-            quantidade: cota.quantidade,
-          })),
+    // Substitui o conjunto de cotas (deleteMany + recreate) numa transação: se o
+    // update falhar, as cotas anteriores continuam gravadas.
+    const [, updated] = await this.prisma.$transaction([
+      this.prisma.cotaSubarea.deleteMany({ where: { editalId: edital.id } }),
+      this.prisma.edital.update({
+        where: { id: edital.id },
+        data: {
+          numero: edital.numero,
+          titulo: edital.titulo,
+          descricao: edital.descricao,
+          status: edital.status,
+          tipoBolsa: edital.tipoBolsa,
+          totalCotas: edital.totalCotas,
+          notaCorte: edital.notaCorte,
+          dataInicioInscricoes: edital.dataInicioInscricoes,
+          dataFimInscricoes: edital.dataFimInscricoes,
+          publicadoEm: edital.publicadoEm,
+          encerradoEm: edital.encerradoEm,
+          atualizadoEm: edital.atualizadoEm,
+          cotas: {
+            create: edital.cotas.map((cota) => ({
+              subareaCode: cota.subareaCode,
+              subareaNome: cota.subareaNome,
+              quantidade: cota.quantidade,
+            })),
+          },
         },
-      },
-      include: { cotas: true },
-    });
+        include: { cotas: true },
+      }),
+    ]);
     return toDomain(updated);
   }
 

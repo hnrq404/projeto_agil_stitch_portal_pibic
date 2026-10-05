@@ -8,7 +8,12 @@ export const registerSchema = z
   .object({
     nome: z.string().trim().min(3, 'nome deve ter ao menos 3 caracteres'),
     email: z.string().trim().toLowerCase().email('e-mail inválido'),
-    senha: z.string().min(6, 'senha deve ter ao menos 6 caracteres'),
+    // Mínimo de 8 com letra e número; máximo de 72 bytes porque o bcrypt ignora o que passa disso.
+    senha: z
+      .string()
+      .min(8, 'senha deve ter ao menos 8 caracteres')
+      .refine((s) => Buffer.byteLength(s, 'utf8') <= 72, 'senha deve ter no máximo 72 caracteres')
+      .refine((s) => /\p{L}/u.test(s) && /\d/.test(s), 'senha deve combinar letras e números'),
     role: z.enum(REGISTRO_ROLES),
     departamento: z.string().trim().max(60).optional(),
     matricula: z.string().trim().max(30).optional(),

@@ -25,33 +25,29 @@ export class NotificacoesService {
   /** Handler do evento de domínio "edital publicado". */
   async handleEditalPublicado(event: EditalPublicadoEvent): Promise<Notificacao[]> {
     const now = new Date();
-    const recipients = await this.userDirectory.listUsers();
+    // Duas consultas no total (usuários + já notificados), em vez de uma por usuário.
+    const [recipients, jaNotificados] = await Promise.all([
+      this.userDirectory.listUsers(),
+      this.repository.listUserIdsNotificados('EDITAL_PUBLICADO', event.editalId),
+    ]);
+    const ignorar = new Set(jaNotificados);
 
-    const created: Notificacao[] = [];
-    for (const user of recipients) {
-      const existing = await this.repository.listByUser(user.id);
-      const alreadyNotified = existing.some(
-        (n) => n.tipo === 'EDITAL_PUBLICADO' && n.referenceId === event.editalId,
-      );
-      if (alreadyNotified) {
-        continue;
-      }
-      created.push(
-        await this.repository.create({
-          id: randomUUID(),
-          userId: user.id,
-          tipo: 'EDITAL_PUBLICADO',
-          titulo: `Edital ${event.numero} publicado`,
-          mensagem:
-            `O edital ${event.numero} — ${event.titulo} (${event.tipoBolsa}, ` +
-            `${event.totalCotas} bolsas) está com inscrições abertas até ` +
-            `${event.dataFimInscricoes.toLocaleDateString('pt-BR')}.`,
-          referenceId: event.editalId,
-          lida: false,
-          criadoEm: now,
-        }),
-      );
-    }
+    const created: Notificacao[] = recipients
+      .filter((user) => !ignorar.has(user.id))
+      .map((user) => ({
+        id: randomUUID(),
+        userId: user.id,
+        tipo: 'EDITAL_PUBLICADO',
+        titulo: `Edital ${event.numero} publicado`,
+        mensagem:
+          `O edital ${event.numero} — ${event.titulo} (${event.tipoBolsa}, ` +
+          `${event.totalCotas} bolsas) está com inscrições abertas até ` +
+          `${event.dataFimInscricoes.toLocaleDateString('pt-BR')}.`,
+        referenceId: event.editalId,
+        lida: false,
+        criadoEm: now,
+      }));
+    await this.repository.createMany(created);
     return created;
   }
 
@@ -83,9 +79,11 @@ export class NotificacoesService {
     return this.repository.markAsRead(userId, notificacaoId);
   }
 
-  async markAllAsRead(userId: string): Promise<number> {
-    const unread = await this.repository.listByUser(userId, true);
-    await Promise.all(unread.map((n) => this.repository.markAsRead(userId, n.id)));
-    return unread.length;
+  markAllAsRead(userId: string): Promise<number> {
+    return this.repository.markAllAsRead(userId);
+  }
+
+  countUnread(userId: string): Promise<number> {
+    return this.repository.countUnread(userId);
   }
 }

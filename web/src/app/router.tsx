@@ -2,8 +2,6 @@ import type { ComponentType } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { useAuth } from '@/features/auth/AuthProvider';
-import { CadastroPage } from '@/features/auth/CadastroPage';
-import { LoginPage } from '@/features/auth/LoginPage';
 import { EditaisPublicosPage } from '@/features/editais/EditaisPublicosPage';
 import { LoadingState } from '@/shared/ui/Feedback';
 
@@ -20,6 +18,20 @@ import { RouteErrorPage } from './RouteErrorPage';
  */
 function page<M extends Record<string, unknown>>(loader: () => Promise<M>, nome: keyof M & string) {
   return async () => ({ Component: (await loader())[nome] as ComponentType });
+}
+
+/** Como `page`, mas só para visitantes (login/cadastro): o formulário e o Zod saem do bundle inicial. */
+function guestPage<M extends Record<string, unknown>>(loader: () => Promise<M>, nome: keyof M & string) {
+  return async () => {
+    const Pagina = (await loader())[nome] as ComponentType;
+    return {
+      element: (
+        <GuestOnly>
+          <Pagina />
+        </GuestOnly>
+      ),
+    };
+  };
 }
 
 function RootRedirect() {
@@ -52,8 +64,8 @@ export const router = createBrowserRouter([
           {
             errorElement: <RouteErrorPage />,
             children: [
-              { path: '/login', element: <GuestOnly><LoginPage /></GuestOnly> },
-              { path: '/cadastro', element: <GuestOnly><CadastroPage /></GuestOnly> },
+              { path: '/login', lazy: guestPage(() => import('@/features/auth/LoginPage'), 'LoginPage') },
+              { path: '/cadastro', lazy: guestPage(() => import('@/features/auth/CadastroPage'), 'CadastroPage') },
               { path: '/editais', element: <EditaisPublicosPage /> },
               { path: '/editais/:id', lazy: page(() => import('@/features/editais/EditalPublicoPage'), 'EditalPublicoPage') },
               { path: '/pesquisas', lazy: page(() => import('@/features/vitrine/VitrinePesquisasPage'), 'VitrinePesquisasPage') },

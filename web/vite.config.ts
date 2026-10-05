@@ -20,6 +20,17 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      output: {
+        // Bibliotecas em chunks próprios: mudam pouco, então o navegador reaproveita
+        // o cache entre deploys e só baixa de novo o código da aplicação.
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          query: ['@tanstack/react-query'],
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+        },
+      },
+    },
   },
   test: {
     include: ['src/**/*.test.ts'],

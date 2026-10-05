@@ -46,7 +46,9 @@ export function GuestOnly({ children }: { children: ReactNode }) {
   if (loading) return <LoadingState />;
   if (user) {
     const from = (location.state as { from?: string } | null)?.from;
-    return <Navigate to={from ?? homeFor(user.role)} replace />;
+    // Só caminhos internos: barra "//host" e "/\host" (open redirect do react-router < 7.18).
+    const destinoSeguro = typeof from === 'string' && /^\/(?![/\\])/.test(from) ? from : undefined;
+    return <Navigate to={destinoSeguro ?? homeFor(user.role)} replace />;
   }
   return children;
 }

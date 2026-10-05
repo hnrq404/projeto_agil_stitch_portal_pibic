@@ -1,3 +1,5 @@
+import colors from 'tailwindcss/colors';
+
 /**
  * Tokens do design system (institutional_scientific_portal/DESIGN.md).
  * Nenhuma cor/fonte é escrita "na mão" nos componentes: use estas classes.
@@ -34,6 +36,13 @@ export default {
           strong: '#CBD5E1',
         },
         focus: '#93C5FD',
+        // Estados semânticos (DESIGN.md › Semantic Status Signals). Use `success-50`,
+        // `danger-700` etc. em vez de emerald/rose/amber/sky direto: trocar o tom
+        // (ou criar um tema escuro) passa a ser uma mudança só aqui.
+        success: colors.emerald,
+        warning: colors.amber,
+        danger: colors.rose,
+        info: colors.sky,
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

@@ -55,13 +55,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             role={t.tone === 'error' ? 'alert' : 'status'}
             className={cn(
               'pointer-events-auto flex w-full items-start gap-3 rounded-lg border bg-surface px-4 py-3 text-sm shadow-overlay',
-              t.tone === 'success' ? 'border-emerald-200' : 'border-rose-200',
+              t.tone === 'success' ? 'border-success-200' : 'border-danger-200',
             )}
           >
             {t.tone === 'success' ? (
-              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" aria-hidden />
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success-600" aria-hidden />
             ) : (
-              <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" aria-hidden />
+              <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-danger-600" aria-hidden />
             )}
             <p className="flex-1 text-ink">{t.message}</p>
             <button

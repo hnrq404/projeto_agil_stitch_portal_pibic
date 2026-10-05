@@ -10,9 +10,20 @@ export interface InscricoesRepository {
   findByEditalAndDiscente(editalId: string, discenteId: string): Promise<Inscricao | undefined>;
   list(filtro?: InscricaoFiltro): Promise<Inscricao[]>;
   update(inscricao: Inscricao): Promise<Inscricao>;
-  /** Quantidade de protocolos já emitidos no ano (base do sequencial). */
-  countProtocolosNoAno(ano: number): Promise<number>;
+  /** Reserva atomicamente o próximo sequencial de protocolo do ano (nunca repete, mesmo com envios simultâneos). */
+  proximoSequencialProtocolo(ano: number): Promise<number>;
+  /**
+   * Grava a inscrição APROVADA só se a subárea ainda tiver cota, numa única
+   * transação: dois gestores homologando ao mesmo tempo não estouram a cota.
+   * `aprovadas` não conta a própria inscrição; `salva` vem vazio quando a cota acabou.
+   */
+  aprovarDentroDaCota(inscricao: Inscricao, limite: number): Promise<AprovacaoResultado>;
   clear(): Promise<void>;
+}
+
+export interface AprovacaoResultado {
+  aprovadas: number;
+  salva?: Inscricao;
 }
 
 export function matchesFiltro(inscricao: Inscricao, filtro: InscricaoFiltro = {}): boolean {
@@ -61,11 +72,30 @@ export class InMemoryInscricoesRepository implements InscricoesRepository {
     return clone(inscricao);
   }
 
-  async countProtocolosNoAno(ano: number): Promise<number> {
-    return [...this.store.values()].filter((i) => i.protocolo?.includes(`/${ano}-`)).length;
+  private readonly sequencias = new Map<number, number>();
+
+  async proximoSequencialProtocolo(ano: number): Promise<number> {
+    const proximo = (this.sequencias.get(ano) ?? 0) + 1;
+    this.sequencias.set(ano, proximo);
+    return proximo;
+  }
+
+  async aprovarDentroDaCota(inscricao: Inscricao, limite: number): Promise<AprovacaoResultado> {
+    // Sem await entre a contagem e a gravação: atômico no event loop.
+    const aprovadas = [...this.store.values()].filter(
+      (i) =>
+        i.id !== inscricao.id &&
+        i.editalId === inscricao.editalId &&
+        i.subareaCode === inscricao.subareaCode &&
+        i.status === 'APROVADA',
+    ).length;
+    if (aprovadas >= limite) return { aprovadas };
+    this.store.set(inscricao.id, clone(inscricao));
+    return { aprovadas, salva: clone(inscricao) };
   }
 
   async clear(): Promise<void> {
     this.store.clear();
+    this.sequencias.clear();
   }
 }

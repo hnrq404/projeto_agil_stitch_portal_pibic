@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 import type { PrismaClient } from './prisma.client';
 
@@ -10,7 +10,10 @@ import type {
   InscricaoStatus,
   VinculoStatus,
 } from '../../modules/inscricoes/domain/inscricoes.types';
-import type { InscricoesRepository } from '../../modules/inscricoes/repositories/inscricoes.repository';
+import type {
+  AprovacaoResultado,
+  InscricoesRepository,
+} from '../../modules/inscricoes/repositories/inscricoes.repository';
 
 /** Adapter Prisma da porta InscricoesRepository. Anexos são gravados na tabela Anexo. */
 export class PrismaInscricoesRepository implements InscricoesRepository {
@@ -54,22 +57,73 @@ export class PrismaInscricoesRepository implements InscricoesRepository {
   }
 
   async update(inscricao: Inscricao): Promise<Inscricao> {
-    const [, updated] = await this.prisma.$transaction([
-      this.prisma.anexo.deleteMany({ where: { inscricaoId: inscricao.id } }),
-      this.prisma.inscricao.update({
+    // Só mexe nos anexos que mudaram: o auto-save (que não toca anexos) vira um único UPDATE.
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const atuais = await tx.anexo.findMany({ where: { inscricaoId: inscricao.id }, select: { id: true } });
+      const atuaisIds = new Set(atuais.map((a) => a.id));
+      const novosIds = new Set(inscricao.anexos.map((a) => a.id));
+      const removidos = atuais.filter((a) => !novosIds.has(a.id)).map((a) => a.id);
+      if (removidos.length > 0) {
+        await tx.anexo.deleteMany({ where: { id: { in: removidos } } });
+      }
+      return tx.inscricao.update({
         where: { id: inscricao.id },
-        data: { ...toRow(inscricao), anexos: { create: inscricao.anexos.map(toAnexoRow) } },
+        data: {
+          ...toRow(inscricao),
+          anexos: { create: inscricao.anexos.filter((a) => !atuaisIds.has(a.id)).map(toAnexoRow) },
+        },
         include: { anexos: true },
-      }),
-    ]);
+      });
+    });
     return toDomain(updated);
   }
 
-  async countProtocolosNoAno(ano: number): Promise<number> {
-    return this.prisma.inscricao.count({ where: { protocolo: { contains: `/${ano}-` } } });
+  async proximoSequencialProtocolo(ano: number): Promise<number> {
+    try {
+      return await this.reservarSequencial(ano);
+    } catch (error) {
+      // Dois primeiros envios do ano criando a linha ao mesmo tempo: o perdedor tenta de novo (agora é increment).
+      if ((error as { code?: unknown }).code === 'P2002') return this.reservarSequencial(ano);
+      throw error;
+    }
+  }
+
+  private async reservarSequencial(ano: number): Promise<number> {
+    return this.prisma.$transaction(async (tx) => {
+      const atual = await tx.sequenciaProtocolo.findUnique({ where: { ano } });
+      if (atual) {
+        const seq = await tx.sequenciaProtocolo.update({ where: { ano }, data: { ultimo: { increment: 1 } } });
+        return seq.ultimo;
+      }
+      // Primeira reserva do ano: parte dos protocolos já emitidos antes da tabela de sequência existir.
+      const emitidos = await tx.inscricao.count({ where: { protocolo: { contains: `/${ano}-` } } });
+      const seq = await tx.sequenciaProtocolo.create({ data: { ano, ultimo: emitidos + 1 } });
+      return seq.ultimo;
+    });
+  }
+
+  async aprovarDentroDaCota(inscricao: Inscricao, limite: number): Promise<AprovacaoResultado> {
+    return this.prisma.$transaction(
+      async (tx) => {
+        const aprovadas = await tx.inscricao.count({
+          where: {
+            id: { not: inscricao.id },
+            editalId: inscricao.editalId,
+            subareaCode: inscricao.subareaCode,
+            status: 'APROVADA',
+          },
+        });
+        if (aprovadas >= limite) return { aprovadas };
+        const { id, ...data } = toRow(inscricao);
+        const updated = await tx.inscricao.update({ where: { id }, data, include: { anexos: true } });
+        return { aprovadas, salva: toDomain(updated) };
+      },
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+    );
   }
 
   async clear(): Promise<void> {
+    await this.prisma.sequenciaProtocolo.deleteMany();
     await this.prisma.relatorio.deleteMany();
     await this.prisma.avaliacao.deleteMany();
     await this.prisma.anexo.deleteMany();

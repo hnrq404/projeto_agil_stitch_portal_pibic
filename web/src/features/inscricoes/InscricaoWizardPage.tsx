@@ -181,10 +181,10 @@ function IndicadorSalvamento({ status, savedAt }: { status: AutoSaveStatus; save
     pending: { icon: <Loader2 className="h-4 w-4 text-ink-subtle" />, texto: 'Alterações não salvas' },
     saving: { icon: <Loader2 className="h-4 w-4 animate-spin text-primary" />, texto: 'Salvando...' },
     saved: {
-      icon: <CheckCircle2 className="h-4 w-4 text-emerald-600" />,
+      icon: <CheckCircle2 className="h-4 w-4 text-success-600" />,
       texto: savedAt ? `Salvo às ${formatTime(savedAt)}` : 'Salvo',
     },
-    error: { icon: <CloudOff className="h-4 w-4 text-rose-600" />, texto: 'Falha ao salvar. Tentaremos de novo na próxima alteração.' },
+    error: { icon: <CloudOff className="h-4 w-4 text-danger-600" />, texto: 'Falha ao salvar. Tentaremos de novo na próxima alteração.' },
   };
   const { icon, texto } = conteudo[status];
   return (

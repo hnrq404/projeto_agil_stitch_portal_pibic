@@ -68,7 +68,7 @@ export function RankingPage() {
                         </div>
                         <span className="text-right">
                           <span className="block text-lg font-bold tnum">{formatNota(item.consolidado.media)}</span>
-                          {item.consolidado.divergente && <span className="text-xs text-amber-800">divergência</span>}
+                          {item.consolidado.divergente && <span className="text-xs text-warning-800">divergência</span>}
                         </span>
                         <StatusBadge status={INSCRICAO_STATUS[item.inscricao.status]} />
                       </li>

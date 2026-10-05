@@ -53,14 +53,18 @@ export function registerAvaliacoesRoutes(
   }
 
   async function itensResponse(itens: readonly ItemTriagem[]) {
-    const views = await inscricoesService.views(itens.map((i) => i.inscricao));
-    return Promise.all(
-      itens.map(async (item, index) => ({
-        inscricao: toInscricaoResponse(views[index]!),
-        avaliacoes: await avaliacoesResponse(item.avaliacoes),
-        consolidado: item.consolidado,
-      })),
-    );
+    // Uma consulta de avaliadores para a fila inteira (antes era uma por proposta).
+    const avaliadorIds = [...new Set(itens.flatMap((i) => i.avaliacoes.map((a) => a.avaliadorId)))];
+    const [views, avaliadores] = await Promise.all([
+      inscricoesService.views(itens.map((i) => i.inscricao)),
+      usuarios.findManyByIds(avaliadorIds),
+    ]);
+    const byId = new Map(avaliadores.map((u) => [u.id, u]));
+    return itens.map((item, index) => ({
+      inscricao: toInscricaoResponse(views[index]!),
+      avaliacoes: item.avaliacoes.map((a) => toAvaliacaoResponse(a, byId.get(a.avaliadorId))),
+      consolidado: item.consolidado,
+    }));
   }
 
   router.get(

@@ -49,12 +49,16 @@ export class DashboardService {
   async painelGestor(editalId?: string): Promise<PainelGestor> {
     const todosEditais = await this.editais.list();
     const editais = editalId ? todosEditais.filter((e) => e.id === editalId) : todosEditais;
-    const inscricoes = (await this.inscricoes.list(editalId ? { editalId } : {})).filter(
-      (i) => i.status !== 'RASCUNHO',
-    );
-    const ids = new Set(inscricoes.map((i) => i.id));
-    const avaliacoes = (await this.avaliacoes.list()).filter((a) => ids.has(a.inscricaoId));
-    const relatorios = (await this.relatorios.list()).filter((r) => ids.has(r.inscricaoId));
+    const inscricoes = await this.inscricoes.list({
+      editalId,
+      status: ['SUBMETIDA', 'EM_AVALIACAO', 'AVALIADA', 'APROVADA', 'RECUSADA'],
+    });
+    // Filtra no banco: antes, todas as avaliações e relatórios eram carregados e filtrados em memória.
+    const ids = inscricoes.map((i) => i.id);
+    const [avaliacoes, relatorios] = await Promise.all([
+      this.avaliacoes.list({ inscricaoIds: ids }),
+      this.relatorios.list({ inscricaoIds: ids }),
+    ]);
     const agora = this.clock.now();
 
     const porStatus: Record<InscricaoStatus, number> = {
