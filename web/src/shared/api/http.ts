@@ -139,14 +139,21 @@ export function uploadPdf<T>(
     };
     xhr.onerror = () => reject(new TypeError('Falha de rede no envio do arquivo.'));
     xhr.onload = () => {
-      const body = xhr.responseText ? (JSON.parse(xhr.responseText) as unknown) : undefined;
+      // Um proxy pode responder HTML (413/502); sem o try, o parse lançaria e a Promise nunca terminaria.
+      let body: unknown;
+      try {
+        body = xhr.responseText ? (JSON.parse(xhr.responseText) as unknown) : undefined;
+      } catch {
+        body = undefined;
+      }
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(body as T);
         return;
       }
       handleUnauthorized(xhr.status);
       const err = (body as ApiErrorBody | undefined)?.error;
-      reject(new ApiError(xhr.status, err?.code ?? 'HTTP_ERROR', err?.message ?? `Erro ${xhr.status}`, err?.details));
+      const fallback = xhr.status === 413 ? 'Arquivo acima do limite de 10 MB.' : `Erro ${xhr.status}`;
+      reject(new ApiError(xhr.status, err?.code ?? 'HTTP_ERROR', err?.message ?? fallback, err?.details));
     };
     xhr.send(file);
   });

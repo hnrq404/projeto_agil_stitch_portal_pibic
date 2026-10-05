@@ -125,3 +125,18 @@ test('rotas protegidas: sem sessão vai ao login; papel errado vê acesso restri
   await page.goto('/orientacoes');
   await expect(page.getByRole('heading', { name: 'Orientações' })).toBeVisible();
 });
+
+test('endereço inexistente: visitante vê o 404 público, sem violações de CSP', async ({ page }) => {
+  const violacoes: string[] = [];
+  page.on('console', (msg) => {
+    if (/Content Security Policy/i.test(msg.text())) violacoes.push(msg.text());
+  });
+
+  await page.goto('/pagina-que-nao-existe');
+  await expect(page).toHaveURL(/\/pagina-que-nao-existe$/);
+  await expect(page.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();
+
+  await page.goto('/pesquisas');
+  await expect(page.getByRole('heading').first()).toBeVisible();
+  expect(violacoes).toEqual([]);
+});
