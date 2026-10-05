@@ -26,7 +26,8 @@ const makeProject = (displayName, testRegex) => ({
 
 module.exports = {
   projects: [
-    makeProject('unit', '\\.test\\.ts$'),
+    // Só tests/unit: sem isso, a regex também pegava os *.int.test.ts e eles rodavam duas vezes.
+    makeProject('unit', 'tests/unit/.*\\.test\\.ts$'),
     makeProject('integration', '\\.int\\.test\\.ts$'),
     makeProject('e2e', '\\.e2e\\.ts$'),
   ],

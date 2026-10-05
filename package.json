@@ -9,6 +9,8 @@
     "start": "npm run build --prefix web && npm run dev --prefix server",
     "build": "npm run build --prefix web",
     "typecheck": "npm run typecheck --prefix server && npm run typecheck --prefix web",
+    "lint": "npm run lint --prefix server && npm run lint --prefix web",
+    "format:check": "npm run format:check --prefix server && npm run format:check --prefix web",
     "test": "npm test --prefix server && npm test --prefix web",
     "test:unit": "npm run test:unit --prefix server && npm test --prefix web",
     "test:integration": "npm run test:integration --prefix server",

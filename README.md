@@ -60,6 +60,8 @@ Detalhes, regras de negócio e endpoints em [`server/README.md`](./server/README
 | `npm run test:e2e:api` | E2E de API com JWT + Prisma real (**limpa o banco**: rode `npm run db:seed` depois) |
 | `npm run test:e2e:ui` | build + E2E de browser (Playwright): ciclo completo com os quatro papéis |
 | `npm run typecheck` | `tsc` nos dois projetos |
+| `npm run lint` | ESLint nos dois projetos (falha com qualquer aviso) |
+| `npm run format --prefix web` / `--prefix server` | formata o código com o Prettier (config em `.prettierrc.json`) |
 | `npm run db:seed` | contas e dados de demonstração (idempotente) |
 
 ## 🏗️ Arquitetura
@@ -140,4 +142,4 @@ TypeScript · React 18 · Vite · TanStack Query · react-hook-form · Zod · Ta
 - Commits: [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`…)
 - Branches: `feat/SN-descrição` a partir de `main`
 - Papéis e autorização sempre validados no backend, nunca só no frontend
-- Sem `any`; `tsc --noEmit` limpo é obrigatório antes de PR
+- Sem `any`; `tsc --noEmit` e `npm run lint` limpos são obrigatórios antes de PR (o CI em `.github/workflows/ci.yml` roda typecheck, lint, testes, build e E2E em cada PR)

@@ -246,3 +246,44 @@ describe('Gestão de usuários (S1.2) e papéis no token', () => {
     ]);
   });
 });
+
+describe('Endurecimento da API', () => {
+  it('responde com headers de segurança', async () => {
+    const res = await request(container.app).get('/api/health');
+
+    expect(res.headers['content-security-policy']).toContain("default-src 'self'");
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-frame-options']).toBe('DENY');
+  });
+
+  it('bloqueia o login após 10 senhas erradas, mesmo com a senha certa depois', async () => {
+    const app = buildApp({ jwtSecret: 'test-secret', authRateLimit: true }).app;
+    await request(app).post('/api/auth/register').send(discentePayload());
+
+    for (let i = 0; i < 10; i += 1) {
+      const falha = await request(app)
+        .post('/api/auth/login')
+        .send({ email: discentePayload().email, senha: 'senha-errada' });
+      expect(falha.status).toBe(401);
+    }
+
+    const bloqueado = await request(app)
+      .post('/api/auth/login')
+      .send({ email: discentePayload().email, senha: discentePayload().senha });
+    expect(bloqueado.status).toBe(429);
+    expect(bloqueado.body.error.code).toBe('TOO_MANY_REQUESTS');
+    expect(Number(bloqueado.headers['retry-after'])).toBeGreaterThan(0);
+  });
+
+  it('logins bem-sucedidos não contam para o limite', async () => {
+    const app = buildApp({ jwtSecret: 'test-secret', authRateLimit: true }).app;
+    await request(app).post('/api/auth/register').send(discentePayload());
+
+    for (let i = 0; i < 12; i += 1) {
+      const ok = await request(app)
+        .post('/api/auth/login')
+        .send({ email: discentePayload().email, senha: discentePayload().senha });
+      expect(ok.status).toBe(200);
+    }
+  });
+});

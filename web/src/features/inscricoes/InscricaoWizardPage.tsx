@@ -79,10 +79,11 @@ function Wizard({ inscricao }: { inscricao: Inscricao }) {
   });
 
   // Cada alteração agenda um auto-save.
+  const { schedule } = autoSave;
   useEffect(() => {
-    const sub = form.watch((values) => autoSave.schedule(values as RascunhoForm));
+    const sub = form.watch((values) => schedule(values as RascunhoForm));
     return () => sub.unsubscribe();
-  }, [form, autoSave.schedule]);
+  }, [form, schedule]);
 
   async function avancar() {
     const ok = await form.trigger(CAMPOS_DA_ETAPA[etapa], { shouldFocus: true });

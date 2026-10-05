@@ -43,7 +43,7 @@ export class EditaisService {
   ) {}
 
   /** Cria um edital em RASCUNHO com validação de consistência das cotas. */
-  async create(input: CreateEditalInput, actorId: string): Promise<Edital> {
+  async create(input: CreateEditalInput, _actorId: string): Promise<Edital> {
     const now = this.clock.now();
 
     const numeroDuplicado = await this.repository.findByNumero(input.numero);
@@ -99,7 +99,7 @@ export class EditaisService {
    * Atualiza um edital — SOMENTE em RASCUNHO (regra da Sprint 2).
    * Se cotas ou totalCotas mudarem, a consistência é revalidada.
    */
-  async update(id: string, input: UpdateEditalInput, actorId: string): Promise<Edital> {
+  async update(id: string, input: UpdateEditalInput, _actorId: string): Promise<Edital> {
     const edital = await this.getById(id);
     assertEditable(edital);
 
@@ -143,7 +143,7 @@ export class EditaisService {
    * Transição de estado: "publicar" (RASCUNHO → PUBLICADO, dispara notificação)
    * ou "encerrar" (PUBLICADO → ENCERRADO).
    */
-  async transition(id: string, acao: 'publicar' | 'encerrar', actorId: string): Promise<Edital> {
+  async transition(id: string, acao: 'publicar' | 'encerrar', _actorId: string): Promise<Edital> {
     const edital = await this.getById(id);
 
     assertTransition(edital.status, acao === 'publicar' ? 'PUBLICADO' : 'ENCERRADO');

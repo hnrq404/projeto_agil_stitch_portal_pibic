@@ -54,9 +54,11 @@ import { registerProjetosRoutes } from '@projetos/projetos.controller';
 import { DashboardService } from '@dashboard/dashboard.service';
 import { registerDashboardRoutes } from '@dashboard/dashboard.controller';
 import { errorHandler } from '@shared/http/http.middleware';
+import { createRateLimiter, securityHeaders } from '@shared/http/security.middleware';
 import { registerCnpqRoutes } from '@shared/domain/cnpq.routes';
 
 import { createPrismaClient } from '../persistence/prisma.client';
+import { resolveJwtSecret } from './env';
 import { PrismaEditaisRepository } from '../persistence/prisma.editais.repository';
 import { PrismaNotificacoesRepository } from '../persistence/prisma.notificacoes.repository';
 import { PrismaUsuariosRepository } from '../persistence/prisma.usuarios.repository';
@@ -77,6 +79,8 @@ export interface AppContainerOptions {
   arquivoStorage?: ArquivoStorage;
   userDirectory?: UserDirectory & { listUsers(): { id: string }[] };
   jwtSecret?: string;
+  /** Limite de tentativas em login/cadastro. Padrão: ligado, exceto com NODE_ENV=test. */
+  authRateLimit?: boolean;
 }
 
 export interface AppContainer {
@@ -140,7 +144,7 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
       : new InMemoryArquivoStorage());
 
   // ── Auth (JWT + bcrypt) ────────────────────────────────────────────────
-  const jwtSecret = options.jwtSecret ?? process.env['JWT_SECRET'] ?? 'dev-secret-change-me';
+  const jwtSecret = options.jwtSecret ?? resolveJwtSecret();
   const authService = new AuthService(usuariosRepository, new JwtTokenSigner(jwtSecret));
   const userDirectory: UserDirectory = options.userDirectory ?? new JwtUserDirectory(authService);
   const usuariosService = new UsuariosService(usuariosRepository);
@@ -197,7 +201,30 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
 
   const app = express();
   app.disable('x-powered-by');
+  app.use(securityHeaders());
   app.use(express.json({ limit: '1mb' }));
+
+  // Contra força bruta de senha e criação de contas em massa (por IP).
+  const authRateLimit = options.authRateLimit ?? process.env['NODE_ENV'] !== 'test';
+  if (authRateLimit) {
+    app.use(
+      '/api/auth/login',
+      createRateLimiter({
+        windowMs: 15 * 60 * 1000,
+        max: 10,
+        onlyFailures: true,
+        message: 'Muitas tentativas de login sem sucesso. Aguarde 15 minutos e tente novamente.',
+      }),
+    );
+    app.use(
+      '/api/auth/register',
+      createRateLimiter({
+        windowMs: 60 * 60 * 1000,
+        max: 20,
+        message: 'Muitos cadastros a partir desta rede. Aguarde uma hora e tente novamente.',
+      }),
+    );
+  }
 
   const router: Router = express.Router();
   const authenticationGuard = createAuthenticationGuard(userDirectory);
