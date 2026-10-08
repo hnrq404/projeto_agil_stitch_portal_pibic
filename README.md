@@ -52,27 +52,27 @@ No PowerShell, se `npm` for bloqueado pela política de scripts, use `npm.cmd` n
 
 Contas de demonstração criadas pelo seed (senha = papel + `123`):
 
-| Perfil | E-mail | Senha | O que dá para testar |
-| --- | --- | --- | --- |
-| Gestor | `gestor@pibic.edu.br` | `gestor123` | painel, editais, triagem, homologação, usuários, CSV |
-| Docente | `docente@pibic.edu.br` | `docente123` | confirmar orientação pendente, avaliar relatórios |
-| Avaliador | `avaliador@pibic.edu.br` | `avaliador123` | rubrica de avaliação |
-| Discente | `discente@pibic.edu.br` | `discente123` | projeto aprovado com relatórios; nova inscrição no edital aberto |
-| Visitante | `visitante@pibic.edu.br` | `visitante123` | parte pública |
+| Perfil    | E-mail                     | Senha            | O que dá para testar                                               |
+| --------- | -------------------------- | ---------------- | ------------------------------------------------------------------- |
+| Gestor    | `gestor@pibic.edu.br`    | `gestor123`    | painel, editais, triagem, homologação, usuários, CSV             |
+| Docente   | `docente@pibic.edu.br`   | `docente123`   | confirmar orientação pendente, avaliar relatórios                |
+| Avaliador | `avaliador@pibic.edu.br` | `avaliador123` | rubrica de avaliação                                              |
+| Discente  | `discente@pibic.edu.br`  | `discente123`  | projeto aprovado com relatórios; nova inscrição no edital aberto |
+| Visitante | `visitante@pibic.edu.br` | `visitante123` | parte pública                                                      |
 
 O cadastro em `/cadastro` oferece Discente, Docente ou Visitante. Gestor e Avaliador são atribuídos por um gestor em **Usuários**.
 
 Detalhes, regras de negócio e endpoints em [`server/README.md`](./server/README.md); estrutura e convenções do front em [`web/README.md`](./web/README.md).
 
-| Comando (raiz) | Descrição |
-| --- | --- |
-| `npm test` | unitários + integração do server (Jest) e unitários do web (Vitest) |
-| `npm run test:e2e:api` | E2E de API com JWT + Prisma real (**limpa o banco**: rode `npm run db:seed` depois) |
-| `npm run test:e2e:ui` | build + E2E de browser (Playwright): ciclo completo com os quatro papéis |
-| `npm run typecheck` | `tsc` nos dois projetos |
-| `npm run lint` | ESLint nos dois projetos (falha com qualquer aviso) |
-| `npm run format --prefix web` / `--prefix server` | formata o código com o Prettier (config em `.prettierrc.json`) |
-| `npm run db:seed` | contas e dados de demonstração (idempotente) |
+| Comando (raiz)                                        | Descrição                                                                                 |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `npm test`                                          | unitários + integração do server (Jest) e unitários do web (Vitest)                     |
+| `npm run test:e2e:api`                              | E2E de API com JWT + Prisma real (**limpa o banco**: rode `npm run db:seed` depois) |
+| `npm run test:e2e:ui`                               | build + E2E de browser (Playwright): ciclo completo com os quatro papéis                   |
+| `npm run typecheck`                                 | `tsc` nos dois projetos                                                                   |
+| `npm run lint`                                      | ESLint nos dois projetos (falha com qualquer aviso)                                         |
+| `npm run format --prefix web` / `--prefix server` | formata o código com o Prettier (config em`.prettierrc.json`)                            |
+| `npm run db:seed`                                   | contas e dados de demonstração (idempotente)                                              |
 
 ## 🏗️ Arquitetura
 
@@ -92,15 +92,15 @@ web/ (React SPA)  ──HTTP + JWT──>  server/ (Express)
 
 **Módulos do produto** (ver detalhes em [Arquitetura.md](./institutional_scientific_portal/Arquitetura.md)):
 
-| Módulo | Responsabilidade | Situação |
-| --- | --- | --- |
-| M1 — Autenticação & Acesso | Login, cadastro, papéis, guards de rota, gestão de usuários | ✅ `server/` + `web/` |
-| M2 — Edital & Publicação | CRUD de editais, cotas por área, nota de corte, ciclo de vida | ✅ |
-| M3 — Inscrição de Pesquisa | Formulário em 5 etapas, auto-save, upload de PDF, protocolo, vínculo com orientador | ✅ |
-| M4 — Central de Triagem | Distribuição com conflito de interesse, rubrica 0–10, pareceres, consolidação, ranking | ✅ |
-| M5 — Painel do Gestor | Homologação por cota, KPIs, cotas por subárea, alertas, exportação CSV | ✅ |
-| M6 — Vitrine Pública | Editais abertos e pesquisas aprovadas, sem login, com filtros | ✅ |
-| M7 — Relatórios & Acompanhamento | Relatórios parciais/finais com versões, prazos e histórico do bolsista | ✅ |
+| Módulo                            | Responsabilidade                                                                            | Situação               |
+| ---------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------ |
+| M1 — Autenticação & Acesso      | Login, cadastro, papéis, guards de rota, gestão de usuários                              | ✅`server/` + `web/` |
+| M2 — Edital & Publicação        | CRUD de editais, cotas por área, nota de corte, ciclo de vida                              | ✅                       |
+| M3 — Inscrição de Pesquisa      | Formulário em 5 etapas, auto-save, upload de PDF, protocolo, vínculo com orientador       | ✅                       |
+| M4 — Central de Triagem           | Distribuição com conflito de interesse, rubrica 0–10, pareceres, consolidação, ranking | ✅                       |
+| M5 — Painel do Gestor             | Homologação por cota, KPIs, cotas por subárea, alertas, exportação CSV                 | ✅                       |
+| M6 — Vitrine Pública             | Editais abertos e pesquisas aprovadas, sem login, com filtros                               | ✅                       |
+| M7 — Relatórios & Acompanhamento | Relatórios parciais/finais com versões, prazos e histórico do bolsista                   | ✅                       |
 
 ## 🎨 Mockups de design (Stitch)
 
@@ -118,17 +118,17 @@ O sistema de design formal (cores, tipografia, componentes, WCAG 2.1 AA) está e
 
 ## 🗺️ Roadmap (sprints de 2 semanas)
 
-| Sprint | Objetivo | Status |
-| --- | --- | --- |
-| S0 | Fundação: documentação, ferramentação, design system aprovado | ✅ Concluída |
-| S1 | Autenticação e níveis de acesso | ✅ Concluída (sem recuperação de senha por e-mail) |
-| S2 | Edital & Publicação | ✅ Concluída |
-| S3 | Inscrição de Pesquisa | ✅ Concluída |
-| S4 | Central de Triagem e Avaliação | ✅ Concluída |
-| S5 | Homologação e Painel do Gestor | ✅ Concluída |
-| S6 | Relatórios e Vitrine Pública | ✅ Concluída |
-| S7 | Endurecimento e Acessibilidade (WCAG AA, cobertura ≥ 80%) | ⬜ Planejada |
-| S8 | Release e Apresentação | ⬜ Planejada |
+| Sprint | Objetivo                                                            | Status                                                |
+| ------ | ------------------------------------------------------------------- | ----------------------------------------------------- |
+| S0     | Fundação: documentação, ferramentação, design system aprovado | ✅ Concluída                                         |
+| S1     | Autenticação e níveis de acesso                                  | ✅ Concluída (sem recuperação de senha por e-mail) |
+| S2     | Edital & Publicação                                               | ✅ Concluída                                         |
+| S3     | Inscrição de Pesquisa                                             | ✅ Concluída                                         |
+| S4     | Central de Triagem e Avaliação                                    | ✅ Concluída                                         |
+| S5     | Homologação e Painel do Gestor                                    | ✅ Concluída                                         |
+| S6     | Relatórios e Vitrine Pública                                      | ✅ Concluída                                         |
+| S7     | Endurecimento e Acessibilidade (WCAG AA, cobertura ≥ 80%)          | ⬜ Planejada                                          |
+| S8     | Release e Apresentação                                            | ⬜ Planejada                                          |
 
 Detalhes, riscos e critérios de saída de cada sprint em [Sprints.md](./institutional_scientific_portal/Sprints.md).
 

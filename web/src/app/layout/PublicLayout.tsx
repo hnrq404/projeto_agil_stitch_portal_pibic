@@ -1,8 +1,9 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 
 import { useAuth } from '@/features/auth/AuthProvider';
 import { cn } from '@/shared/lib/cn';
-import { ButtonLink } from '@/shared/ui/Button';
+import { Button, ButtonLink } from '@/shared/ui/Button';
 
 import { homeFor, PUBLIC_NAV } from '../navigation';
 import { BrandMark } from './BrandMark';
@@ -10,7 +11,13 @@ import { SkipLink } from './SkipLink';
 
 /** Páginas abertas (vitrines, login, cadastro): cabeçalho simples e rodapé institucional. */
 export function PublicLayout() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function sair() {
+    logout();
+    navigate('/editais');
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -38,9 +45,15 @@ export function PublicLayout() {
           </nav>
           <div className="ml-auto flex items-center gap-2">
             {user ? (
-              <ButtonLink to={homeFor(user.role)} size="sm">
-                {user.role === 'USUARIO' ? 'Minha conta' : 'Ir para o painel'}
-              </ButtonLink>
+              <>
+                {/* homeFor(USUARIO) é a própria vitrine; a conta do visitante fica no AppShell. */}
+                <ButtonLink to={user.role === 'USUARIO' ? '/notificacoes' : homeFor(user.role)} size="sm">
+                  {user.role === 'USUARIO' ? 'Minha conta' : 'Ir para o painel'}
+                </ButtonLink>
+                <Button variant="secondary" size="sm" icon={<LogOut className="h-4 w-4" aria-hidden />} onClick={sair}>
+                  Sair
+                </Button>
+              </>
             ) : (
               <>
                 <ButtonLink to="/login" variant="secondary" size="sm">

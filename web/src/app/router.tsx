@@ -113,7 +113,8 @@ export const router = createBrowserRouter([
                 children: [{ path: '/orientacoes', lazy: page(() => import('@/features/inscricoes/OrientacoesPage'), 'OrientacoesPage') }],
               },
               {
-                element: <RequireRole roles={['AVALIADOR', ...GESTORES]} />,
+                // Só o avaliador: /api/avaliacoes/minhas e o envio do parecer recusam o gestor (403).
+                element: <RequireRole roles={['AVALIADOR']} />,
                 children: [
                   { path: '/avaliacoes', lazy: page(() => import('@/features/avaliacoes/MinhasAvaliacoesPage'), 'MinhasAvaliacoesPage') },
                   { path: '/avaliacoes/:id', lazy: page(() => import('@/features/avaliacoes/AvaliacaoPage'), 'AvaliacaoPage') },
