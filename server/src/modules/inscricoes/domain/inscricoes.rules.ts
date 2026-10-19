@@ -1,6 +1,7 @@
 /**
- * Regras de negócio do agregado Inscrição — Sprint 3 (e homologação, S5).
- * Funções PURAS, sem dependência de framework/infra: cobertura unitária direta.
+ * Regras de negócio do projeto de pesquisa (agregado Inscrição) e da
+ * candidatura do aluno. Funções PURAS, sem dependência de framework/infra:
+ * cobertura unitária direta.
  */
 
 import { UnprocessableEntityError } from '@shared/errors/domain.errors';
@@ -10,17 +11,19 @@ import type { Edital } from '../../editais/domain/editais.types';
 import { isInscricaoAberta } from '../../editais/domain/editais.rules';
 import { ANEXO_LABEL, ANEXO_TIPOS, type Inscricao, type InscricaoStatus } from './inscricoes.types';
 
-/** Limites mínimos de conteúdo para uma proposta ser submetida. */
+/** Limites mínimos de conteúdo para um projeto ser divulgado. */
 export const MIN_RESUMO = 100;
 export const MIN_TEXTO = 50;
+
+/** Tamanho mínimo da apresentação do aluno na candidatura. */
+export const MIN_MENSAGEM_CANDIDATURA = 30;
 
 /** Prefixo institucional do protocolo (padrão de processos da universidade). */
 export const PROTOCOLO_PREFIXO = '23076';
 
 export const INSCRICAO_TRANSITIONS: Record<InscricaoStatus, readonly InscricaoStatus[]> = {
-  RASCUNHO: ['SUBMETIDA'],
-  // SUBMETIDA → RASCUNHO quando o orientador recusa o vínculo (discente indica outro).
-  SUBMETIDA: ['EM_AVALIACAO', 'RASCUNHO'],
+  RASCUNHO: ['DIVULGADA'],
+  DIVULGADA: ['EM_AVALIACAO'],
   EM_AVALIACAO: ['AVALIADA'],
   AVALIADA: ['APROVADA', 'RECUSADA'],
   APROVADA: [],
@@ -30,13 +33,13 @@ export const INSCRICAO_TRANSITIONS: Record<InscricaoStatus, readonly InscricaoSt
 export function assertInscricaoTransition(current: InscricaoStatus, target: InscricaoStatus): void {
   if (!INSCRICAO_TRANSITIONS[current].includes(target)) {
     throw new UnprocessableEntityError(
-      `Transição de inscrição inválida: ${current} → ${target}.`,
+      `Transição de projeto inválida: ${current} → ${target}.`,
       { current, target, allowed: INSCRICAO_TRANSITIONS[current] },
     );
   }
 }
 
-/** Inscrições só são criadas/submetidas com o edital publicado e dentro do prazo. */
+/** Projetos só são criados, divulgados e enviados com o edital publicado e dentro do prazo. */
 export function assertEditalAceitaInscricoes(edital: Edital, clock: Clock): void {
   if (!isInscricaoAberta(edital, clock)) {
     throw new UnprocessableEntityError(
@@ -46,21 +49,30 @@ export function assertEditalAceitaInscricoes(edital: Edital, clock: Clock): void
   }
 }
 
-/** RN05 — inscrição submetida não pode mais ser editada pelo discente. */
+/** RN05 — depois do envio ao edital, o projeto não pode mais ser editado. */
 export function assertEditavel(inscricao: Inscricao): void {
-  if (inscricao.status !== 'RASCUNHO') {
+  if (inscricao.status !== 'RASCUNHO' && inscricao.status !== 'DIVULGADA') {
     throw new UnprocessableEntityError(
-      'Esta inscrição já foi submetida e não pode mais ser editada (RN05).',
+      'Este projeto já foi enviado ao edital e não pode mais ser editado (RN05).',
       { status: inscricao.status },
     );
   }
 }
 
-/**
- * Lista o que ainda falta para submeter. Vazia = pronta. A mesma lista é
- * devolvida à SPA para montar o checklist da etapa de revisão.
- */
-export function pendenciasParaSubmissao(inscricao: Inscricao, edital: Edital): string[] {
+/** Candidaturas e seleção só acontecem enquanto o projeto está divulgado. */
+export function assertDivulgada(inscricao: Inscricao): void {
+  if (inscricao.status !== 'DIVULGADA') {
+    throw new UnprocessableEntityError(
+      inscricao.status === 'RASCUNHO'
+        ? 'O projeto ainda não foi divulgado aos alunos.'
+        : 'O projeto já foi enviado ao edital e não recebe mais candidaturas.',
+      { status: inscricao.status },
+    );
+  }
+}
+
+/** O que falta para o professor divulgar o projeto aos alunos. */
+export function pendenciasParaDivulgacao(inscricao: Inscricao, edital: Edital): string[] {
   const pendencias: string[] = [];
   if (inscricao.titulo.trim().length < 10) {
     pendencias.push('Informe o título do projeto (mínimo de 10 caracteres).');
@@ -79,8 +91,20 @@ export function pendenciasParaSubmissao(inscricao: Inscricao, edital: Edital): s
   if (inscricao.metodologia.trim().length < MIN_TEXTO) {
     pendencias.push(`Descreva a metodologia (mínimo de ${MIN_TEXTO} caracteres).`);
   }
-  if (!inscricao.orientadorId) {
-    pendencias.push('Indique o orientador.');
+  return pendencias;
+}
+
+/**
+ * O que falta para enviar ao edital. Vazia = pronto. A mesma lista é devolvida
+ * à SPA para montar o checklist. Os avaliadores são validados à parte, no envio.
+ */
+export function pendenciasParaSubmissao(inscricao: Inscricao, edital: Edital): string[] {
+  const pendencias = pendenciasParaDivulgacao(inscricao, edital);
+  if (inscricao.status === 'RASCUNHO') {
+    pendencias.push('Divulgue o projeto para receber candidaturas dos alunos.');
+  }
+  if (!inscricao.discenteId) {
+    pendencias.push('Selecione o aluno entre os candidatos.');
   }
   for (const tipo of ANEXO_TIPOS) {
     if (!inscricao.anexos.some((a) => a.tipo === tipo)) {

@@ -12,65 +12,94 @@ import {
 import { ValidationError } from '@shared/errors/domain.errors';
 
 import type { InscricoesService } from './inscricoes.service';
+import type { Inscricao } from './domain/inscricoes.types';
 import {
   anexoTipoSchema,
+  candidaturaSchema,
   criarInscricaoSchema,
   rascunhoSchema,
+  selecaoSchema,
+  submissaoSchema,
+  toCandidaturaResponse,
   toInscricaoResponse,
-  vinculoSchema,
 } from './dto/inscricoes.dto';
 
 const requireDiscente = createRoleGuard(['DISCENTE']);
 const requireDocente = createRoleGuard(['DOCENTE']);
 
 /**
- * Rotas de inscrição (S3):
- *   POST   /api/inscricoes                          → cria rascunho (DISCENTE)
- *   GET    /api/inscricoes/minhas                   → minhas inscrições (DISCENTE)
- *   GET    /api/orientacoes                         → inscrições em que fui indicado (DOCENTE)
- *   GET    /api/inscricoes/:id                      → detalhe (dono, orientador, avaliador, gestor)
- *   PATCH  /api/inscricoes/:id                      → auto-save do rascunho (DISCENTE)
- *   PUT    /api/inscricoes/:id/anexos/:tipo         → envia PDF (application/pdf, header X-Filename)
- *   DELETE /api/inscricoes/:id/anexos/:anexoId      → remove anexo do rascunho
+ * Projetos de pesquisa (fluxo UNICAP):
+ *
+ * Professor (DOCENTE)
+ *   POST   /api/inscricoes                           → cria o rascunho num edital aberto
+ *   GET    /api/inscricoes/minhas                    → meus projetos, de qualquer status
+ *   PATCH  /api/inscricoes/:id                       → auto-save (até o envio ao edital)
+ *   PUT    /api/inscricoes/:id/anexos/:tipo          → envia PDF (application/pdf, header X-Filename)
+ *   DELETE /api/inscricoes/:id/anexos/:anexoId       → remove anexo
+ *   POST   /api/inscricoes/:id/divulgacao            → divulga aos alunos
+ *   GET    /api/inscricoes/:id/candidaturas          → candidatos do projeto
+ *   POST   /api/inscricoes/:id/selecao               → escolhe o aluno
+ *   POST   /api/inscricoes/:id/submissao             → envia ao edital com três avaliadores (gera protocolo)
+ *
+ * Aluno (DISCENTE)
+ *   POST   /api/inscricoes/:id/candidaturas          → candidata-se a um projeto divulgado
+ *   GET    /api/candidaturas/minhas                  → minhas candidaturas
+ *   DELETE /api/candidaturas/:id                     → desiste (enquanto pendente)
+ *
+ * Todos com acesso ao projeto
+ *   GET    /api/inscricoes/:id                       → detalhe (professor, aluno selecionado, avaliador, gestor)
  *   GET    /api/inscricoes/:id/anexos/:anexoId/arquivo → baixa/visualiza o PDF
- *   POST   /api/inscricoes/:id/submissao            → submete (gera protocolo)
- *   POST   /api/inscricoes/:id/vinculo              → orientador confirma/recusa
  */
 export function registerInscricoesRoutes(
   router: Router,
   service: InscricoesService,
   authenticationGuard: (req: Request, res: Response, next: NextFunction) => void,
 ): void {
+  const docente = [authenticationGuard, requireDocente];
+  const discente = [authenticationGuard, requireDiscente];
+
+  /** Resposta do professor dono: inclui o checklist de envio enquanto o projeto é editável. */
+  async function respostaDoDono(inscricao: Inscricao) {
+    const editavel = inscricao.status === 'RASCUNHO' || inscricao.status === 'DIVULGADA';
+    return toInscricaoResponse(await service.view(inscricao), {
+      pendencias: editavel ? await service.pendencias(inscricao) : undefined,
+    });
+  }
+
   router.post(
     '/api/inscricoes',
-    authenticationGuard,
-    requireDiscente,
+    ...docente,
     asyncHandler(async (req, res) => {
       const dto = parseBody(criarInscricaoSchema, req.body);
       const inscricao = await service.criarRascunho(req.user!.id, dto.editalId);
-      res.status(201).json(toInscricaoResponse(await service.view(inscricao)));
+      res.status(201).json(await respostaDoDono(inscricao));
     }),
   );
 
   router.get(
     '/api/inscricoes/minhas',
-    authenticationGuard,
-    requireDiscente,
+    ...docente,
     asyncHandler(async (req, res) => {
-      const inscricoes = await service.list({ discenteId: req.user!.id });
-      const views = await service.views(inscricoes);
+      const views = await service.views(await service.listDoOrientador(req.user!.id));
       res.json({ data: views.map((v) => toInscricaoResponse(v)), total: views.length });
     }),
   );
 
   router.get(
-    '/api/orientacoes',
-    authenticationGuard,
-    requireDocente,
+    '/api/candidaturas/minhas',
+    ...discente,
     asyncHandler(async (req, res) => {
-      const inscricoes = await service.listDoOrientador(req.user!.id);
-      const views = await service.views(inscricoes);
-      res.json({ data: views.map((v) => toInscricaoResponse(v)), total: views.length });
+      const views = await service.minhasCandidaturas(req.user!.id);
+      res.json({ data: views.map(toCandidaturaResponse), total: views.length });
+    }),
+  );
+
+  router.delete(
+    '/api/candidaturas/:id',
+    ...discente,
+    asyncHandler(async (req, res) => {
+      await service.cancelarCandidatura(req.params['id'] as string, req.user!.id);
+      res.status(204).end();
     }),
   );
 
@@ -79,31 +108,27 @@ export function registerInscricoesRoutes(
     authenticationGuard,
     asyncHandler(async (req, res) => {
       const inscricao = await service.getForActor(req.params['id'] as string, req.user!);
-      const isDonoEmRascunho = inscricao.discenteId === req.user!.id && inscricao.status === 'RASCUNHO';
-      const pendencias = isDonoEmRascunho ? await service.pendencias(inscricao) : undefined;
-      res.json(toInscricaoResponse(await service.view(inscricao), { pendencias }));
+      if (inscricao.orientadorId === req.user!.id) {
+        res.json(await respostaDoDono(inscricao));
+        return;
+      }
+      res.json(toInscricaoResponse(await service.view(inscricao)));
     }),
   );
 
   router.patch(
     '/api/inscricoes/:id',
-    authenticationGuard,
-    requireDiscente,
+    ...docente,
     asyncHandler(async (req, res) => {
       const dto = parseBody(rascunhoSchema, req.body);
       const inscricao = await service.atualizarRascunho(req.params['id'] as string, req.user!.id, dto);
-      res.json(
-        toInscricaoResponse(await service.view(inscricao), {
-          pendencias: await service.pendencias(inscricao),
-        }),
-      );
+      res.json(await respostaDoDono(inscricao));
     }),
   );
 
   router.put(
     '/api/inscricoes/:id/anexos/:tipo',
-    authenticationGuard,
-    requireDiscente,
+    ...docente,
     pdfBodyParser,
     asyncHandler(async (req, res) => {
       const tipo = anexoTipoSchema.safeParse(req.params['tipo']);
@@ -117,29 +142,20 @@ export function registerInscricoesRoutes(
         readUploadFilename(req),
         readUploadBody(req),
       );
-      res.json(
-        toInscricaoResponse(await service.view(inscricao), {
-          pendencias: await service.pendencias(inscricao),
-        }),
-      );
+      res.json(await respostaDoDono(inscricao));
     }),
   );
 
   router.delete(
     '/api/inscricoes/:id/anexos/:anexoId',
-    authenticationGuard,
-    requireDiscente,
+    ...docente,
     asyncHandler(async (req, res) => {
       const inscricao = await service.removerAnexo(
         req.params['id'] as string,
         req.user!.id,
         req.params['anexoId'] as string,
       );
-      res.json(
-        toInscricaoResponse(await service.view(inscricao), {
-          pendencias: await service.pendencias(inscricao),
-        }),
-      );
+      res.json(await respostaDoDono(inscricao));
     }),
   );
 
@@ -157,27 +173,49 @@ export function registerInscricoesRoutes(
   );
 
   router.post(
-    '/api/inscricoes/:id/submissao',
-    authenticationGuard,
-    requireDiscente,
+    '/api/inscricoes/:id/divulgacao',
+    ...docente,
     asyncHandler(async (req, res) => {
-      const inscricao = await service.submeter(req.params['id'] as string, req.user!.id);
-      res.json(toInscricaoResponse(await service.view(inscricao)));
+      const inscricao = await service.divulgar(req.params['id'] as string, req.user!.id);
+      res.json(await respostaDoDono(inscricao));
+    }),
+  );
+
+  router.get(
+    '/api/inscricoes/:id/candidaturas',
+    ...docente,
+    asyncHandler(async (req, res) => {
+      const views = await service.candidaturasDoProjeto(req.params['id'] as string, req.user!.id);
+      res.json({ data: views.map(toCandidaturaResponse), total: views.length });
     }),
   );
 
   router.post(
-    '/api/inscricoes/:id/vinculo',
-    authenticationGuard,
-    requireDocente,
+    '/api/inscricoes/:id/candidaturas',
+    ...discente,
     asyncHandler(async (req, res) => {
-      const dto = parseBody(vinculoSchema, req.body);
-      const inscricao = await service.responderVinculo(
-        req.params['id'] as string,
-        req.user!.id,
-        dto.decisao,
-        dto.comentario,
-      );
+      const dto = parseBody(candidaturaSchema, req.body);
+      const criada = await service.candidatar(req.params['id'] as string, req.user!.id, dto.mensagem);
+      res.status(201).json(toCandidaturaResponse(criada));
+    }),
+  );
+
+  router.post(
+    '/api/inscricoes/:id/selecao',
+    ...docente,
+    asyncHandler(async (req, res) => {
+      const dto = parseBody(selecaoSchema, req.body);
+      const inscricao = await service.selecionar(req.params['id'] as string, req.user!.id, dto.candidaturaId);
+      res.json(await respostaDoDono(inscricao));
+    }),
+  );
+
+  router.post(
+    '/api/inscricoes/:id/submissao',
+    ...docente,
+    asyncHandler(async (req, res) => {
+      const dto = parseBody(submissaoSchema, req.body);
+      const inscricao = await service.submeter(req.params['id'] as string, req.user!.id, dto.avaliadorIds);
       res.json(toInscricaoResponse(await service.view(inscricao)));
     }),
   );

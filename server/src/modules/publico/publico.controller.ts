@@ -10,9 +10,12 @@ import { toPublicEditalResponse } from '../editais/dto/editais.dto';
 import type { Edital } from '../editais/domain/editais.types';
 import { resolveAutomaticStatus } from '../editais/domain/editais.rules';
 import type { InscricoesRepository } from '../inscricoes/repositories/inscricoes.repository';
+import { toProjetoDivulgadoResponse } from '../inscricoes/dto/inscricoes.dto';
+import type { InscricoesService } from '../inscricoes/inscricoes.service';
 
 export interface PublicoDeps {
   editaisService: EditaisService;
+  inscricoesService: InscricoesService;
   inscricoes: InscricoesRepository;
   usuarios: UsuariosRepository;
   clock: Clock;
@@ -24,12 +27,44 @@ function queryString(value: unknown): string | undefined {
 
 /**
  * Rotas públicas (sem autenticação):
- *   GET /api/publico/editais       → editais PUBLICADO com prazo vigente + bolsas alocadas (RF08/RN04)
- *   GET /api/publico/editais/:id   → detalhe de edital publicado ou encerrado
- *   GET /api/publico/pesquisas     → vitrine de pesquisas APROVADAS (RF25/RN10), sem dados pessoais sensíveis
+ *   GET /api/publico/editais         → editais PUBLICADO com prazo vigente + bolsas alocadas (RF08/RN04)
+ *   GET /api/publico/editais/:id     → detalhe de edital publicado ou encerrado
+ *   GET /api/publico/projetos        → projetos divulgados pelos professores, com vaga para alunos
+ *   GET /api/publico/projetos/:id    → detalhe de um projeto divulgado
+ *   GET /api/publico/pesquisas       → vitrine de pesquisas APROVADAS (RF25/RN10), sem dados pessoais sensíveis
  */
 export function registerPublicoRoutes(router: Router, deps: PublicoDeps): void {
-  const { editaisService, inscricoes, usuarios, clock } = deps;
+  const { editaisService, inscricoesService, inscricoes, usuarios, clock } = deps;
+
+  router.get(
+    '/api/publico/projetos',
+    asyncHandler(async (req, res) => {
+      const busca = queryString(req.query['q'])?.toLowerCase();
+      const divulgados = await inscricoesService.listDivulgados({
+        editalId: queryString(req.query['editalId']),
+        subareaCode: queryString(req.query['subareaCode']),
+      });
+      const data = (await inscricoesService.views(divulgados))
+        .map((view) => toProjetoDivulgadoResponse(view))
+        .filter(
+          (p) =>
+            !busca ||
+            [p.titulo, p.resumo, p.palavrasChave, p.orientador?.nome ?? '', p.subareaNome]
+              .join(' ')
+              .toLowerCase()
+              .includes(busca),
+        );
+      res.json({ data, total: data.length });
+    }),
+  );
+
+  router.get(
+    '/api/publico/projetos/:id',
+    asyncHandler(async (req, res) => {
+      const projeto = await inscricoesService.getDivulgado(req.params['id'] as string);
+      res.json(toProjetoDivulgadoResponse(await inscricoesService.view(projeto)));
+    }),
+  );
 
   /** Quantas bolsas de cada subárea já foram homologadas no edital. */
   async function comAlocacao(edital: Edital) {
@@ -84,7 +119,7 @@ export function registerPublicoRoutes(router: Router, deps: PublicoDeps): void {
         (i) => !Number.isFinite(ano) || i.homologadaEm?.getUTCFullYear() === ano,
       );
       const pessoas = await usuarios.findManyByIds([
-        ...new Set(aprovadas.flatMap((i) => [i.discenteId, ...(i.orientadorId ? [i.orientadorId] : [])])),
+        ...new Set(aprovadas.flatMap((i) => [i.orientadorId, ...(i.discenteId ? [i.discenteId] : [])])),
       ]);
       const nomeDe = new Map(pessoas.map((p) => [p.id, p] as const));
       // Editais carregados em paralelo (antes: um await por edital, em sequência).
@@ -108,7 +143,7 @@ export function registerPublicoRoutes(router: Router, deps: PublicoDeps): void {
             subareaNome: i.subareaNome,
             ano: i.homologadaEm?.getUTCFullYear() ?? null,
             edital: edital ? { id: edital.id, numero: edital.numero, tipoBolsa: edital.tipoBolsa } : null,
-            bolsista: nomeDe.get(i.discenteId)?.nome ?? null,
+            bolsista: i.discenteId ? (nomeDe.get(i.discenteId)?.nome ?? null) : null,
             orientador: orientador ? { nome: orientador.nome, departamento: orientador.departamento } : null,
           };
         })

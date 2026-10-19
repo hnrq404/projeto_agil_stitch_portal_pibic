@@ -18,6 +18,7 @@ export const LIMIAR_DIVERGENCIA = 3;
 /** RN07 — tamanho mínimo do parecer quando ele é obrigatório. */
 export const MIN_PARECER = 30;
 
+/** O professor dono do projeto indica três colegas para avaliá-lo. */
 export const MAX_AVALIADORES_POR_INSCRICAO = 3;
 
 function arredondar(valor: number): number {
@@ -87,37 +88,48 @@ export function consolidar(avaliacoes: readonly Avaliacao[]): Consolidado {
   };
 }
 
-export interface PessoaConflito {
-  id: string;
-  departamento: string;
-}
-
 /**
- * Conflito de interesse (Sprints.md, S4): o avaliador não pode ser o próprio
- * orientador nem pertencer ao mesmo departamento dele.
+ * Conflito de interesse: o avaliador é outro professor, nunca o próprio
+ * orientador nem o aluno do projeto. Colegas do mesmo departamento podem
+ * avaliar (costumam ser os especialistas da área).
  */
 export function motivoConflito(
-  avaliador: PessoaConflito,
-  orientador: PessoaConflito | undefined,
-  discenteId: string,
+  avaliadorId: string,
+  orientadorId: string,
+  discenteId: string | null,
 ): string | null {
-  if (avaliador.id === discenteId) {
-    return 'o avaliador é o próprio discente';
+  if (avaliadorId === orientadorId) {
+    return 'o professor não pode avaliar o próprio projeto';
   }
-  if (!orientador) return null;
-  if (avaliador.id === orientador.id) {
-    return 'o avaliador é o orientador da proposta';
-  }
-  if (avaliador.departamento && avaliador.departamento === orientador.departamento) {
-    return `o avaliador é do mesmo departamento do orientador (${orientador.departamento})`;
+  if (discenteId && avaliadorId === discenteId) {
+    return 'o aluno do projeto não pode avaliá-lo';
   }
   return null;
+}
+
+/** No envio ao edital, o professor indica exatamente três avaliadores distintos. */
+export function assertIndicacaoAvaliadores(avaliadorIds: readonly string[]): void {
+  if (new Set(avaliadorIds).size !== avaliadorIds.length) {
+    throw new ValidationError('Indique três professores diferentes como avaliadores.');
+  }
+  if (avaliadorIds.length !== MAX_AVALIADORES_POR_INSCRICAO) {
+    throw new ValidationError(
+      `Indique exatamente ${MAX_AVALIADORES_POR_INSCRICAO} professores para avaliar o projeto (foram ${avaliadorIds.length}).`,
+    );
+  }
 }
 
 export function assertQuantidadeAvaliadores(atuais: number, novos: number): void {
   if (atuais + novos > MAX_AVALIADORES_POR_INSCRICAO) {
     throw new UnprocessableEntityError(
-      `Cada proposta aceita no máximo ${MAX_AVALIADORES_POR_INSCRICAO} avaliadores (já tem ${atuais}).`,
+      `Cada projeto tem no máximo ${MAX_AVALIADORES_POR_INSCRICAO} avaliadores (já tem ${atuais}).`,
     );
   }
+}
+
+/** O projeto só fica AVALIADO quando os três pareceres foram enviados. */
+export function avaliacaoCompleta(avaliacoes: readonly Avaliacao[]): boolean {
+  return (
+    avaliacoes.length >= MAX_AVALIADORES_POR_INSCRICAO && avaliacoes.every((a) => a.status === 'CONCLUIDA')
+  );
 }

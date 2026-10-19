@@ -2,12 +2,24 @@
 export type NotificacaoTipo =
   | 'EDITAL_PUBLICADO'
   | 'EDITAL_ENCERRADO'
-  | 'VINCULO_SOLICITADO'
-  | 'VINCULO_RESPONDIDO'
+  /** Professor divulgou um projeto: avisa os alunos. */
+  | 'PROJETO_DIVULGADO'
+  /** Aluno se candidatou: avisa o professor. */
+  | 'CANDIDATURA_RECEBIDA'
+  /** Professor selecionou (ou não) o aluno. */
+  | 'CANDIDATURA_RESULTADO'
+  /** Professor enviou o projeto ao edital: avisa o aluno selecionado. */
+  | 'PROJETO_ENVIADO'
   | 'AVALIACAO_ATRIBUIDA'
   | 'INSCRICAO_RESULTADO'
   | 'RELATORIO_ENVIADO'
-  | 'RELATORIO_AVALIADO';
+  | 'RELATORIO_AVALIADO'
+  /** Relatório mensal: lembrete antes do dia 5 e aviso de atraso depois dele. */
+  | 'RELATORIO_LEMBRETE'
+  | 'RELATORIO_ATRASADO'
+  /** Do fluxo antigo (aluno indicava o orientador); só aparecem em notificações já gravadas. */
+  | 'VINCULO_SOLICITADO'
+  | 'VINCULO_RESPONDIDO';
 
 /** Conteúdo de uma notificação direcionada (sem destinatário nem metadados). */
 export interface NotificacaoInput {

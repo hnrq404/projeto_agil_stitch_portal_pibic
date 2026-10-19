@@ -1,12 +1,11 @@
-import { ArrowRight, FolderKanban, FolderOpen, GraduationCap, Megaphone, Users } from 'lucide-react';
+import { ArrowRight, FolderKanban, FolderOpen, GraduationCap, Send, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
 import { GESTORES } from '@/app/navigation';
 import { useCurrentUser } from '@/features/auth/AuthProvider';
 import { useMinhasAvaliacoes } from '@/features/avaliacoes/api';
-import { useEditaisPublicos } from '@/features/editais/api';
-import { useMinhasInscricoes, useOrientacoes } from '@/features/inscricoes/api';
+import { useMinhasCandidaturas, useMinhasInscricoes, useProjetosDivulgados } from '@/features/inscricoes/api';
 import { useProjetos } from '@/features/projetos/api';
 import { KpiTile } from '@/shared/ui/DataDisplay';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -24,7 +23,6 @@ export function InicioPage() {
       <PageHeader title={`Olá, ${primeiroNome}`} description="Veja o que precisa da sua atenção hoje." />
       {user.role === 'DISCENTE' && <InicioDiscente />}
       {user.role === 'DOCENTE' && <InicioDocente />}
-      {user.role === 'AVALIADOR' && <InicioAvaliador />}
     </>
   );
 }
@@ -48,59 +46,57 @@ function Atalho({ to, icon, titulo, descricao }: { to: string; icon: ReactNode; 
 }
 
 function InicioDiscente() {
-  const inscricoes = useMinhasInscricoes();
-  const editais = useEditaisPublicos();
+  const divulgados = useProjetosDivulgados();
+  const candidaturas = useMinhasCandidaturas();
   const projetos = useProjetos();
-  const rascunhos = inscricoes.data?.filter((i) => i.status === 'RASCUNHO').length ?? 0;
-  const emAndamento = inscricoes.data?.filter((i) => !['RASCUNHO', 'APROVADA', 'RECUSADA'].includes(i.status)).length ?? 0;
+  const pendentes = candidaturas.data?.filter((c) => c.status === 'PENDENTE').length ?? 0;
+  const selecionadas = candidaturas.data?.filter((c) => c.status === 'SELECIONADA').length ?? 0;
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
-        <KpiTile label="Editais abertos" value={editais.data?.length ?? '-'} />
-        <KpiTile label="Inscrições em andamento" value={inscricoes.isPending ? '-' : emAndamento} detail={`${rascunhos} rascunho(s)`} />
-        <KpiTile label="Projetos com bolsa" value={projetos.data?.length ?? '-'} accent="secondary" />
+        <KpiTile label="Projetos com vaga" value={divulgados.data?.length ?? '-'} />
+        <KpiTile
+          label="Candidaturas em análise"
+          value={candidaturas.isPending ? '-' : pendentes}
+          detail={selecionadas > 0 ? `selecionado(a) em ${selecionadas}` : undefined}
+        />
+        <KpiTile label="Bolsas em andamento" value={projetos.data?.length ?? '-'} accent="secondary" />
       </div>
       <div className="grid gap-4 md:grid-cols-3">
-        <Atalho to="/editais" icon={<Megaphone className="h-5 w-5" />} titulo="Editais abertos" descricao="Escolha um edital e inscreva sua proposta." />
-        <Atalho to="/inscricoes" icon={<FolderOpen className="h-5 w-5" />} titulo="Minhas inscrições" descricao="Continue rascunhos e acompanhe a situação." />
-        <Atalho to="/projetos" icon={<FolderKanban className="h-5 w-5" />} titulo="Meus projetos" descricao="Envie relatórios parciais e finais." />
+        <Atalho to="/oportunidades" icon={<Users className="h-5 w-5" />} titulo="Projetos com vaga" descricao="Escolha um projeto divulgado e candidate-se." />
+        <Atalho to="/candidaturas" icon={<Send className="h-5 w-5" />} titulo="Minhas candidaturas" descricao="Veja a resposta dos professores." />
+        <Atalho to="/projetos" icon={<FolderKanban className="h-5 w-5" />} titulo="Bolsa e relatórios" descricao="Relatório mensal até o dia 5 de cada mês." />
       </div>
     </div>
   );
 }
 
+/** O professor escreve projetos, escolhe alunos, acompanha bolsistas e avalia projetos de colegas. */
 function InicioDocente() {
-  const orientacoes = useOrientacoes();
-  const projetos = useProjetos();
-  const pendentes = orientacoes.data?.filter((i) => i.status === 'SUBMETIDA' && i.vinculoStatus === 'PENDENTE').length ?? 0;
-
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <KpiTile label="Pedidos de orientação" value={orientacoes.isPending ? '-' : pendentes} detail="aguardando sua resposta" />
-        <KpiTile label="Projetos orientados" value={projetos.data?.length ?? '-'} accent="secondary" />
-      </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Atalho to="/orientacoes" icon={<Users className="h-5 w-5" />} titulo="Orientações" descricao="Confirme ou recuse os pedidos dos discentes." />
-        <Atalho to="/projetos" icon={<FolderKanban className="h-5 w-5" />} titulo="Projetos" descricao="Avalie os relatórios dos seus bolsistas." />
-      </div>
-    </div>
-  );
-}
-
-function InicioAvaliador() {
+  const meus = useMinhasInscricoes();
   const avaliacoes = useMinhasAvaliacoes();
-  const pendentes = avaliacoes.data?.filter((a) => a.status === 'PENDENTE').length ?? 0;
-  const concluidas = avaliacoes.data?.filter((a) => a.status === 'CONCLUIDA').length ?? 0;
+  const projetos = useProjetos();
+  const divulgados = meus.data?.filter((i) => i.status === 'DIVULGADA').length ?? 0;
+  const semAluno = meus.data?.filter((i) => i.status === 'DIVULGADA' && !i.discente).length ?? 0;
+  const pareceres = avaliacoes.data?.filter((a) => a.status === 'PENDENTE').length ?? 0;
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <KpiTile label="Pareceres pendentes" value={avaliacoes.isPending ? '-' : pendentes} />
-        <KpiTile label="Pareceres enviados" value={avaliacoes.isPending ? '-' : concluidas} accent="secondary" />
+      <div className="grid gap-4 sm:grid-cols-3">
+        <KpiTile
+          label="Projetos divulgados"
+          value={meus.isPending ? '-' : divulgados}
+          detail={semAluno > 0 ? `${semAluno} sem aluno selecionado` : undefined}
+        />
+        <KpiTile label="Pareceres pendentes" value={avaliacoes.isPending ? '-' : pareceres} detail="projetos de colegas" />
+        <KpiTile label="Bolsistas orientados" value={projetos.data?.length ?? '-'} accent="secondary" />
       </div>
-      <Atalho to="/avaliacoes" icon={<GraduationCap className="h-5 w-5" />} titulo="Minhas avaliações" descricao="Abra a proposta e avalie com a rubrica de 0 a 10." />
+      <div className="grid gap-4 md:grid-cols-3">
+        <Atalho to="/inscricoes" icon={<FolderOpen className="h-5 w-5" />} titulo="Meus projetos" descricao="Divulgue, escolha o aluno e envie ao edital." />
+        <Atalho to="/avaliacoes" icon={<GraduationCap className="h-5 w-5" />} titulo="Minhas avaliações" descricao="Avalie os projetos em que foi indicado(a)." />
+        <Atalho to="/projetos" icon={<FolderKanban className="h-5 w-5" />} titulo="Bolsas e relatórios" descricao="Aprove os relatórios mensais dos bolsistas." />
+      </div>
     </div>
   );
 }

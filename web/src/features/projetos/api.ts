@@ -28,11 +28,35 @@ export function useProjeto(id: string | undefined) {
   });
 }
 
+export interface NovoRelatorio {
+  tipo: RelatorioTipo;
+  /** "2026-09" no mensal. */
+  competencia?: string;
+  descricao: string;
+  /** PDF opcional no mensal e obrigatório no final; enviado logo após o texto. */
+  arquivo?: File | null;
+  onProgress?: (pct: number) => void;
+}
+
+/** Envia o texto do relatório e, se houver, o PDF em seguida (duas chamadas). */
 export function useEnviarRelatorio(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ tipo, file, onProgress }: { tipo: RelatorioTipo; file: File; onProgress: (p: number) => void }) =>
-      uploadPdf<Relatorio>(`/api/projetos/${id}/relatorios/${tipo}`, file, onProgress),
+    mutationFn: async ({ arquivo, onProgress, ...input }: NovoRelatorio) => {
+      const relatorio = await http.post<Relatorio>(`/api/projetos/${id}/relatorios`, input);
+      if (!arquivo) return relatorio;
+      return uploadPdf<Relatorio>(relatorioUrl(id, relatorio.id), arquivo, onProgress ?? (() => undefined));
+    },
+    // Mesmo se o PDF falhar, o texto já foi gravado: recarrega para mostrar o estado real.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: projetosKeys.detalhe(id) }),
+  });
+}
+
+export function useAnexarPdfRelatorio(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ relatorioId, file, onProgress }: { relatorioId: string; file: File; onProgress: (p: number) => void }) =>
+      uploadPdf<Relatorio>(relatorioUrl(id, relatorioId), file, onProgress),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: projetosKeys.detalhe(id) }),
   });
 }

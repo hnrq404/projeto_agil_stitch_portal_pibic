@@ -47,10 +47,26 @@ encerrarEditaisVencidos();
 const encerramentoTimer = setInterval(encerrarEditaisVencidos, ENCERRAMENTO_INTERVALO_MS);
 encerramentoTimer.unref();
 
+// ── Relatório mensal: lembrete antes do dia 5 e aviso de atraso ────────────
+// Cada aviso sai uma vez por mês de referência; checar de hora em hora basta.
+const LEMBRETES_INTERVALO_MS = 60 * 60_000;
+function enviarLembretesDeRelatorio(): void {
+  container.projetosService
+    .enviarLembretes()
+    .then((enviados) => {
+      if (enviados > 0) console.log(`[portal-pibic-server] ${enviados} aviso(s) de relatório mensal enviado(s).`);
+    })
+    .catch((error: unknown) => console.error('[portal-pibic-server] Falha nos lembretes de relatório:', error));
+}
+enviarLembretesDeRelatorio();
+const lembretesTimer = setInterval(enviarLembretesDeRelatorio, LEMBRETES_INTERVALO_MS);
+lembretesTimer.unref();
+
 // ── Desligamento gracioso: termina as requisições em curso e fecha o banco ──
 function desligar(sinal: string): void {
   console.log(`[portal-pibic-server] ${sinal} recebido, encerrando...`);
   clearInterval(encerramentoTimer);
+  clearInterval(lembretesTimer);
   server.close(() => {
     void Promise.resolve(container.disconnect?.()).finally(() => process.exit(0));
   });

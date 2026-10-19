@@ -19,8 +19,10 @@ import type { Inscricao, InscricaoStatus } from '../inscricoes/domain/inscricoes
 import type { InscricoesRepository } from '../inscricoes/repositories/inscricoes.repository';
 
 import {
+  assertIndicacaoAvaliadores,
   assertParecer,
   assertQuantidadeAvaliadores,
+  avaliacaoCompleta,
   calcularNotaFinal,
   consolidar,
   motivoConflito,
@@ -28,9 +30,8 @@ import {
 import type { Avaliacao, Consolidado, NotaCriterio } from './domain/avaliacoes.types';
 import type { AvaliacoesRepository } from './repositories/avaliacoes.repository';
 
-/** Status que aparecem na central de triagem (rascunhos ficam de fora). */
+/** Status que aparecem na central de triagem (rascunhos e projetos em divulgação ficam de fora). */
 export const STATUS_TRIAGEM: readonly InscricaoStatus[] = [
-  'SUBMETIDA',
   'EM_AVALIACAO',
   'AVALIADA',
   'APROVADA',
@@ -59,11 +60,25 @@ export class AvaliacoesService {
     private readonly notifier: Notifier,
   ) {}
 
-  // ── Porta usada pelo módulo de inscrições (acesso do avaliador) ─────────
+  // ── Porta usada pelo módulo de inscrições ───────────────────────────────
 
   async isAvaliadorDe(inscricaoId: string, avaliadorId: string): Promise<boolean> {
     const atribuidas = await this.avaliacoes.list({ inscricaoId, avaliadorId });
     return atribuidas.length > 0;
+  }
+
+  /**
+   * Valida os três avaliadores indicados pelo professor no envio ao edital:
+   * docentes cadastrados, distintos e sem conflito de interesse. Não grava nada.
+   */
+  async validarIndicacao(inscricao: Inscricao, avaliadorIds: readonly string[]): Promise<void> {
+    assertIndicacaoAvaliadores(avaliadorIds);
+    await this.assertDocentesSemConflito(inscricao, avaliadorIds);
+  }
+
+  /** Cria as avaliações do envio ao edital e avisa cada avaliador. Chamar após validarIndicacao. */
+  async atribuirNaSubmissao(inscricao: Inscricao, avaliadorIds: readonly string[]): Promise<Avaliacao[]> {
+    return this.criarAvaliacoes(inscricao, avaliadorIds);
   }
 
   // ── Central de triagem (S4.1) ───────────────────────────────────────────
@@ -87,19 +102,16 @@ export class AvaliacoesService {
     return { inscricao, avaliacoes, consolidado: consolidar(avaliacoes) };
   }
 
-  /** Atribui avaliadores a uma proposta com vínculo confirmado, checando conflito de interesse. */
+  /**
+   * Substituição pela gestão: completa os três avaliadores de um projeto em
+   * avaliação (ex.: depois de remover um professor que não respondeu).
+   */
   async atribuir(inscricaoId: string, avaliadorIds: readonly string[]): Promise<Avaliacao[]> {
     const inscricao = await this.getInscricao(inscricaoId);
-    if (inscricao.status !== 'SUBMETIDA' && inscricao.status !== 'EM_AVALIACAO') {
-      throw new UnprocessableEntityError(
-        'Só é possível atribuir avaliadores a propostas submetidas ou em avaliação.',
-        { status: inscricao.status },
-      );
-    }
-    if (inscricao.vinculoStatus !== 'CONFIRMADO') {
-      throw new UnprocessableEntityError(
-        'Aguardando o orientador confirmar o vínculo antes da distribuição.',
-      );
+    if (inscricao.status !== 'EM_AVALIACAO') {
+      throw new UnprocessableEntityError('Só é possível trocar avaliadores de projetos em avaliação.', {
+        status: inscricao.status,
+      });
     }
 
     const existentes = await this.avaliacoes.list({ inscricaoId });
@@ -107,83 +119,23 @@ export class AvaliacoesService {
       (id) => !existentes.some((a) => a.avaliadorId === id),
     );
     if (novos.length === 0) {
-      throw new ValidationError('Selecione ao menos um avaliador ainda não atribuído.');
+      throw new ValidationError('Selecione ao menos um professor ainda não atribuído.');
     }
     assertQuantidadeAvaliadores(existentes.length, novos.length);
-
-    const [avaliadores, orientador] = await Promise.all([
-      this.usuarios.findManyByIds(novos),
-      inscricao.orientadorId ? this.usuarios.findById(inscricao.orientadorId) : undefined,
-    ]);
-    for (const id of novos) {
-      const avaliador = avaliadores.find((a) => a.id === id);
-      if (!avaliador || avaliador.role !== 'AVALIADOR') {
-        throw new ValidationError(`Usuário ${id} não é um avaliador cadastrado.`);
-      }
-      const conflito = motivoConflito(avaliador, orientador, inscricao.discenteId);
-      if (conflito) {
-        throw new UnprocessableEntityError(
-          `Conflito de interesse com ${avaliador.nome}: ${conflito}.`,
-          { avaliadorId: id },
-        );
-      }
-    }
-
-    const now = this.clock.now();
-    const criadas = await Promise.all(
-      novos.map((avaliadorId) =>
-        this.avaliacoes.create({
-          id: randomUUID(),
-          inscricaoId,
-          avaliadorId,
-          status: 'PENDENTE',
-          notas: [],
-          notaFinal: null,
-          parecer: '',
-          atribuidaEm: now,
-          concluidaEm: null,
-        }),
-      ),
-    );
-
-    if (inscricao.status === 'SUBMETIDA') {
-      assertInscricaoTransition(inscricao.status, 'EM_AVALIACAO');
-      await this.inscricoes.update({ ...inscricao, status: 'EM_AVALIACAO', atualizadoEm: now });
-    }
-
-    await this.notifier.notify(novos, {
-      tipo: 'AVALIACAO_ATRIBUIDA',
-      titulo: 'Nova proposta para avaliar',
-      mensagem: `A proposta "${inscricao.titulo}" (protocolo ${inscricao.protocolo}) foi atribuída a você.`,
-      referenceId: inscricaoId,
-    });
-    return criadas;
+    await this.assertDocentesSemConflito(inscricao, novos);
+    return this.criarAvaliacoes(inscricao, novos);
   }
 
-  /** Remove uma atribuição ainda pendente (redistribuição pelo gestor). */
+  /** Remove uma atribuição ainda pendente; o projeto segue em avaliação até completar três pareceres. */
   async removerAtribuicao(avaliacaoId: string): Promise<void> {
     const avaliacao = await this.getById(avaliacaoId);
     if (avaliacao.status !== 'PENDENTE') {
       throw new UnprocessableEntityError('Pareceres concluídos não podem ser removidos.');
     }
     await this.avaliacoes.delete(avaliacaoId);
-
-    const restantes = await this.avaliacoes.list({ inscricaoId: avaliacao.inscricaoId });
-    const inscricao = await this.getInscricao(avaliacao.inscricaoId);
-    if (inscricao.status === 'EM_AVALIACAO') {
-      const novoStatus: InscricaoStatus =
-        restantes.length === 0
-          ? 'SUBMETIDA'
-          : restantes.every((a) => a.status === 'CONCLUIDA')
-            ? 'AVALIADA'
-            : 'EM_AVALIACAO';
-      if (novoStatus !== inscricao.status) {
-        await this.inscricoes.update({ ...inscricao, status: novoStatus, atualizadoEm: this.clock.now() });
-      }
-    }
   }
 
-  // ── Avaliador (S4.2 / S4.3) ─────────────────────────────────────────────
+  // ── Professor avaliador (S4.2 / S4.3) ───────────────────────────────────
 
   minhas(avaliadorId: string): Promise<Avaliacao[]> {
     return this.avaliacoes.list({ avaliadorId });
@@ -212,7 +164,7 @@ export class AvaliacoesService {
     }
     const inscricao = await this.getInscricao(avaliacao.inscricaoId);
     const edital = await this.editais.findById(inscricao.editalId);
-    if (!edital) throw new NotFoundError('Edital da proposta não encontrado.');
+    if (!edital) throw new NotFoundError('Edital do projeto não encontrado.');
 
     const notaFinal = calcularNotaFinal(notas);
     assertParecer(notaFinal, edital.notaCorte, parecer);
@@ -228,7 +180,7 @@ export class AvaliacoesService {
     });
 
     const todas = await this.avaliacoes.list({ inscricaoId: inscricao.id });
-    if (inscricao.status === 'EM_AVALIACAO' && todas.every((a) => a.status === 'CONCLUIDA')) {
+    if (inscricao.status === 'EM_AVALIACAO' && avaliacaoCompleta(todas)) {
       assertInscricaoTransition(inscricao.status, 'AVALIADA');
       await this.inscricoes.update({ ...inscricao, status: 'AVALIADA', atualizadoEm: now });
     }
@@ -237,7 +189,7 @@ export class AvaliacoesService {
 
   // ── Ranking e homologação (S4.4 / S5) ───────────────────────────────────
 
-  /** Propostas avaliadas de um edital ordenadas pela média, com a cota de cada subárea. */
+  /** Projetos avaliados de um edital ordenados pela média, com a cota de cada subárea. */
   async ranking(editalId: string): Promise<ItemTriagem[]> {
     const itens = await this.fila({ editalId });
     return itens
@@ -269,7 +221,7 @@ export class AvaliacoesService {
     let saved: Inscricao;
     if (decisao === 'APROVAR') {
       const edital = await this.editais.findById(inscricao.editalId);
-      if (!edital) throw new NotFoundError('Edital da proposta não encontrado.');
+      if (!edital) throw new NotFoundError('Edital do projeto não encontrado.');
       const limite = edital.cotas.find((c) => c.subareaCode === inscricao.subareaCode)?.quantidade ?? 0;
       // Contagem e gravação na mesma transação: aprovações simultâneas não estouram a cota.
       const resultado = await this.inscricoes.aprovarDentroDaCota(homologada, limite);
@@ -281,20 +233,64 @@ export class AvaliacoesService {
       saved = await this.inscricoes.update(homologada);
     }
 
-    // RF18 — discente e orientador recebem o resultado.
+    // RF18 — aluno e professor recebem o resultado da aprovação.
     await this.notifier.notify(
-      [saved.discenteId, ...(saved.orientadorId ? [saved.orientadorId] : [])],
+      [...(saved.discenteId ? [saved.discenteId] : []), saved.orientadorId],
       {
         tipo: 'INSCRICAO_RESULTADO',
-        titulo: alvo === 'APROVADA' ? 'Proposta aprovada' : 'Proposta não aprovada',
+        titulo: alvo === 'APROVADA' ? 'Projeto aprovado' : 'Projeto não aprovado',
         mensagem:
           alvo === 'APROVADA'
-            ? `A proposta "${saved.titulo}" foi aprovada. O projeto já está disponível em Meus Projetos.`
-            : `A proposta "${saved.titulo}" não foi aprovada. Justificativa: ${saved.homologacaoJustificativa}`,
+            ? `O projeto "${saved.titulo}" foi aprovado no edital. A bolsa começa agora: o relatório mensal vence todo dia 5, em Projetos.`
+            : `O projeto "${saved.titulo}" não foi aprovado. Justificativa: ${saved.homologacaoJustificativa}`,
         referenceId: saved.id,
       },
     );
     return saved;
+  }
+
+  private async assertDocentesSemConflito(inscricao: Inscricao, avaliadorIds: readonly string[]): Promise<void> {
+    const docentes = await this.usuarios.findManyByIds(avaliadorIds);
+    for (const id of avaliadorIds) {
+      const docente = docentes.find((d) => d.id === id);
+      if (!docente || docente.role !== 'DOCENTE') {
+        throw new ValidationError('Os avaliadores precisam ser professores cadastrados no portal.', {
+          avaliadorId: id,
+        });
+      }
+      const conflito = motivoConflito(id, inscricao.orientadorId, inscricao.discenteId);
+      if (conflito) {
+        throw new UnprocessableEntityError(`Conflito de interesse com ${docente.nome}: ${conflito}.`, {
+          avaliadorId: id,
+        });
+      }
+    }
+  }
+
+  private async criarAvaliacoes(inscricao: Inscricao, avaliadorIds: readonly string[]): Promise<Avaliacao[]> {
+    const now = this.clock.now();
+    const criadas = await Promise.all(
+      avaliadorIds.map((avaliadorId) =>
+        this.avaliacoes.create({
+          id: randomUUID(),
+          inscricaoId: inscricao.id,
+          avaliadorId,
+          status: 'PENDENTE',
+          notas: [],
+          notaFinal: null,
+          parecer: '',
+          atribuidaEm: now,
+          concluidaEm: null,
+        }),
+      ),
+    );
+    await this.notifier.notify(avaliadorIds, {
+      tipo: 'AVALIACAO_ATRIBUIDA',
+      titulo: 'Novo projeto para avaliar',
+      mensagem: `Você foi indicado(a) para avaliar o projeto "${inscricao.titulo}" (protocolo ${inscricao.protocolo}).`,
+      referenceId: inscricao.id,
+    });
+    return criadas;
   }
 
   private async getById(id: string): Promise<Avaliacao> {
@@ -305,7 +301,7 @@ export class AvaliacoesService {
 
   private async getInscricao(id: string): Promise<Inscricao> {
     const inscricao = await this.inscricoes.findById(id);
-    if (!inscricao) throw new NotFoundError(`Inscrição ${id} não encontrada.`);
+    if (!inscricao) throw new NotFoundError(`Projeto ${id} não encontrado.`);
     return inscricao;
   }
 }

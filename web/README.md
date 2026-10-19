@@ -26,10 +26,11 @@ src/
 ├── features/            # um módulo por pasta: api.ts (hooks de dados) + páginas
 │   ├── auth/            # AuthProvider, login, cadastro
 │   ├── editais/         # gestão (S2) e vitrine de editais abertos
-│   ├── inscricoes/      # formulário em etapas com auto-save (S3), detalhe, orientações
+│   ├── inscricoes/      # projeto do professor: etapas com auto-save (S3), divulgação, seleção, envio
+│   ├── candidaturas/    # projetos com vaga (público) e candidaturas do aluno
 │   ├── triagem/         # central de triagem, atribuição, homologação, ranking (S4/S5)
 │   ├── avaliacoes/      # rubrica 0–10 em painel duplo com o PDF (S4)
-│   ├── projetos/        # relatórios parciais/finais, histórico, exportação CSV (S6)
+│   ├── projetos/        # relatório mensal (dia 5) e final, histórico, exportação CSV (S6)
 │   ├── dashboard/       # início por papel e painel do gestor (S5/S6)
 │   ├── vitrine/         # pesquisas aprovadas, sem login (S6)
 │   ├── notificacoes/    # lista e contador do sino
@@ -66,20 +67,21 @@ src/
 | Rota | Papel | Conteúdo |
 | --- | --- | --- |
 | `/editais`, `/editais/:id` | público | editais com inscrições abertas e bolsas alocadas |
+| `/oportunidades` | público | projetos divulgados pelos professores; o aluno logado se candidata aqui |
 | `/pesquisas` | público | vitrine de pesquisas aprovadas, com busca e filtros na URL |
 | `/login`, `/cadastro` | público | o cadastro oferece Discente, Docente ou Visitante |
 | `/inicio` | autenticado | página inicial por papel; para o gestor, o painel de indicadores |
 | `/notificacoes` | autenticado | avisos com link para o item relacionado |
 | `/gestor/editais...` | gestor | criar, editar (rascunho), publicar e encerrar editais |
-| `/triagem`, `/triagem/:id`, `/triagem/ranking/:edital` | gestor | fila, distribuição, consolidado, homologação, ranking |
+| `/triagem`, `/triagem/:id`, `/triagem/ranking/:edital` | gestor | fila, substituição de avaliador, consolidado, homologação, ranking |
 | `/usuarios` | gestor | papéis e departamentos |
-| `/inscricoes`, `/inscricoes/nova`, `/inscricoes/:id/editar` | discente | inscrições e formulário em 5 etapas com auto-save |
-| `/inscricoes/:id` | dono, orientador, avaliador, gestor | detalhe; o orientador confirma ou recusa o vínculo aqui |
-| `/orientacoes` | docente | pedidos de orientação |
-| `/avaliacoes`, `/avaliacoes/:id` | avaliador | atribuições e rubrica |
-| `/projetos`, `/projetos/:id` | discente, docente, gestor | relatórios, histórico e exportação CSV |
+| `/inscricoes`, `/inscricoes/nova`, `/inscricoes/:id/editar` | docente | meus projetos e formulário em 4 etapas com auto-save; divulgação no fim |
+| `/inscricoes/:id` | professor dono, aluno selecionado, avaliador, gestor | detalhe; o dono escolhe o aluno entre os candidatos e envia ao edital com 3 avaliadores |
+| `/avaliacoes`, `/avaliacoes/:id` | docente | projetos de colegas em que fui indicado e rubrica |
+| `/candidaturas` | discente | minhas candidaturas e o andamento de cada projeto |
+| `/projetos`, `/projetos/:id` | discente, docente, gestor | relatório mensal (dia 5) e final, calendário, histórico e exportação CSV |
 
 ## Testes
 
 - **Unitários (Vitest):** regras puras do front, como a soma de cotas e a média e obrigatoriedade do parecer da rubrica.
-- **E2E (Playwright):** `tests/e2e/jornada.spec.ts` percorre o ciclo inteiro com os quatro papéis: edital, inscrição, orientação, triagem, parecer, homologação e vitrine. Também verifica os guards de rota. O teste cria o próprio edital e a conta de discente, então pode rodar várias vezes.
+- **E2E (Playwright):** `tests/e2e/jornada.spec.ts` percorre o ciclo inteiro: edital, divulgação do projeto, candidatura, seleção do aluno, envio com três avaliadores, três pareceres, homologação, notificação, relatório mensal e vitrine. Também verifica os guards de rota. O teste cria o próprio edital, projeto e conta de discente, então pode rodar várias vezes.

@@ -10,7 +10,6 @@ import {
   readUploadFilename,
   sendPdf,
 } from '@shared/http/http.middleware';
-import { ValidationError } from '@shared/errors/domain.errors';
 
 import { toInscricaoResponse } from '../inscricoes/dto/inscricoes.dto';
 import type { InscricoesService } from '../inscricoes/inscricoes.service';
@@ -21,7 +20,14 @@ import type { ProjetosService } from './projetos.service';
 const requireDiscente = createRoleGuard(['DISCENTE']);
 const requireDocente = createRoleGuard(['DOCENTE']);
 
-const tipoSchema = z.enum(['PARCIAL', 'FINAL']);
+const novoRelatorioSchema = z
+  .object({
+    tipo: z.enum(['MENSAL', 'FINAL']),
+    competencia: z.string().trim().regex(/^\d{4}-\d{2}$/, 'Use o formato AAAA-MM').optional(),
+    descricao: z.string().max(10000),
+  })
+  .strict();
+
 const avaliacaoRelatorioSchema = z
   .object({
     decisao: z.enum(['APROVAR', 'DEVOLVER']),
@@ -33,10 +39,11 @@ function toRelatorioResponse(r: Relatorio) {
   return {
     id: r.id,
     tipo: r.tipo,
+    competencia: r.competencia || null,
     versao: r.versao,
     status: r.status,
-    nome: r.nome,
-    tamanho: r.tamanho,
+    descricao: r.descricao,
+    arquivo: r.arquivo ? { nome: r.arquivo.nome, tamanho: r.arquivo.tamanho } : null,
     comentarioOrientador: r.comentarioOrientador,
     enviadoEm: r.enviadoEm.toISOString(),
     avaliadoEm: r.avaliadoEm?.toISOString() ?? null,
@@ -45,11 +52,12 @@ function toRelatorioResponse(r: Relatorio) {
 
 /**
  * Rotas de projetos (inscrições aprovadas) e relatórios — RF19 a RF22:
- *   GET  /api/projetos                                   → meus projetos (por papel)
- *   GET  /api/projetos/exportacao.csv?editalId=          → CSV (GESTOR)
- *   GET  /api/projetos/:id                               → detalhe + relatórios + timeline
- *   PUT  /api/projetos/:id/relatorios/:tipo              → envia PDF (DISCENTE)
- *   GET  /api/projetos/:id/relatorios/:relatorioId/arquivo
+ *   GET  /api/projetos                                       → meus projetos (por papel)
+ *   GET  /api/projetos/exportacao.csv?editalId=              → CSV (GESTOR)
+ *   GET  /api/projetos/:id                                   → detalhe + relatórios + acompanhamento + timeline
+ *   POST /api/projetos/:id/relatorios                        → envia o texto do relatório (DISCENTE)
+ *   PUT  /api/projetos/:id/relatorios/:relatorioId/arquivo   → anexa o PDF (DISCENTE, enquanto em análise)
+ *   GET  /api/projetos/:id/relatorios/:relatorioId/arquivo   → baixa o PDF
  *   POST /api/projetos/:id/relatorios/:relatorioId/avaliacao → aprova/devolve (DOCENTE)
  */
 export function registerProjetosRoutes(
@@ -89,30 +97,41 @@ export function registerProjetosRoutes(
       res.json({
         projeto: toInscricaoResponse(await inscricoesService.view(detalhe.inscricao)),
         relatorios: detalhe.relatorios.map(toRelatorioResponse),
-        acompanhamento: detalhe.acompanhamento.map((a) => ({ ...a, prazo: a.prazo.toISOString() })),
+        acompanhamento: detalhe.acompanhamento.map((a) => ({
+          ...a,
+          competencia: a.competencia || null,
+          prazo: a.prazo.toISOString(),
+        })),
         timeline: detalhe.timeline.map((e) => ({ ...e, data: e.data.toISOString() })),
       });
     }),
   );
 
+  router.post(
+    '/api/projetos/:id/relatorios',
+    authenticationGuard,
+    requireDiscente,
+    asyncHandler(async (req, res) => {
+      const dto = parseBody(novoRelatorioSchema, req.body);
+      const relatorio = await service.enviarRelatorio(req.params['id'] as string, req.user!.id, dto);
+      res.status(201).json(toRelatorioResponse(relatorio));
+    }),
+  );
+
   router.put(
-    '/api/projetos/:id/relatorios/:tipo',
+    '/api/projetos/:id/relatorios/:relatorioId/arquivo',
     authenticationGuard,
     requireDiscente,
     pdfBodyParser,
     asyncHandler(async (req, res) => {
-      const tipo = tipoSchema.safeParse(req.params['tipo']);
-      if (!tipo.success) {
-        throw new ValidationError('Tipo de relatório inválido. Use PARCIAL ou FINAL.');
-      }
-      const relatorio = await service.enviarRelatorio(
+      const relatorio = await service.anexarArquivo(
         req.params['id'] as string,
         req.user!.id,
-        tipo.data,
+        req.params['relatorioId'] as string,
         readUploadFilename(req),
         readUploadBody(req),
       );
-      res.status(201).json(toRelatorioResponse(relatorio));
+      res.json(toRelatorioResponse(relatorio));
     }),
   );
 

@@ -15,8 +15,8 @@ import { useAuth } from './AuthProvider';
 import { AuthLayout } from './AuthLayout';
 
 const PERFIS = [
-  { value: 'DISCENTE', label: 'Discente', descricao: 'Vou me inscrever em editais de iniciação científica.' },
-  { value: 'DOCENTE', label: 'Docente', descricao: 'Vou orientar alunos e acompanhar seus relatórios.' },
+  { value: 'DISCENTE', label: 'Discente', descricao: 'Vou me candidatar aos projetos de pesquisa dos professores.' },
+  { value: 'DOCENTE', label: 'Docente', descricao: 'Vou divulgar projetos, orientar alunos e avaliar projetos de colegas.' },
   { value: 'USUARIO', label: 'Visitante', descricao: 'Quero acompanhar editais e pesquisas publicadas.' },
 ] as const;
 

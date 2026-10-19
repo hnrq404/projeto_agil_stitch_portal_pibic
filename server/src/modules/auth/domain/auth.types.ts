@@ -1,7 +1,7 @@
 import type { UserRole } from '@shared/auth/auth.types';
 
 /**
- * Papéis disponíveis no auto-cadastro. GESTOR e AVALIADOR são atribuídos pela
+ * Papéis disponíveis no auto-cadastro. GESTOR é atribuído pela
  * gestão (S1.2), nunca escolhidos pelo próprio usuário.
  */
 export const REGISTRO_ROLES = ['DISCENTE', 'DOCENTE', 'USUARIO'] as const;
@@ -15,7 +15,7 @@ export interface Usuario {
   email: string;
   senhaHash: string;
   role: UserRole;
-  /** Departamento/unidade (ex.: "DCC"). Usado na checagem de conflito de interesse. */
+  /** Departamento/unidade (ex.: "DCC"). */
   departamento: string;
   /** Matrícula institucional (discentes). Mascarada em exportações (RN09). */
   matricula: string | null;

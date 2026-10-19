@@ -48,18 +48,28 @@ export function useMarcarTodasLidas() {
 /** Para onde cada notificação leva o usuário. */
 export function destinoDaNotificacao(n: Notificacao): string | null {
   if (!n.referenceId) return null;
+  // Lembretes de relatório usam "<projeto>#<mês>" para não repetir o aviso do mesmo mês.
+  const id = n.referenceId.split('#')[0];
   switch (n.tipo) {
     case 'EDITAL_PUBLICADO':
     case 'EDITAL_ENCERRADO':
-      return `/editais/${n.referenceId}`;
+      return `/editais/${id}`;
+    case 'PROJETO_DIVULGADO':
+      return '/oportunidades';
+    case 'CANDIDATURA_RESULTADO':
+      return '/candidaturas';
+    case 'CANDIDATURA_RECEBIDA':
+    case 'PROJETO_ENVIADO':
+    case 'INSCRICAO_RESULTADO':
     case 'VINCULO_SOLICITADO':
     case 'VINCULO_RESPONDIDO':
-    case 'INSCRICAO_RESULTADO':
-      return `/inscricoes/${n.referenceId}`;
+      return `/inscricoes/${id}`;
     case 'AVALIACAO_ATRIBUIDA':
       return '/avaliacoes';
     case 'RELATORIO_ENVIADO':
     case 'RELATORIO_AVALIADO':
-      return `/projetos/${n.referenceId}`;
+    case 'RELATORIO_LEMBRETE':
+    case 'RELATORIO_ATRASADO':
+      return `/projetos/${id}`;
   }
 }

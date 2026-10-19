@@ -14,3 +14,4 @@ server.log
 
 # Notas locais do agente Freebuff (caminhos pessoais, launchd)
 .freebuff/
+server/src/infra/prisma/dev.backup-*.db

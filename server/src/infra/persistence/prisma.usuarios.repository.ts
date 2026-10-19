@@ -1,6 +1,6 @@
 import type { PrismaClient } from './prisma.client';
 
-import type { UserRole } from '../../shared/auth/auth.types';
+import { LEGACY_AVALIADOR_ROLE, normalizeRole, type UserRole } from '../../shared/auth/auth.types';
 import type { Usuario } from '../../modules/auth/domain/auth.types';
 import type { UsuariosRepository } from '../../modules/auth/repositories/usuarios.repository';
 
@@ -45,7 +45,8 @@ export class PrismaUsuariosRepository implements UsuariosRepository {
 
   async list(role?: UserRole): Promise<Usuario[]> {
     const all = await this.prisma.usuario.findMany({
-      where: role ? { role } : undefined,
+      // Contas antigas de avaliador (ainda não migradas pelo seed) contam como docentes.
+      where: role ? { role: role === 'DOCENTE' ? { in: ['DOCENTE', LEGACY_AVALIADOR_ROLE] } : role } : undefined,
       orderBy: { nome: 'asc' },
     });
     return all.map(toDomain);
@@ -67,6 +68,7 @@ export class PrismaUsuariosRepository implements UsuariosRepository {
   /** Limpa TODAS as tabelas na ordem das FKs — usado pelos testes E2E. */
   async clear(): Promise<void> {
     await this.prisma.relatorio.deleteMany();
+    await this.prisma.candidatura.deleteMany();
     await this.prisma.avaliacao.deleteMany();
     await this.prisma.anexo.deleteMany();
     await this.prisma.inscricao.deleteMany();
@@ -94,7 +96,7 @@ function toDomain(row: UsuarioRow): Usuario {
     nome: row.nome,
     email: row.email,
     senhaHash: row.senhaHash,
-    role: row.role as UserRole,
+    role: normalizeRole(row.role),
     departamento: row.departamento,
     matricula: row.matricula,
     criadoEm: row.criadoEm,

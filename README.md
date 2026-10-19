@@ -1,10 +1,22 @@
 # Portal de Gestão de Laboratório (Portal PIBIC)
 
-Portal institucional para gestão do ciclo de iniciação científica: editais (CNPq/PIBIC/PIBITI), inscrição de propostas, triagem e avaliação por pareceristas, homologação, relatórios e vitrine pública de pesquisas.
+Portal institucional para gestão do ciclo de iniciação científica: editais (CNPq/PIBIC/PIBITI), projetos de pesquisa divulgados pelos professores, candidatura e seleção de alunos, avaliação por três professores, homologação, relatórios mensais e vitrine pública de pesquisas.
+
+**Fluxo (UNICAP):**
+
+1. A gestão (UNICAP) abre o edital.
+2. O professor escreve e divulga o projeto de pesquisa no edital.
+3. Os alunos se candidatam ao projeto.
+4. O professor seleciona o aluno.
+5. O professor envia o projeto ao edital indicando três outros professores como avaliadores.
+6. Os três professores emitem o parecer; a gestão homologa dentro da cota; o aluno é notificado do resultado.
+7. O bolsista envia, todo dia 5, o relatório do que fez no mês anterior (texto, com PDF opcional) e, no fim da vigência, o relatório final em PDF.
+
+Docente e avaliador são o mesmo papel: todo professor pode ser indicado para avaliar projetos de colegas.
 
 Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda a documentação de produto e arquitetura versionada como uma wiki interna via wikilinks.
 
-**Status atual:** aplicação full-stack cobrindo o ciclo S1 a S6: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server) e SPA **React + Vite + Tailwind** em [`web/`](./web). Quatro papéis (discente, docente, avaliador, gestor); editais; inscrição em etapas com auto-save e upload de PDF; vínculo com o orientador; triagem com conflito de interesse; rubrica 0–10; homologação por cota; relatórios com versões; painel do gestor; vitrine pública. Testes unitários, de integração e E2E (API e browser) verdes. O protótipo com Convex segue em [`portal-lab/`](./portal-lab).
+**Status atual:** aplicação full-stack cobrindo o ciclo S1 a S6: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server) e SPA **React + Vite + Tailwind** em [`web/`](./web). Três papéis principais (discente, docente, gestor); editais; projeto do professor em etapas com auto-save e upload de PDF; divulgação, candidatura e seleção do aluno; envio com três professores avaliadores; rubrica 0–10; homologação por cota; relatórios mensais (dia 5) com lembrete automático e relatório final; painel do gestor; vitrine pública. Testes unitários, de integração e E2E (API e browser) verdes. O protótipo com Convex segue em [`portal-lab/`](./portal-lab).
 
 **Previsão de conclusão da versão funcional:** `18/11/2026`. A estimativa considera a entrega das funcionalidades principais até o fim da Sprint 4, prevista para o período de `09/11/2026` a `20/11/2026`, mantendo o limite de conclusão em novembro de 2026. Como referência de ritmo, os commits registrados entre `10/09/2026` e `21/09/2026` ocorreram ao longo de 12 dias corridos; a data permanece uma previsão e pode mudar conforme o andamento das próximas sprints. As etapas de homologação, métricas, relatórios, acessibilidade e apresentação podem ser realizadas posteriormente.
 
@@ -46,21 +58,23 @@ npm run start:prod
 
 Em produção, o `JWT_SECRET` precisa ser aleatório e ter ao menos 32 caracteres (`openssl rand -base64 48`); com o valor de exemplo do `.env.example`, a API se recusa a subir. Atrás de um proxy reverso, defina `TRUST_PROXY=1`.
 
-Depois de atualizar o código, rode `npm run db:push --prefix server` para aplicar mudanças do schema (tabela `SequenciaProtocolo` e índices novos).
+Depois de atualizar o código, rode `npm run db:push --prefix server` para aplicar mudanças do schema e, em seguida, `npm run db:seed`: o seed também converte dados do fluxo antigo (contas de avaliador viram docente; propostas do aluno passam ao professor com o aluno já selecionado; relatório parcial vira mensal). Como o push remove as colunas de vínculo do fluxo antigo, o Prisma pede `--accept-data-loss`; faça uma cópia do `dev.db` antes.
 
 No PowerShell, se `npm` for bloqueado pela política de scripts, use `npm.cmd` no lugar de `npm`.
 
 Contas de demonstração criadas pelo seed (senha = papel + `123`):
 
-| Perfil    | E-mail                     | Senha            | O que dá para testar                                               |
-| --------- | -------------------------- | ---------------- | ------------------------------------------------------------------- |
-| Gestor    | `gestor@pibic.edu.br`    | `gestor123`    | painel, editais, triagem, homologação, usuários, CSV             |
-| Docente   | `docente@pibic.edu.br`   | `docente123`   | confirmar orientação pendente, avaliar relatórios                |
-| Avaliador | `avaliador@pibic.edu.br` | `avaliador123` | rubrica de avaliação                                              |
-| Discente  | `discente@pibic.edu.br`  | `discente123`  | projeto aprovado com relatórios; nova inscrição no edital aberto |
-| Visitante | `visitante@pibic.edu.br` | `visitante123` | parte pública                                                      |
+| Perfil    | E-mail                                              | Senha          | O que dá para testar                                                                 |
+| --------- | --------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------ |
+| Gestor    | `gestor@pibic.edu.br`                               | `gestor123`    | painel, editais, triagem, homologação, usuários, CSV                                 |
+| Docente   | `docente@pibic.edu.br`                              | `docente123`   | projeto divulgado com dois candidatos (selecionar e enviar); avaliar projeto de colega |
+| Docente   | `docente2@pibic.edu.br`                             | `docente123`   | projeto em avaliação pelos três professores indicados                                |
+| Docente   | `avaliador@pibic.edu.br`, `avaliador2@pibic.edu.br` | `docente123`   | contas antigas de avaliador, hoje professores: parecer pendente                      |
+| Discente  | `discente@pibic.edu.br`                             | `discente123`  | bolsista com relatório mensal em atraso                                              |
+| Discente  | `bruno@pibic.edu.br`, `julia@pibic.edu.br`          | `discente123`  | candidatos ao projeto divulgado; ver projetos com vaga                               |
+| Visitante | `visitante@pibic.edu.br`                            | `visitante123` | parte pública, inclusive os projetos com vaga                                        |
 
-O cadastro em `/cadastro` oferece Discente, Docente ou Visitante. Gestor e Avaliador são atribuídos por um gestor em **Usuários**.
+O cadastro em `/cadastro` oferece Discente, Docente ou Visitante. O papel de Gestor é atribuído por um gestor em **Usuários**.
 
 Detalhes, regras de negócio e endpoints em [`server/README.md`](./server/README.md); estrutura e convenções do front em [`web/README.md`](./web/README.md).
 
@@ -68,7 +82,7 @@ Detalhes, regras de negócio e endpoints em [`server/README.md`](./server/README
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `npm test`                                          | unitários + integração do server (Jest) e unitários do web (Vitest)                     |
 | `npm run test:e2e:api`                              | E2E de API com JWT + Prisma real, num banco separado (`e2e.db`): o `dev.db` não é tocado |
-| `npm run test:e2e:ui`                               | build + E2E de browser (Playwright): ciclo completo com os quatro papéis                   |
+| `npm run test:e2e:ui`                               | build + E2E de browser (Playwright): ciclo completo, do edital ao relatório mensal         |
 | `npm run typecheck`                                 | `tsc` nos dois projetos                                                                   |
 | `npm run lint`                                      | ESLint nos dois projetos (falha com qualquer aviso)                                         |
 | `npm run format --prefix web` / `--prefix server` | formata o código com o Prettier (config em`.prettierrc.json`)                            |
@@ -88,7 +102,7 @@ web/ (React SPA)  ──HTTP + JWT──>  server/ (Express)
 - **Back-end** ([`server/`](./server)): um módulo por domínio (`auth`, `editais`, `inscricoes`, `avaliacoes`, `projetos`, `dashboard`, `notificacoes`, `publico`), cada um com regras puras testáveis, DTOs Zod, porta de repositório, service e controller. O container de DI liga as portas aos adapters Prisma; os testes ligam a implementações em memória.
 - **Front-end** ([`web/`](./web)): organizado por feature (`features/<módulo>` com `api.ts` de hooks e páginas), `shared/ui` com o kit do [DESIGN.md](./institutional_scientific_portal/DESIGN.md) e `app/` com rotas, guards e layouts. Páginas carregadas sob demanda.
 
-**Papéis de acesso**: `DISCENTE`, `DOCENTE` (orientador), `AVALIADOR`, `GESTOR`/`ADMIN` e `USUARIO` (visitante). Toda rota da API valida o papel; o guard recarrega o usuário a cada requisição, então uma troca de papel vale na hora.
+**Papéis de acesso**: `DISCENTE`, `DOCENTE` (professor: orienta e também avalia projetos de colegas), `GESTOR`/`ADMIN` e `USUARIO` (visitante). O antigo `AVALIADOR` foi unificado ao `DOCENTE`. Toda rota da API valida o papel; o guard recarrega o usuário a cada requisição, então uma troca de papel vale na hora.
 
 **Módulos do produto** (ver detalhes em [Arquitetura.md](./institutional_scientific_portal/Arquitetura.md)):
 
@@ -96,8 +110,8 @@ web/ (React SPA)  ──HTTP + JWT──>  server/ (Express)
 | ---------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------ |
 | M1 — Autenticação & Acesso      | Login, cadastro, papéis, guards de rota, gestão de usuários                              | ✅`server/` + `web/` |
 | M2 — Edital & Publicação        | CRUD de editais, cotas por área, nota de corte, ciclo de vida                              | ✅                       |
-| M3 — Inscrição de Pesquisa      | Formulário em 5 etapas, auto-save, upload de PDF, protocolo, vínculo com orientador       | ✅                       |
-| M4 — Central de Triagem           | Distribuição com conflito de interesse, rubrica 0–10, pareceres, consolidação, ranking | ✅                       |
+| M3 — Projeto de Pesquisa        | Projeto do professor em etapas, auto-save, PDFs, divulgação, candidatura e seleção do aluno, protocolo | ✅                       |
+| M4 — Central de Triagem           | Três professores indicados pelo orientador, rubrica 0–10, pareceres, consolidação, ranking | ✅                       |
 | M5 — Painel do Gestor             | Homologação por cota, KPIs, cotas por subárea, alertas, exportação CSV                 | ✅                       |
 | M6 — Vitrine Pública             | Editais abertos e pesquisas aprovadas, sem login, com filtros                               | ✅                       |
 | M7 — Relatórios & Acompanhamento | Relatórios parciais/finais com versões, prazos e histórico do bolsista                   | ✅                       |

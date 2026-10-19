@@ -38,6 +38,10 @@ import {
   InMemoryInscricoesRepository,
   type InscricoesRepository,
 } from '@inscricoes/repositories/inscricoes.repository';
+import {
+  InMemoryCandidaturasRepository,
+  type CandidaturasRepository,
+} from '@inscricoes/repositories/candidaturas.repository';
 import { registerInscricoesRoutes } from '@inscricoes/inscricoes.controller';
 import { AvaliacoesService } from '@avaliacoes/avaliacoes.service';
 import {
@@ -63,6 +67,7 @@ import { PrismaEditaisRepository } from '../persistence/prisma.editais.repositor
 import { PrismaNotificacoesRepository } from '../persistence/prisma.notificacoes.repository';
 import { PrismaUsuariosRepository } from '../persistence/prisma.usuarios.repository';
 import { PrismaInscricoesRepository } from '../persistence/prisma.inscricoes.repository';
+import { PrismaCandidaturasRepository } from '../persistence/prisma.candidaturas.repository';
 import { PrismaAvaliacoesRepository } from '../persistence/prisma.avaliacoes.repository';
 import { PrismaRelatoriosRepository } from '../persistence/prisma.relatorios.repository';
 
@@ -74,6 +79,7 @@ export interface AppContainerOptions {
   notificacoesRepository?: NotificacoesRepository;
   usuariosRepository?: UsuariosRepository;
   inscricoesRepository?: InscricoesRepository;
+  candidaturasRepository?: CandidaturasRepository;
   avaliacoesRepository?: AvaliacoesRepository;
   relatoriosRepository?: RelatoriosRepository;
   arquivoStorage?: ArquivoStorage;
@@ -90,6 +96,7 @@ export interface AppContainer {
   notificacoesRepository: NotificacoesRepository;
   usuariosRepository: UsuariosRepository;
   inscricoesRepository: InscricoesRepository;
+  candidaturasRepository: CandidaturasRepository;
   avaliacoesRepository: AvaliacoesRepository;
   relatoriosRepository: RelatoriosRepository;
   editaisService: EditaisService;
@@ -131,6 +138,9 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   const inscricoesRepository =
     options.inscricoesRepository ??
     (prisma ? new PrismaInscricoesRepository(prisma) : new InMemoryInscricoesRepository());
+  const candidaturasRepository =
+    options.candidaturasRepository ??
+    (prisma ? new PrismaCandidaturasRepository(prisma) : new InMemoryCandidaturasRepository());
   const avaliacoesRepository =
     options.avaliacoesRepository ??
     (prisma ? new PrismaAvaliacoesRepository(prisma) : new InMemoryAvaliacoesRepository());
@@ -165,7 +175,7 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   );
 
   // Avaliações e inscrições se conhecem por portas: o service de avaliações
-  // implementa AvaliadorAccessPort (acesso do avaliador às propostas).
+  // implementa AvaliacoesPort (acesso do avaliador e os três indicados no envio).
   const avaliacoesService = new AvaliacoesService(
     avaliacoesRepository,
     inscricoesRepository,
@@ -176,6 +186,7 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   );
   const inscricoesService = new InscricoesService(
     inscricoesRepository,
+    candidaturasRepository,
     editaisRepository,
     usuariosRepository,
     arquivoStorage,
@@ -189,6 +200,7 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
     relatoriosRepository,
     arquivoStorage,
     clock,
+    notificacoesService,
     notificacoesService,
   );
   const dashboardService = new DashboardService(
@@ -245,6 +257,7 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   registerDashboardRoutes(router, dashboardService, authenticationGuard);
   registerPublicoRoutes(router, {
     editaisService,
+    inscricoesService,
     inscricoes: inscricoesRepository,
     usuarios: usuariosRepository,
     clock,
@@ -271,6 +284,7 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
     notificacoesRepository,
     usuariosRepository,
     inscricoesRepository,
+    candidaturasRepository,
     avaliacoesRepository,
     relatoriosRepository,
     editaisService,

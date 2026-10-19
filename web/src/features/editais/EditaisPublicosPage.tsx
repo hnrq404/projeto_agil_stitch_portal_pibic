@@ -14,15 +14,24 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 
 import { useEditaisPublicos } from './api';
 
-/** Link de inscrição: discente vai ao formulário; quem não está logado, ao login (e volta depois). */
+/**
+ * Ação do edital aberto conforme o papel: o professor escreve um projeto nele;
+ * o aluno (e o visitante) vê os projetos divulgados nele para se candidatar.
+ */
 export function InscreverLink({ edital }: { edital: Pick<EditalPublico, 'id' | 'status'> }) {
   const { user } = useAuth();
   if (edital.status !== 'PUBLICADO') return null;
+  if (user?.role === 'DOCENTE') {
+    return (
+      <ButtonLink to={`/inscricoes/nova?edital=${edital.id}`} size="sm">
+        Escrever projeto
+      </ButtonLink>
+    );
+  }
   if (user && user.role !== 'DISCENTE') return null;
-  const destino = `/inscricoes/nova?edital=${edital.id}`;
   return (
-    <ButtonLink to={user ? destino : '/login'} state={user ? undefined : { from: destino }} size="sm">
-      {user ? 'Inscrever-se' : 'Entrar para se inscrever'}
+    <ButtonLink to={`/oportunidades?edital=${edital.id}`} size="sm">
+      Ver projetos com vaga
     </ButtonLink>
   );
 }

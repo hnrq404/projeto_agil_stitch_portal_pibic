@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Megaphone,
   Microscope,
+  Send,
   UserCog,
   Users,
 } from 'lucide-react';
@@ -33,15 +34,17 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { to: '/gestor/editais', label: 'Editais', icon: FileText, roles: GESTORES },
   { to: '/triagem', label: 'Central de Triagem', icon: ClipboardCheck, roles: GESTORES },
   { to: '/usuarios', label: 'Usuários', icon: UserCog, roles: GESTORES },
-  { to: '/inscricoes', label: 'Minhas Inscrições', icon: FolderOpen, roles: ['DISCENTE'] },
-  { to: '/orientacoes', label: 'Orientações', icon: Users, roles: ['DOCENTE'] },
-  { to: '/avaliacoes', label: 'Minhas Avaliações', icon: GraduationCap, roles: ['AVALIADOR'] },
-  { to: '/projetos', label: 'Projetos', icon: FolderKanban, roles: ['DISCENTE', 'DOCENTE', 'GESTOR', 'ADMIN'] },
+  { to: '/inscricoes', label: 'Meus Projetos de Pesquisa', icon: FolderOpen, roles: ['DOCENTE'] },
+  // O professor também é o avaliador dos projetos de colegas (papéis unificados).
+  { to: '/avaliacoes', label: 'Minhas Avaliações', icon: GraduationCap, roles: ['DOCENTE'] },
+  { to: '/candidaturas', label: 'Minhas Candidaturas', icon: Send, roles: ['DISCENTE'] },
+  { to: '/projetos', label: 'Bolsas e Relatórios', icon: FolderKanban, roles: ['DISCENTE', 'DOCENTE', 'GESTOR', 'ADMIN'] },
   { to: '/notificacoes', label: 'Notificações', icon: Bell, roles: 'todos' },
 ];
 
 export const PUBLIC_NAV: readonly { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/editais', label: 'Editais abertos', icon: Megaphone },
+  { to: '/oportunidades', label: 'Projetos com vaga', icon: Users },
   { to: '/pesquisas', label: 'Vitrine de pesquisas', icon: Microscope },
 ];
 

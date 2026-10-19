@@ -4,8 +4,7 @@ import type { AvaliacoesRepository } from '../avaliacoes/repositories/avaliacoes
 import type { EditaisRepository } from '../editais/repositories/editais.repository';
 import type { InscricaoStatus } from '../inscricoes/domain/inscricoes.types';
 import type { InscricoesRepository } from '../inscricoes/repositories/inscricoes.repository';
-import { prazoRelatorio, situacaoRelatorio } from '../projetos/domain/projetos.rules';
-import { RELATORIO_TIPOS } from '../projetos/domain/projetos.types';
+import { acompanhamento } from '../projetos/domain/projetos.rules';
 import type { RelatoriosRepository } from '../projetos/repositories/relatorios.repository';
 
 const DIA_MS = 24 * 60 * 60 * 1000;
@@ -51,7 +50,7 @@ export class DashboardService {
     const editais = editalId ? todosEditais.filter((e) => e.id === editalId) : todosEditais;
     const inscricoes = await this.inscricoes.list({
       editalId,
-      status: ['SUBMETIDA', 'EM_AVALIACAO', 'AVALIADA', 'APROVADA', 'RECUSADA'],
+      status: ['DIVULGADA', 'EM_AVALIACAO', 'AVALIADA', 'APROVADA', 'RECUSADA'],
     });
     // Filtra no banco: antes, todas as avaliações e relatórios eram carregados e filtrados em memória.
     const ids = inscricoes.map((i) => i.id);
@@ -63,7 +62,7 @@ export class DashboardService {
 
     const porStatus: Record<InscricaoStatus, number> = {
       RASCUNHO: 0,
-      SUBMETIDA: 0,
+      DIVULGADA: 0,
       EM_AVALIACAO: 0,
       AVALIADA: 0,
       APROVADA: 0,
@@ -100,7 +99,8 @@ export class DashboardService {
     }
     for (const i of inscricoes) {
       const metrica = porSubarea.get(i.subareaCode);
-      if (!metrica) continue;
+      // Projetos ainda em divulgação não foram enviados ao edital.
+      if (!metrica || i.status === 'DIVULGADA') continue;
       metrica.submetidas += 1;
       if (i.status === 'APROVADA') metrica.aprovadas += 1;
     }
@@ -109,9 +109,7 @@ export class DashboardService {
     let atrasados = 0;
     for (const projeto of inscricoes.filter((i) => i.status === 'APROVADA')) {
       const doProjeto = relatorios.filter((r) => r.inscricaoId === projeto.id);
-      for (const tipo of RELATORIO_TIPOS) {
-        const prazo = prazoRelatorio(projeto.homologadaEm ?? projeto.atualizadoEm, tipo);
-        const situacao = situacaoRelatorio(doProjeto, tipo, prazo, agora);
+      for (const { situacao } of acompanhamento(projeto.homologadaEm ?? projeto.atualizadoEm, doProjeto, agora)) {
         if (situacao === 'EM_ANALISE') emAnalise += 1;
         if (situacao === 'ATRASADO') atrasados += 1;
       }
@@ -152,10 +150,16 @@ export class DashboardService {
         });
       }
     }
-    if (porStatus.SUBMETIDA > 0) {
+    if (porStatus.DIVULGADA > 0) {
       alertas.push({
         nivel: 'info',
-        mensagem: `${porStatus.SUBMETIDA} proposta(s) aguardando distribuição na Central de Triagem.`,
+        mensagem: `${porStatus.DIVULGADA} projeto(s) divulgado(s) pelos professores, ainda recebendo candidaturas de alunos.`,
+      });
+    }
+    if (porStatus.EM_AVALIACAO > 0) {
+      alertas.push({
+        nivel: 'info',
+        mensagem: `${porStatus.EM_AVALIACAO} projeto(s) em avaliação pelos professores indicados.`,
       });
     }
     if (porStatus.AVALIADA > 0) {

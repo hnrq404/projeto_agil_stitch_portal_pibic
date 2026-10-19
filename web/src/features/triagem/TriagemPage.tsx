@@ -3,7 +3,7 @@ import { AlertTriangle, ClipboardCheck, Trophy } from 'lucide-react';
 
 import { useCnpqAreas, useEditaisGestor } from '@/features/editais/api';
 import { formatDate, formatNota } from '@/shared/lib/format';
-import { INSCRICAO_STATUS, VINCULO_STATUS } from '@/shared/lib/labels';
+import { INSCRICAO_STATUS } from '@/shared/lib/labels';
 import type { InscricaoStatus, ItemTriagem } from '@/shared/types/api';
 import { Code, StatusBadge } from '@/shared/ui/Badge';
 import { ButtonLink } from '@/shared/ui/Button';
@@ -14,16 +14,14 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 
 import { useFilaTriagem } from './api';
 
-const STATUS_FILTRO: InscricaoStatus[] = ['SUBMETIDA', 'EM_AVALIACAO', 'AVALIADA', 'APROVADA', 'RECUSADA'];
+const STATUS_FILTRO: InscricaoStatus[] = ['EM_AVALIACAO', 'AVALIADA', 'APROVADA', 'RECUSADA'];
 
-/** Próximo passo do gestor para cada proposta: orienta a leitura da fila. */
+/** Próximo passo do gestor para cada projeto: orienta a leitura da fila. */
 function proximoPasso(item: ItemTriagem): string {
   const { inscricao, consolidado } = item;
   switch (inscricao.status) {
-    case 'SUBMETIDA':
-      return inscricao.vinculoStatus === 'CONFIRMADO' ? 'Distribuir a avaliadores' : 'Aguardando orientador';
     case 'EM_AVALIACAO':
-      return `${consolidado.concluidas} de ${consolidado.total} pareceres`;
+      return `${consolidado.concluidas} de 3 pareceres`;
     case 'AVALIADA':
       return 'Homologar resultado';
     default:
@@ -50,7 +48,7 @@ export function TriagemPage() {
     setParams(novo, { replace: true });
   }
 
-  const aDistribuir = fila.data?.filter((i) => i.inscricao.status === 'SUBMETIDA' && i.inscricao.vinculoStatus === 'CONFIRMADO').length ?? 0;
+  const emAvaliacao = fila.data?.filter((i) => i.inscricao.status === 'EM_AVALIACAO').length ?? 0;
   const aHomologar = fila.data?.filter((i) => i.inscricao.status === 'AVALIADA').length ?? 0;
 
   return (
@@ -58,7 +56,7 @@ export function TriagemPage() {
       <PageHeader
         eyebrow="Gestão"
         title="Central de Triagem"
-        description="Distribua as propostas aos avaliadores, acompanhe os pareceres e homologue os resultados."
+        description="Projetos enviados pelos professores, cada um avaliado por três colegas indicados. Acompanhe os pareceres e homologue os resultados."
         actions={
           filtro.editalId && (
             <ButtonLink to={`/triagem/ranking/${filtro.editalId}`} variant="secondary" icon={<Trophy className="h-4 w-4" aria-hidden />}>
@@ -105,8 +103,8 @@ export function TriagemPage() {
 
       {fila.data && (
         <p className="mb-3 text-sm text-ink-muted" aria-live="polite">
-          <strong className="text-ink tnum">{fila.data.length}</strong> proposta(s).{' '}
-          <span className="tnum">{aDistribuir}</span> para distribuir, <span className="tnum">{aHomologar}</span> para
+          <strong className="text-ink tnum">{fila.data.length}</strong> projeto(s).{' '}
+          <span className="tnum">{emAvaliacao}</span> em avaliação, <span className="tnum">{aHomologar}</span> para
           homologar.
         </p>
       )}
@@ -165,9 +163,6 @@ export function TriagemPage() {
                       </td>
                       <td className="space-y-1 px-5 py-3">
                         <StatusBadge status={INSCRICAO_STATUS[inscricao.status]} />
-                        {inscricao.status === 'SUBMETIDA' && inscricao.vinculoStatus && (
-                          <StatusBadge status={VINCULO_STATUS[inscricao.vinculoStatus]} />
-                        )}
                       </td>
                       <td className="px-5 py-3 text-ink-muted">{proximoPasso(item)}</td>
                     </tr>

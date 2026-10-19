@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Megaphone } from 'lucide-react';
 
 import { useEditaisPublicos } from '@/features/editais/api';
-import { ApiError } from '@/shared/api/http';
 import { formatDate } from '@/shared/lib/format';
 import { BOLSA_LABEL } from '@/shared/lib/labels';
 import { Code, Tag } from '@/shared/ui/Badge';
@@ -15,8 +14,8 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { useCriarInscricao } from './api';
 
 /**
- * Com ?edital=ID cria o rascunho e abre o formulário. Se já existe inscrição
- * nesse edital, leva à existente. Sem parâmetro, lista os editais abertos.
+ * Professor: com ?edital=ID cria o rascunho do projeto e abre o formulário.
+ * Sem parâmetro, lista os editais abertos pela UNICAP.
  */
 export function NovaInscricaoPage() {
   const [params] = useSearchParams();
@@ -37,26 +36,26 @@ function CriarRascunho({ editalId }: { editalId: string }) {
     });
   }, [criar, editalId, navigate]);
 
-  if (criar.error instanceof ApiError && criar.error.status === 409) {
-    const existente = (criar.error.details as { inscricaoId?: string } | undefined)?.inscricaoId;
-    if (existente) return <Navigate to={`/inscricoes/${existente}`} replace />;
-  }
   if (criar.isError) {
     return (
       <>
-        <PageHeader title="Nova inscrição" back={{ to: '/editais', label: 'Editais abertos' }} />
+        <PageHeader title="Novo projeto" back={{ to: '/inscricoes/nova', label: 'Escolher edital' }} />
         <ErrorState error={criar.error} />
       </>
     );
   }
-  return <LoadingState label="Preparando sua inscrição..." />;
+  return <LoadingState label="Preparando o projeto..." />;
 }
 
 function EscolherEdital() {
   const { data: editais, isPending, isError, error, refetch } = useEditaisPublicos();
   return (
     <>
-      <PageHeader title="Nova inscrição" description="Escolha o edital em que deseja se inscrever." back={{ to: '/inscricoes', label: 'Minhas inscrições' }} />
+      <PageHeader
+        title="Novo projeto"
+        description="Escolha o edital aberto pela UNICAP ao qual o projeto será enviado."
+        back={{ to: '/inscricoes', label: 'Meus projetos' }}
+      />
       {isPending ? (
         <LoadingState />
       ) : isError ? (
@@ -77,10 +76,10 @@ function EscolherEdital() {
                     {e.titulo}
                   </Link>
                 </h2>
-                <p className="mt-1 text-sm text-ink-muted">Inscrições até {formatDate(e.dataFimInscricoes)}</p>
+                <p className="mt-1 text-sm text-ink-muted">Envio de projetos até {formatDate(e.dataFimInscricoes)}</p>
                 <div className="mt-4">
                   <ButtonLink to={`/inscricoes/nova?edital=${e.id}`} size="sm">
-                    Inscrever-se
+                    Escrever projeto neste edital
                   </ButtonLink>
                 </div>
               </Card>

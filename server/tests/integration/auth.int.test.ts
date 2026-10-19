@@ -52,7 +52,7 @@ describe('POST /api/auth/register', () => {
     expect(res.body.usuario.role).toBe('USUARIO');
   });
 
-  it('não permite escolher GESTOR, AVALIADOR ou ADMIN no auto-cadastro (400)', async () => {
+  it('não permite escolher GESTOR, ADMIN ou o papel antigo AVALIADOR no auto-cadastro (400)', async () => {
     for (const role of ['GESTOR', 'AVALIADOR', 'ADMIN']) {
       const res = await request(container.app)
         .post('/api/auth/register')
@@ -204,9 +204,9 @@ describe('Gestão de usuários (S1.2) e papéis no token', () => {
     const promovido = await request(container.app)
       .patch(`/api/usuarios/${reg.body.usuario.id as string}`)
       .set(gestor.auth)
-      .send({ role: 'AVALIADOR', departamento: 'fis' });
+      .send({ role: 'DOCENTE', departamento: 'fis' });
     expect(promovido.status).toBe(200);
-    expect(promovido.body.role).toBe('AVALIADOR');
+    expect(promovido.body.role).toBe('DOCENTE');
     expect(promovido.body.departamento).toBe('FIS');
 
     const depois = await request(container.app)

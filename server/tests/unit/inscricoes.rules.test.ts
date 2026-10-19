@@ -1,8 +1,10 @@
 import {
   assertCotaDisponivel,
+  assertDivulgada,
   assertEditavel,
   assertInscricaoTransition,
   gerarProtocolo,
+  pendenciasParaDivulgacao,
   pendenciasParaSubmissao,
   protocoloValido,
 } from '@inscricoes/domain/inscricoes.rules';
@@ -46,14 +48,13 @@ function inscricaoCompleta(overrides: Partial<Inscricao> = {}): Inscricao {
     resumo: 'R'.repeat(120),
     objetivos: 'O'.repeat(60),
     metodologia: 'M'.repeat(60),
-    status: 'RASCUNHO',
-    vinculoStatus: null,
-    vinculoComentario: null,
+    status: 'DIVULGADA',
     anexos: [
       { id: 'a1', tipo: 'PLANO_TRABALHO', storageKey: 'k1', nome: 'plano.pdf', tamanho: 10, mimeType: 'application/pdf', enviadoEm: agora },
       { id: 'a2', tipo: 'LATTES', storageKey: 'k2', nome: 'lattes.pdf', tamanho: 10, mimeType: 'application/pdf', enviadoEm: agora },
     ],
     homologacaoJustificativa: null,
+    divulgadaEm: agora,
     submetidaEm: null,
     homologadaEm: null,
     criadoEm: agora,
@@ -85,24 +86,31 @@ describe('protocolo', () => {
   });
 });
 
-describe('pendenciasParaSubmissao', () => {
-  it('inscrição completa não tem pendências', () => {
+describe('pendências do professor', () => {
+  it('projeto completo, divulgado e com aluno selecionado está pronto para o envio', () => {
     expect(pendenciasParaSubmissao(inscricaoCompleta(), edital)).toEqual([]);
   });
 
-  it('lista cada item faltante (rascunho vazio)', () => {
+  it('para divulgar bastam os textos e a subárea; aluno e anexos vêm depois', () => {
+    const semAlunoNemAnexos = inscricaoCompleta({ status: 'RASCUNHO', discenteId: null, anexos: [] });
+    expect(pendenciasParaDivulgacao(semAlunoNemAnexos, edital)).toEqual([]);
+  });
+
+  it('lista cada item faltante para o envio (rascunho vazio)', () => {
     const vazia = inscricaoCompleta({
+      status: 'RASCUNHO',
       titulo: '',
       subareaCode: '',
       resumo: '',
       objetivos: '',
       metodologia: '',
-      orientadorId: null,
+      discenteId: null,
       anexos: [],
     });
     const pendencias = pendenciasParaSubmissao(vazia, edital);
-    expect(pendencias).toHaveLength(8);
-    expect(pendencias.join(' ')).toContain('orientador');
+    expect(pendencias).toHaveLength(9);
+    expect(pendencias.join(' ')).toContain('Divulgue');
+    expect(pendencias.join(' ')).toContain('Selecione o aluno');
     expect(pendencias.join(' ')).toContain('plano de trabalho');
     expect(pendencias.join(' ')).toContain('currículo lattes');
   });
@@ -114,21 +122,29 @@ describe('pendenciasParaSubmissao', () => {
 });
 
 describe('ciclo de vida', () => {
-  it('RN05: só o rascunho é editável', () => {
+  it('RN05: rascunho e divulgado são editáveis; depois do envio, não', () => {
+    expect(() => assertEditavel(inscricaoCompleta({ status: 'RASCUNHO' }))).not.toThrow();
     expect(() => assertEditavel(inscricaoCompleta())).not.toThrow();
-    expect(() => assertEditavel(inscricaoCompleta({ status: 'SUBMETIDA' }))).toThrow(
+    expect(() => assertEditavel(inscricaoCompleta({ status: 'EM_AVALIACAO' }))).toThrow(
       UnprocessableEntityError,
     );
   });
 
-  it('permite o fluxo feliz e a devolução ao rascunho pela recusa do orientador', () => {
-    expect(() => assertInscricaoTransition('RASCUNHO', 'SUBMETIDA')).not.toThrow();
-    expect(() => assertInscricaoTransition('SUBMETIDA', 'RASCUNHO')).not.toThrow();
-    expect(() => assertInscricaoTransition('SUBMETIDA', 'EM_AVALIACAO')).not.toThrow();
+  it('candidaturas só enquanto o projeto está divulgado', () => {
+    expect(() => assertDivulgada(inscricaoCompleta())).not.toThrow();
+    expect(() => assertDivulgada(inscricaoCompleta({ status: 'RASCUNHO' }))).toThrow(/ainda não foi divulgado/);
+    expect(() => assertDivulgada(inscricaoCompleta({ status: 'EM_AVALIACAO' }))).toThrow(/não recebe mais/);
+  });
+
+  it('permite o fluxo feliz: rascunho → divulgado → em avaliação → avaliado → aprovado', () => {
+    expect(() => assertInscricaoTransition('RASCUNHO', 'DIVULGADA')).not.toThrow();
+    expect(() => assertInscricaoTransition('DIVULGADA', 'EM_AVALIACAO')).not.toThrow();
+    expect(() => assertInscricaoTransition('EM_AVALIACAO', 'AVALIADA')).not.toThrow();
     expect(() => assertInscricaoTransition('AVALIADA', 'APROVADA')).not.toThrow();
   });
 
   it('bloqueia saltos e estados terminais', () => {
+    expect(() => assertInscricaoTransition('RASCUNHO', 'EM_AVALIACAO')).toThrow(UnprocessableEntityError);
     expect(() => assertInscricaoTransition('RASCUNHO', 'APROVADA')).toThrow(UnprocessableEntityError);
     expect(() => assertInscricaoTransition('APROVADA', 'RECUSADA')).toThrow(UnprocessableEntityError);
     expect(() => assertInscricaoTransition('RECUSADA', 'AVALIADA')).toThrow(UnprocessableEntityError);

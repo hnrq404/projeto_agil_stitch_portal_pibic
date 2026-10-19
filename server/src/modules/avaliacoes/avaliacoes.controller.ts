@@ -17,24 +17,26 @@ import {
   toAvaliacaoResponse,
 } from './dto/avaliacoes.dto';
 
-const requireAvaliador = createRoleGuard(['AVALIADOR']);
+/** O avaliador é sempre um professor (papel unificado ao DOCENTE). */
+const requireDocente = createRoleGuard(['DOCENTE']);
+const requireDocenteOuGestor = createRoleGuard(['DOCENTE', 'GESTOR', 'ADMIN']);
 
 function queryString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
 /**
- * Rotas de triagem (GESTOR) e avaliação (AVALIADOR) — S4 e homologação (S5):
+ * Rotas de triagem (GESTOR) e avaliação (DOCENTE) — S4 e homologação (S5):
  *   GET    /api/triagem?editalId=&status=&subareaCode=   → fila com consolidado
  *   GET    /api/triagem/editais/:editalId/ranking         → ranking por média
- *   GET    /api/triagem/:inscricaoId                      → proposta + pareceres
- *   POST   /api/triagem/:inscricaoId/avaliadores          → atribui avaliadores
+ *   GET    /api/triagem/:inscricaoId                      → projeto + pareceres
+ *   POST   /api/triagem/:inscricaoId/avaliadores          → substitui/completa avaliadores
  *   DELETE /api/triagem/avaliacoes/:avaliacaoId           → remove atribuição pendente
  *   POST   /api/triagem/:inscricaoId/homologacao          → aprova/recusa
- *   GET    /api/avaliadores                               → avaliadores e carga atual
+ *   GET    /api/avaliadores                               → professores e carga atual (para indicar avaliadores)
  *   GET    /api/avaliacoes/criterios                      → rubrica
- *   GET    /api/avaliacoes/minhas                         → minhas atribuições (AVALIADOR)
- *   GET    /api/avaliacoes/:id                            → avaliação + proposta
+ *   GET    /api/avaliacoes/minhas                         → projetos que fui indicado para avaliar (DOCENTE)
+ *   GET    /api/avaliacoes/:id                            → avaliação + projeto
  *   POST   /api/avaliacoes/:id/parecer                    → envia notas e parecer
  */
 export function registerAvaliacoesRoutes(
@@ -135,9 +137,10 @@ export function registerAvaliacoesRoutes(
 
   router.get(
     '/api/avaliadores',
-    ...gestor,
+    authenticationGuard,
+    requireDocenteOuGestor,
     asyncHandler(async (_req, res) => {
-      const avaliadores = await usuarios.list('AVALIADOR');
+      const avaliadores = await usuarios.list('DOCENTE');
       const pendentes = await Promise.all(
         avaliadores.map(async (a) => (await service.minhas(a.id)).filter((x) => x.status === 'PENDENTE').length),
       );
@@ -164,7 +167,7 @@ export function registerAvaliacoesRoutes(
   router.get(
     '/api/avaliacoes/minhas',
     authenticationGuard,
-    requireAvaliador,
+    requireDocente,
     asyncHandler(async (req, res) => {
       const avaliacoes = await service.minhas(req.user!.id);
       const inscricoes = await Promise.all(avaliacoes.map((a) => inscricoesService.getById(a.inscricaoId)));
@@ -196,7 +199,7 @@ export function registerAvaliacoesRoutes(
   router.post(
     '/api/avaliacoes/:id/parecer',
     authenticationGuard,
-    requireAvaliador,
+    requireDocente,
     asyncHandler(async (req, res) => {
       const dto = parseBody(parecerSchema, req.body);
       const avaliacao = await service.emitirParecer(

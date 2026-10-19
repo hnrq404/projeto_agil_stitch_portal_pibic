@@ -3,7 +3,8 @@
  * Mudou o backend? Ajuste aqui: o TypeScript aponta cada tela afetada.
  */
 
-export type UserRole = 'DISCENTE' | 'DOCENTE' | 'AVALIADOR' | 'GESTOR' | 'ADMIN' | 'USUARIO';
+/** O docente também é o avaliador dos projetos de colegas (papéis unificados). */
+export type UserRole = 'DISCENTE' | 'DOCENTE' | 'GESTOR' | 'ADMIN' | 'USUARIO';
 export type RegistroRole = 'DISCENTE' | 'DOCENTE' | 'USUARIO';
 
 export interface Usuario {
@@ -86,16 +87,16 @@ export interface CnpqArea {
   name: string;
 }
 
-// ── Inscrições ─────────────────────────────────────────────────────────────
+// ── Projetos de pesquisa (inscrições) ──────────────────────────────────────
 
+/** RASCUNHO → DIVULGADA (alunos se candidatam) → EM_AVALIACAO (enviado ao edital) → AVALIADA → APROVADA | RECUSADA */
 export type InscricaoStatus =
   | 'RASCUNHO'
-  | 'SUBMETIDA'
+  | 'DIVULGADA'
   | 'EM_AVALIACAO'
   | 'AVALIADA'
   | 'APROVADA'
   | 'RECUSADA';
-export type VinculoStatus = 'PENDENTE' | 'CONFIRMADO' | 'RECUSADO';
 export type AnexoTipo = 'PLANO_TRABALHO' | 'LATTES';
 
 export interface Pessoa {
@@ -117,8 +118,6 @@ export interface Inscricao {
   id: string;
   protocolo: string | null;
   status: InscricaoStatus;
-  vinculoStatus: VinculoStatus | null;
-  vinculoComentario: string | null;
   titulo: string;
   subareaCode: string;
   subareaNome: string;
@@ -134,15 +133,18 @@ export interface Inscricao {
     dataFimInscricoes: string;
     notaCorte: number;
   } | null;
+  /** Aluno selecionado pelo professor (nulo até a seleção). */
   discente: Pessoa | null;
+  /** Professor dono do projeto. */
   orientador: Pessoa | null;
   anexos: Anexo[];
   homologacaoJustificativa: string | null;
+  divulgadaEm: string | null;
   submetidaEm: string | null;
   homologadaEm: string | null;
   criadoEm: string;
   atualizadoEm: string;
-  /** Presente no detalhe do rascunho do próprio discente. */
+  /** Checklist do envio, presente só para o professor dono enquanto o projeto é editável. */
   pendencias?: string[];
 }
 
@@ -153,13 +155,35 @@ export interface RascunhoInput {
   resumo?: string;
   objetivos?: string;
   metodologia?: string;
-  orientadorId?: string | null;
 }
 
-export interface Docente {
+/** Projeto divulgado visto por alunos e visitantes (sem anexos nem contatos). */
+export interface ProjetoDivulgado {
   id: string;
-  nome: string;
-  departamento: string;
+  titulo: string;
+  resumo: string;
+  objetivos: string;
+  metodologia: string;
+  palavrasChave: string;
+  subareaCode: string;
+  subareaNome: string;
+  edital: Inscricao['edital'];
+  orientador: { nome: string; departamento: string } | null;
+  divulgadaEm: string | null;
+}
+
+export type CandidaturaStatus = 'PENDENTE' | 'SELECIONADA' | 'NAO_SELECIONADA';
+
+export interface Candidatura {
+  id: string;
+  inscricaoId: string;
+  status: CandidaturaStatus;
+  mensagem: string;
+  criadoEm: string;
+  respondidaEm: string | null;
+  discente: (Pessoa & { matricula: string | null }) | null;
+  /** Presente nas candidaturas do próprio aluno. */
+  projeto?: ProjetoDivulgado & { status: InscricaoStatus };
 }
 
 // ── Avaliação e triagem ────────────────────────────────────────────────────
@@ -221,26 +245,36 @@ export interface AvaliadorResumo {
 
 // ── Projetos e relatórios ──────────────────────────────────────────────────
 
-export type RelatorioTipo = 'PARCIAL' | 'FINAL';
+/** MENSAL: até o dia 5, sobre o mês anterior. FINAL: ao fim da vigência, com PDF. */
+export type RelatorioTipo = 'MENSAL' | 'FINAL';
 export type RelatorioStatus = 'ENVIADO' | 'APROVADO' | 'DEVOLVIDO';
 export type SituacaoRelatorio = 'AGUARDANDO_ENVIO' | 'ATRASADO' | 'EM_ANALISE' | 'DEVOLVIDO' | 'APROVADO';
 
 export interface Relatorio {
   id: string;
   tipo: RelatorioTipo;
+  /** "2026-09" no mensal; nulo no final. */
+  competencia: string | null;
   versao: number;
   status: RelatorioStatus;
-  nome: string;
-  tamanho: number;
+  descricao: string;
+  arquivo: { nome: string; tamanho: number } | null;
   comentarioOrientador: string | null;
   enviadoEm: string;
   avaliadoEm: string | null;
 }
 
+export interface AcompanhamentoRelatorio {
+  tipo: RelatorioTipo;
+  competencia: string | null;
+  prazo: string;
+  situacao: SituacaoRelatorio;
+}
+
 export interface ProjetoDetalhe {
   projeto: Inscricao;
   relatorios: Relatorio[];
-  acompanhamento: { tipo: RelatorioTipo; prazo: string; situacao: SituacaoRelatorio }[];
+  acompanhamento: AcompanhamentoRelatorio[];
   timeline: { data: string; titulo: string; descricao: string }[];
 }
 
@@ -265,12 +299,19 @@ export interface PainelGestor {
 export type NotificacaoTipo =
   | 'EDITAL_PUBLICADO'
   | 'EDITAL_ENCERRADO'
-  | 'VINCULO_SOLICITADO'
-  | 'VINCULO_RESPONDIDO'
+  | 'PROJETO_DIVULGADO'
+  | 'CANDIDATURA_RECEBIDA'
+  | 'CANDIDATURA_RESULTADO'
+  | 'PROJETO_ENVIADO'
   | 'AVALIACAO_ATRIBUIDA'
   | 'INSCRICAO_RESULTADO'
   | 'RELATORIO_ENVIADO'
-  | 'RELATORIO_AVALIADO';
+  | 'RELATORIO_AVALIADO'
+  | 'RELATORIO_LEMBRETE'
+  | 'RELATORIO_ATRASADO'
+  /** Do fluxo antigo; só em notificações já gravadas. */
+  | 'VINCULO_SOLICITADO'
+  | 'VINCULO_RESPONDIDO';
 
 export interface Notificacao {
   id: string;

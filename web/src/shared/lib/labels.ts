@@ -1,12 +1,12 @@
 import type {
   AnexoTipo,
   BolsaTipo,
+  CandidaturaStatus,
   EditalStatus,
   InscricaoStatus,
   RelatorioStatus,
   SituacaoRelatorio,
   UserRole,
-  VinculoStatus,
 } from '@/shared/types/api';
 
 /** Tons semânticos do DESIGN.md: verde = ativo/aprovado, âmbar = em análise, cinza = finalizado, vermelho = recusado. */
@@ -19,8 +19,7 @@ export interface StatusInfo {
 
 export const ROLE_LABEL: Record<UserRole, string> = {
   DISCENTE: 'Discente',
-  DOCENTE: 'Orientador(a)',
-  AVALIADOR: 'Avaliador(a)',
+  DOCENTE: 'Professor(a)',
   GESTOR: 'Gestor(a)',
   ADMIN: 'Administrador(a)',
   USUARIO: 'Visitante',
@@ -35,7 +34,7 @@ export const BOLSA_LABEL: Record<BolsaTipo, string> = {
 
 export const ANEXO_LABEL: Record<AnexoTipo, string> = {
   PLANO_TRABALHO: 'Plano de trabalho',
-  LATTES: 'Currículo Lattes',
+  LATTES: 'Currículo Lattes do aluno',
 };
 
 export const EDITAL_STATUS: Record<EditalStatus, StatusInfo> = {
@@ -46,17 +45,17 @@ export const EDITAL_STATUS: Record<EditalStatus, StatusInfo> = {
 
 export const INSCRICAO_STATUS: Record<InscricaoStatus, StatusInfo> = {
   RASCUNHO: { label: 'Rascunho', tone: 'neutral' },
-  SUBMETIDA: { label: 'Submetida', tone: 'info' },
+  DIVULGADA: { label: 'Divulgado aos alunos', tone: 'info' },
   EM_AVALIACAO: { label: 'Em avaliação', tone: 'warning' },
-  AVALIADA: { label: 'Avaliada', tone: 'warning' },
-  APROVADA: { label: 'Aprovada', tone: 'success' },
-  RECUSADA: { label: 'Não aprovada', tone: 'danger' },
+  AVALIADA: { label: 'Avaliado', tone: 'warning' },
+  APROVADA: { label: 'Aprovado', tone: 'success' },
+  RECUSADA: { label: 'Não aprovado', tone: 'danger' },
 };
 
-export const VINCULO_STATUS: Record<VinculoStatus, StatusInfo> = {
-  PENDENTE: { label: 'Aguardando orientador', tone: 'warning' },
-  CONFIRMADO: { label: 'Orientação confirmada', tone: 'success' },
-  RECUSADO: { label: 'Orientação recusada', tone: 'danger' },
+export const CANDIDATURA_STATUS: Record<CandidaturaStatus, StatusInfo> = {
+  PENDENTE: { label: 'Em análise pelo professor', tone: 'warning' },
+  SELECIONADA: { label: 'Selecionado(a)', tone: 'success' },
+  NAO_SELECIONADA: { label: 'Não selecionado(a)', tone: 'neutral' },
 };
 
 export const RELATORIO_STATUS: Record<RelatorioStatus, StatusInfo> = {

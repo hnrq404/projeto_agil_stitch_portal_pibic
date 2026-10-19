@@ -18,7 +18,7 @@ export interface NovoUsuario {
 
 /**
  * Cria a conta direto no repositório, como faz o seed. Papéis como GESTOR e
- * AVALIADOR não podem ser obtidos pelo auto-cadastro.
+ * ADMIN não podem ser obtidos pelo auto-cadastro.
  */
 export async function criarUsuario(container: AppContainer, input: NovoUsuario): Promise<Usuario> {
   return container.usuariosRepository.create({

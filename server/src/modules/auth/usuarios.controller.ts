@@ -18,7 +18,7 @@ function parseRoleFilter(value: unknown): UserRole | undefined {
  * Rotas de usuários:
  *   GET   /api/usuarios?role=        → lista (GESTOR)
  *   PATCH /api/usuarios/:id          → altera papel/departamento (GESTOR)
- *   GET   /api/usuarios/docentes     → orientadores disponíveis (qualquer autenticado)
+ *   GET   /api/usuarios/docentes     → professores cadastrados (qualquer autenticado)
  */
 export function registerUsuariosRoutes(
   router: Router,

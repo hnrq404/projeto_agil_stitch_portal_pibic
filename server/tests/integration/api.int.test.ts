@@ -13,7 +13,7 @@ beforeEach(() => {
     clock: new FixedClock(NOW),
     userDirectory: {
       resolveUser: (token) => {
-        const users: Record<string, { id: string; name: string; email: string; role: 'DISCENTE' | 'DOCENTE' | 'AVALIADOR' | 'GESTOR' | 'ADMIN' }> = {
+        const users: Record<string, { id: string; name: string; email: string; role: 'DISCENTE' | 'DOCENTE' | 'GESTOR' | 'ADMIN' }> = {
           'gestor-token': { id: 'user-gestor', name: 'Maria Gestora', email: 'gestor@pibic.edu.br', role: 'GESTOR' },
           'admin-token': { id: 'user-admin', name: 'Admin Sistema', email: 'admin@pibic.edu.br', role: 'ADMIN' },
           'discente-token': { id: 'user-discente', name: 'Ana Discente', email: 'ana@pibic.edu.br', role: 'DISCENTE' },

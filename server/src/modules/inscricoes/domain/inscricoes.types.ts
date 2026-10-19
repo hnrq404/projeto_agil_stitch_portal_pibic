@@ -1,28 +1,31 @@
 import type { ArquivoRef } from '@shared/storage/arquivo.storage';
 
 /**
- * Ciclo de vida da inscrição (Arquitetura.md §5):
- * RASCUNHO → SUBMETIDA → EM_AVALIACAO → AVALIADA → APROVADA | RECUSADA
+ * Projeto de pesquisa do professor, do rascunho à bolsa (fluxo UNICAP):
+ *
+ *   RASCUNHO → DIVULGADA → EM_AVALIACAO → AVALIADA → APROVADA | RECUSADA
+ *
+ * - RASCUNHO: o professor escreve o projeto dentro de um edital aberto.
+ * - DIVULGADA: alunos veem o projeto e se candidatam; o professor seleciona um.
+ * - EM_AVALIACAO: o professor enviou ao edital com o aluno e três avaliadores.
+ * - AVALIADA: os três pareceres chegaram; aguarda a homologação da gestão.
  */
 export type InscricaoStatus =
   | 'RASCUNHO'
-  | 'SUBMETIDA'
+  | 'DIVULGADA'
   | 'EM_AVALIACAO'
   | 'AVALIADA'
   | 'APROVADA'
   | 'RECUSADA';
 
-/** Aceite do orientador indicado pelo discente (S3 — vínculo discente/orientador). */
-export type VinculoStatus = 'PENDENTE' | 'CONFIRMADO' | 'RECUSADO';
-
-/** RF10 — documentos obrigatórios da inscrição. */
+/** RF10 — documentos obrigatórios no envio ao edital. */
 export type AnexoTipo = 'PLANO_TRABALHO' | 'LATTES';
 
 export const ANEXO_TIPOS: readonly AnexoTipo[] = ['PLANO_TRABALHO', 'LATTES'];
 
 export const ANEXO_LABEL: Record<AnexoTipo, string> = {
   PLANO_TRABALHO: 'Plano de trabalho',
-  LATTES: 'Currículo Lattes',
+  LATTES: 'Currículo Lattes do aluno',
 };
 
 export interface Anexo extends ArquivoRef {
@@ -33,11 +36,13 @@ export interface Anexo extends ArquivoRef {
 
 export interface Inscricao {
   id: string;
-  /** Gerado no backend na primeira submissão (formato 23076.000001/2026-NN). */
+  /** Gerado no envio ao edital (formato 23076.000001/2026-NN). */
   protocolo: string | null;
   editalId: string;
-  discenteId: string;
-  orientadorId: string | null;
+  /** Aluno selecionado pelo professor; nulo até a seleção. */
+  discenteId: string | null;
+  /** Professor dono do projeto (orientador). */
+  orientadorId: string;
   titulo: string;
   subareaCode: string;
   subareaNome: string;
@@ -46,18 +51,17 @@ export interface Inscricao {
   objetivos: string;
   metodologia: string;
   status: InscricaoStatus;
-  vinculoStatus: VinculoStatus | null;
-  vinculoComentario: string | null;
   anexos: Anexo[];
   /** Decisão final do gestor (homologação). */
   homologacaoJustificativa: string | null;
+  divulgadaEm: Date | null;
   submetidaEm: Date | null;
   homologadaEm: Date | null;
   criadoEm: Date;
   atualizadoEm: Date;
 }
 
-/** Campos editáveis pelo discente enquanto a inscrição está em rascunho. */
+/** Campos editáveis pelo professor até o envio ao edital. */
 export interface RascunhoInput {
   titulo?: string;
   subareaCode?: string;
@@ -65,7 +69,6 @@ export interface RascunhoInput {
   resumo?: string;
   objetivos?: string;
   metodologia?: string;
-  orientadorId?: string | null;
 }
 
 export interface InscricaoFiltro {
@@ -74,4 +77,24 @@ export interface InscricaoFiltro {
   orientadorId?: string;
   status?: readonly InscricaoStatus[];
   subareaCode?: string;
+}
+
+// ── Candidatura do aluno ao projeto ─────────────────────────────────────────
+
+export type CandidaturaStatus = 'PENDENTE' | 'SELECIONADA' | 'NAO_SELECIONADA';
+
+export interface Candidatura {
+  id: string;
+  inscricaoId: string;
+  discenteId: string;
+  mensagem: string;
+  status: CandidaturaStatus;
+  criadoEm: Date;
+  respondidaEm: Date | null;
+}
+
+export interface CandidaturaFiltro {
+  inscricaoId?: string;
+  discenteId?: string;
+  status?: CandidaturaStatus;
 }

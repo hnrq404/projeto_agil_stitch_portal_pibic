@@ -41,7 +41,7 @@ export function MeusProjetosPage() {
         description={
           gestor
             ? 'Todos os projetos com bolsa homologada e a situação dos relatórios.'
-            : 'Projetos aprovados com bolsa: envie e acompanhe os relatórios parciais e finais.'
+            : 'Projetos aprovados com bolsa: o relatório mensal vence todo dia 5, e o final no fim da vigência.'
         }
         actions={
           gestor && (

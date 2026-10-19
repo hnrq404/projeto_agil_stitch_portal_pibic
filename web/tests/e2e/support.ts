@@ -1,10 +1,14 @@
 import { expect, type Browser, type Page } from '@playwright/test';
 
-/** Contas criadas pelo seed (server/src/infra/seed.ts). */
+/** Contas criadas pelo seed (server/src/infra/seed.ts). Todo professor também avalia. */
 export const CONTAS = {
   gestor: { email: 'gestor@pibic.edu.br', senha: 'gestor123' },
   docente: { email: 'docente@pibic.edu.br', senha: 'docente123', nome: 'Prof. Roberto Alencar' },
-  avaliador: { email: 'avaliador@pibic.edu.br', senha: 'avaliador123', nome: 'Dra. Carla Avaliadora' },
+  avaliadores: [
+    { email: 'docente2@pibic.edu.br', senha: 'docente123', nome: 'Profa. Marina Vasconcelos' },
+    { email: 'avaliador@pibic.edu.br', senha: 'docente123', nome: 'Profa. Carla Mendes' },
+    { email: 'avaliador2@pibic.edu.br', senha: 'docente123', nome: 'Prof. Fernando Guimarães' },
+  ],
 } as const;
 
 /** PDF mínimo válido (assinatura %PDF-) para os uploads. */

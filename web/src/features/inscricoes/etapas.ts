@@ -4,8 +4,10 @@ import { z } from 'zod';
 export const MIN_TITULO = 10;
 export const MIN_RESUMO = 100;
 export const MIN_TEXTO = 50;
+export const MIN_MENSAGEM_CANDIDATURA = 30;
 
-export const ETAPAS = ['Projeto', 'Proposta', 'Orientador', 'Documentos', 'Revisão'] as const;
+/** O professor escreve o projeto; aluno e avaliadores entram depois da divulgação. */
+export const ETAPAS = ['Projeto', 'Proposta', 'Documentos', 'Revisão'] as const;
 
 export const rascunhoSchema = z.object({
   titulo: z.string().trim().min(MIN_TITULO, `Use ao menos ${MIN_TITULO} caracteres.`).max(200),
@@ -14,7 +16,6 @@ export const rascunhoSchema = z.object({
   resumo: z.string().trim().min(MIN_RESUMO, `O resumo precisa de ao menos ${MIN_RESUMO} caracteres.`).max(3000),
   objetivos: z.string().trim().min(MIN_TEXTO, `Descreva com ao menos ${MIN_TEXTO} caracteres.`).max(3000),
   metodologia: z.string().trim().min(MIN_TEXTO, `Descreva com ao menos ${MIN_TEXTO} caracteres.`).max(5000),
-  orientadorId: z.string().min(1, 'Indique o orientador.'),
 });
 
 export type RascunhoForm = z.infer<typeof rascunhoSchema>;
@@ -23,7 +24,6 @@ export type RascunhoForm = z.infer<typeof rascunhoSchema>;
 export const CAMPOS_DA_ETAPA: Record<number, (keyof RascunhoForm)[]> = {
   0: ['titulo', 'subareaCode', 'palavrasChave'],
   1: ['resumo', 'objetivos', 'metodologia'],
-  2: ['orientadorId'],
+  2: [],
   3: [],
-  4: [],
 };

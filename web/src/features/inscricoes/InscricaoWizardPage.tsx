@@ -24,12 +24,11 @@ import { useToast } from '@/shared/ui/Toast';
 
 import {
   anexoUrl,
-  useDocentes,
+  useDivulgarProjeto,
   useEnviarAnexo,
   useInscricao,
   useRemoverAnexo,
   useSalvarRascunho,
-  useSubmeterInscricao,
 } from './api';
 import { CAMPOS_DA_ETAPA, ETAPAS, MIN_RESUMO, MIN_TEXTO, rascunhoSchema, type RascunhoForm } from './etapas';
 
@@ -41,19 +40,19 @@ function toForm(i: Inscricao): RascunhoForm {
     resumo: i.resumo,
     objetivos: i.objetivos,
     metodologia: i.metodologia,
-    orientadorId: i.orientador?.id ?? '',
   };
 }
 
-/** Formulário multi-etapas (S3.1) com auto-save do rascunho (S3.5). */
+/** Formulário multi-etapas do professor (S3.1) com auto-save do rascunho (S3.5). */
 export function InscricaoWizardPage() {
   const { id } = useParams<{ id: string }>();
   const { data: inscricao, isPending, isError, error, refetch } = useInscricao(id);
 
-  if (isPending) return <LoadingState label="Carregando inscrição..." />;
+  if (isPending) return <LoadingState label="Carregando projeto..." />;
   if (isError) return <ErrorState error={error} onRetry={() => void refetch()} />;
-  // RN05: submetida não volta ao formulário.
-  if (inscricao.status !== 'RASCUNHO') return <Navigate to={`/inscricoes/${inscricao.id}`} replace />;
+  // RN05: depois do envio ao edital o projeto não volta ao formulário.
+  const editavel = inscricao.status === 'RASCUNHO' || inscricao.status === 'DIVULGADA';
+  if (!editavel || !inscricao.pendencias) return <Navigate to={`/inscricoes/${inscricao.id}`} replace />;
 
   return <Wizard inscricao={inscricao} />;
 }
@@ -65,12 +64,11 @@ function Wizard({ inscricao }: { inscricao: Inscricao }) {
   const [maxEtapa, setMaxEtapa] = useState(0);
   const [confirmar, setConfirmar] = useState(false);
   const [erroSubmissao, setErroSubmissao] = useState<{ mensagem: string; pendencias: string[] } | null>(null);
+  const divulgado = inscricao.status === 'DIVULGADA';
 
   const salvar = useSalvarRascunho(inscricao.id);
-  const submeter = useSubmeterInscricao(inscricao.id);
-  const autoSave = useAutoSave<RascunhoForm>({
-    save: (v) => salvar.mutateAsync({ ...v, orientadorId: v.orientadorId || null }),
-  });
+  const divulgar = useDivulgarProjeto(inscricao.id);
+  const autoSave = useAutoSave<RascunhoForm>({ save: (v) => salvar.mutateAsync(v) });
 
   const form = useForm<RascunhoForm>({
     resolver: zodResolver(rascunhoSchema),
@@ -94,12 +92,14 @@ function Wizard({ inscricao }: { inscricao: Inscricao }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  async function enviar() {
+  async function concluir() {
     setErroSubmissao(null);
     try {
       await autoSave.flush();
-      await submeter.mutateAsync();
-      toast.success('Inscrição submetida. Seu orientador foi avisado para confirmar o vínculo.');
+      if (!divulgado) {
+        await divulgar.mutateAsync();
+        toast.success('Projeto divulgado. Os alunos já podem se candidatar.');
+      }
       navigate(`/inscricoes/${inscricao.id}`);
     } catch (error) {
       setConfirmar(false);
@@ -114,19 +114,18 @@ function Wizard({ inscricao }: { inscricao: Inscricao }) {
     <>
       <PageHeader
         eyebrow={inscricao.edital && <Code>{`Edital ${inscricao.edital.numero}`}</Code>}
-        title="Inscrição de pesquisa"
+        title="Projeto de pesquisa"
         description={
           inscricao.edital &&
-          `${inscricao.edital.titulo}. Inscrições até ${formatDate(inscricao.edital.dataFimInscricoes)}.`
+          `${inscricao.edital.titulo}. Envio ao edital até ${formatDate(inscricao.edital.dataFimInscricoes)}.`
         }
-        back={{ to: '/inscricoes', label: 'Minhas inscrições' }}
+        back={{ to: divulgado ? `/inscricoes/${inscricao.id}` : '/inscricoes', label: divulgado ? 'Voltar ao projeto' : 'Meus projetos' }}
         actions={<IndicadorSalvamento status={autoSave.status} savedAt={autoSave.savedAt} />}
       />
 
-      {inscricao.vinculoStatus === 'RECUSADO' && (
-        <Alert tone="warning" title="O orientador indicado recusou o vínculo" className="mb-4">
-          <p>Motivo: {inscricao.vinculoComentario}</p>
-          <p>Indique outro orientador na etapa 3 e submeta novamente.</p>
+      {divulgado && (
+        <Alert tone="info" title="Este projeto já está divulgado" className="mb-4">
+          As alterações aparecem na hora para os alunos. Você pode editar até enviar o projeto ao edital.
         </Alert>
       )}
 
@@ -138,9 +137,8 @@ function Wizard({ inscricao }: { inscricao: Inscricao }) {
         <form onSubmit={(e) => e.preventDefault()} noValidate>
           {etapa === 0 && <EtapaProjeto form={form} editalId={inscricao.edital?.id} />}
           {etapa === 1 && <EtapaProposta form={form} />}
-          {etapa === 2 && <EtapaOrientador form={form} />}
-          {etapa === 3 && <EtapaDocumentos inscricao={inscricao} />}
-          {etapa === 4 && <EtapaRevisao inscricao={inscricao} form={form} erro={erroSubmissao} irPara={setEtapa} />}
+          {etapa === 2 && <EtapaDocumentos inscricao={inscricao} />}
+          {etapa === 3 && <EtapaRevisao inscricao={inscricao} form={form} erro={erroSubmissao} irPara={setEtapa} />}
 
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
             <Button variant="secondary" onClick={() => setEtapa((e) => Math.max(0, e - 1))} disabled={etapa === 0}>
@@ -148,13 +146,13 @@ function Wizard({ inscricao }: { inscricao: Inscricao }) {
             </Button>
             {etapa < ETAPAS.length - 1 ? (
               <Button onClick={() => void avancar()}>Próximo</Button>
+            ) : divulgado ? (
+              <Button loading={salvar.isPending} onClick={() => void concluir()}>
+                Concluir edição
+              </Button>
             ) : (
-              <Button
-                variant="success"
-                onClick={() => setConfirmar(true)}
-                disabled={(inscricao.pendencias?.length ?? 0) > 0}
-              >
-                Submeter inscrição
+              <Button variant="success" onClick={() => setConfirmar(true)} disabled={!form.formState.isValid}>
+                Divulgar aos alunos
               </Button>
             )}
           </div>
@@ -163,12 +161,12 @@ function Wizard({ inscricao }: { inscricao: Inscricao }) {
 
       <ConfirmDialog
         open={confirmar}
-        title="Submeter a inscrição?"
-        description="Depois de submetida, a proposta não pode mais ser editada (RN05). Seu orientador receberá um pedido para confirmar o vínculo."
-        confirmLabel="Submeter"
+        title="Divulgar o projeto aos alunos?"
+        description="Os alunos verão o projeto e poderão se candidatar. Você continua podendo editar o texto e os documentos até enviar ao edital."
+        confirmLabel="Divulgar"
         tone="success"
-        loading={submeter.isPending}
-        onConfirm={() => void enviar()}
+        loading={divulgar.isPending}
+        onConfirm={() => void concluir()}
         onCancel={() => setConfirmar(false)}
       />
     </>
@@ -275,35 +273,6 @@ function EtapaProposta({ form }: FormProps) {
   );
 }
 
-function EtapaOrientador({ form }: FormProps) {
-  const docentes = useDocentes();
-  const { register, formState } = form;
-  return (
-    <fieldset className="space-y-5">
-      <legend className="text-lg font-semibold">Orientador</legend>
-      <p className="text-sm text-ink-muted">
-        Após a submissão, o docente indicado recebe um pedido para confirmar a orientação. A proposta só segue para a
-        avaliação depois dessa confirmação.
-      </p>
-      <Field label="Orientador(a)" error={formState.errors.orientadorId?.message} required>
-        {docentes.data ? (
-          <Select {...register('orientadorId')}>
-            <option value="">Selecione...</option>
-            {docentes.data.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.nome}
-                {d.departamento ? ` (${d.departamento})` : ''}
-              </option>
-            ))}
-          </Select>
-        ) : (
-          <SelectCarregando erro={docentes.isError} />
-        )}
-      </Field>
-    </fieldset>
-  );
-}
-
 function EtapaDocumentos({ inscricao }: { inscricao: Inscricao }) {
   const enviar = useEnviarAnexo(inscricao.id);
   const remover = useRemoverAnexo(inscricao.id);
@@ -314,6 +283,9 @@ function EtapaDocumentos({ inscricao }: { inscricao: Inscricao }) {
   return (
     <fieldset className="space-y-6">
       <legend className="text-lg font-semibold">Documentos</legend>
+      <p className="text-sm text-ink-muted">
+        Os dois PDFs são exigidos no envio ao edital, não na divulgação. O Lattes é o do aluno que você selecionar.
+      </p>
       {(['PLANO_TRABALHO', 'LATTES'] as const).map((tipo) => {
         const atual = doTipo(tipo);
         return (
@@ -324,7 +296,7 @@ function EtapaDocumentos({ inscricao }: { inscricao: Inscricao }) {
             description={
               tipo === 'PLANO_TRABALHO'
                 ? 'Cronograma de atividades do bolsista para 12 meses.'
-                : 'Exporte o currículo na Plataforma Lattes em PDF.'
+                : 'Currículo do aluno selecionado, exportado da Plataforma Lattes em PDF.'
             }
             current={atual}
             onUpload={(file, onProgress) => enviar.mutateAsync({ tipo, file, onProgress })}
@@ -348,9 +320,9 @@ function EtapaRevisao({
   irPara: (etapa: number) => void;
 }) {
   const valores = form.getValues();
-  const docentes = useDocentes();
-  const orientador = docentes.data?.find((d) => d.id === valores.orientadorId);
-  const pendencias = inscricao.pendencias ?? [];
+  const prontoParaDivulgar = form.formState.isValid;
+  // O que ainda falta para o envio ao edital, além de divulgar.
+  const pendencias = (inscricao.pendencias ?? []).filter((p) => !p.startsWith('Divulgue'));
 
   return (
     <div className="space-y-6">
@@ -368,8 +340,20 @@ function EtapaRevisao({
         </Alert>
       )}
 
-      {pendencias.length > 0 ? (
-        <Alert tone="warning" title="Ainda falta completar">
+      {inscricao.status === 'RASCUNHO' &&
+        (prontoParaDivulgar ? (
+          <Alert tone="success" title="Pronto para divulgar">
+            Ao divulgar, os alunos veem o projeto e podem se candidatar. Depois você escolhe o aluno, indica três
+            professores avaliadores e envia ao edital.
+          </Alert>
+        ) : (
+          <Alert tone="warning" title="Complete o projeto para divulgar">
+            Título, subárea, resumo, objetivos e metodologia são obrigatórios.
+          </Alert>
+        ))}
+
+      {pendencias.length > 0 && (
+        <Alert tone="info" title="Antes de enviar ao edital, ainda falta">
           <ul className="space-y-1">
             {pendencias.map((p) => (
               <li key={p} className="flex items-start gap-2">
@@ -379,10 +363,6 @@ function EtapaRevisao({
             ))}
           </ul>
         </Alert>
-      ) : (
-        <Alert tone="success" title="Tudo pronto para submeter">
-          Confira os dados abaixo. Depois de submetida, a inscrição não pode ser alterada.
-        </Alert>
       )}
 
       <dl className="divide-y divide-line rounded-lg border border-line">
@@ -391,8 +371,7 @@ function EtapaRevisao({
         <Resumo label="Resumo" etapa={1} irPara={irPara}>
           <span className="line-clamp-3">{valores.resumo || '-'}</span>
         </Resumo>
-        <Resumo label="Orientador" etapa={2} irPara={irPara}>{orientador?.nome ?? '-'}</Resumo>
-        <Resumo label="Documentos" etapa={3} irPara={irPara}>
+        <Resumo label="Documentos" etapa={2} irPara={irPara}>
           {inscricao.anexos.length === 0 ? '-' : inscricao.anexos.map((a) => a.nome).join(', ')}
         </Resumo>
       </dl>

@@ -21,9 +21,10 @@ model Usuario {
   nome      String
   email     String   @unique
   senhaHash String
-  /// "DISCENTE" | "DOCENTE" | "AVALIADOR" | "GESTOR" | "ADMIN" | "USUARIO" — validado na camada de domínio.
+  /// "DISCENTE" | "DOCENTE" | "GESTOR" | "ADMIN" | "USUARIO" — validado na camada de domínio.
+  /// O docente também avalia projetos de outros professores (não há papel de avaliador separado).
   role         String
-  /// Departamento/unidade — usado na checagem de conflito de interesse.
+  /// Departamento/unidade.
   departamento String   @default("")
   /// Matrícula (discentes) — mascarada em exportações (RN09).
   matricula    String?
@@ -73,7 +74,7 @@ model Notificacao {
   id          String   @id @default(uuid())
   userId      String
   user        Usuario  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  /// "EDITAL_PUBLICADO" | "EDITAL_ENCERRADO"
+  /// NotificacaoTipo (modules/notificacoes/domain/notificacoes.types.ts)
   tipo        String
   titulo      String
   mensagem    String
@@ -91,7 +92,9 @@ model Inscricao {
   protocolo                String?   @unique
   editalId                 String
   edital                   Edital    @relation(fields: [editalId], references: [id], onDelete: Restrict)
-  discenteId               String
+  /// Aluno selecionado pelo professor entre os candidatos (nulo até a seleção).
+  discenteId               String?
+  /// Professor dono do projeto de pesquisa (anulável só por compatibilidade com dados antigos).
   orientadorId             String?
   titulo                   String    @default("")
   subareaCode              String    @default("")
@@ -100,26 +103,42 @@ model Inscricao {
   resumo                   String    @default("")
   objetivos                String    @default("")
   metodologia              String    @default("")
-  /// "RASCUNHO" | "SUBMETIDA" | "EM_AVALIACAO" | "AVALIADA" | "APROVADA" | "RECUSADA"
+  /// "RASCUNHO" | "DIVULGADA" | "EM_AVALIACAO" | "AVALIADA" | "APROVADA" | "RECUSADA"
   status                   String    @default("RASCUNHO")
-  /// "PENDENTE" | "CONFIRMADO" | "RECUSADO"
-  vinculoStatus            String?
-  vinculoComentario        String?
   homologacaoJustificativa String?
+  divulgadaEm              DateTime?
   submetidaEm              DateTime?
   homologadaEm             DateTime?
   criadoEm                 DateTime
   atualizadoEm             DateTime
 
-  anexos     Anexo[]
-  avaliacoes Avaliacao[]
-  relatorios Relatorio[]
+  anexos       Anexo[]
+  avaliacoes   Avaliacao[]
+  relatorios   Relatorio[]
+  candidaturas Candidatura[]
 
   @@unique([editalId, discenteId])
   @@index([status])
   @@index([orientadorId])
   @@index([discenteId])
   @@index([editalId, subareaCode, status])
+}
+
+/// Candidatura do aluno a um projeto de pesquisa divulgado pelo professor.
+model Candidatura {
+  id           String    @id
+  inscricaoId  String
+  inscricao    Inscricao @relation(fields: [inscricaoId], references: [id], onDelete: Cascade)
+  discenteId   String
+  /// Por que o aluno quer participar do projeto.
+  mensagem     String
+  /// "PENDENTE" | "SELECIONADA" | "NAO_SELECIONADA"
+  status       String
+  criadoEm     DateTime
+  respondidaEm DateTime?
+
+  @@unique([inscricaoId, discenteId])
+  @@index([discenteId])
 }
 
 /// Último sequencial de protocolo emitido no ano — incrementado atomicamente na submissão.
@@ -165,18 +184,23 @@ model Relatorio {
   id                   String    @id
   inscricaoId          String
   inscricao            Inscricao @relation(fields: [inscricaoId], references: [id], onDelete: Cascade)
-  /// "PARCIAL" | "FINAL"
+  /// "MENSAL" (até o dia 5 do mês seguinte) | "FINAL" (fim da vigência)
   tipo                 String
+  /// Mês de referência do relatório mensal ("2026-09"); vazio no final.
+  competencia          String    @default("")
   versao               Int
+  /// O que o aluno fez no período.
+  descricao            String    @default("")
   /// "ENVIADO" | "APROVADO" | "DEVOLVIDO"
   status               String
   comentarioOrientador String?
-  storageKey           String
-  nome                 String
-  tamanho              Int
-  mimeType             String
+  /// PDF: opcional no mensal, obrigatório para aprovar o final.
+  storageKey           String?
+  nome                 String?
+  tamanho              Int?
+  mimeType             String?
   enviadoEm            DateTime
   avaliadoEm           DateTime?
 
-  @@unique([inscricaoId, tipo, versao])
+  @@unique([inscricaoId, tipo, competencia, versao])
 }

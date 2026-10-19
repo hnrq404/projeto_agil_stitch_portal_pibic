@@ -8,7 +8,7 @@ import { PropostaConteudo } from '@/features/inscricoes/PropostaConteudo';
 import { errorMessage } from '@/shared/api/http';
 import { cn } from '@/shared/lib/cn';
 import { formatDate, formatNota } from '@/shared/lib/format';
-import { INSCRICAO_STATUS, VINCULO_STATUS } from '@/shared/lib/labels';
+import { INSCRICAO_STATUS } from '@/shared/lib/labels';
 import type { Avaliacao, Inscricao, ItemTriagem } from '@/shared/types/api';
 import { Code, StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
@@ -27,7 +27,7 @@ export function TriagemDetalhePage() {
   const { id } = useParams<{ id: string }>();
   const { data: item, isPending, isError, error, refetch } = useItemTriagem(id);
 
-  if (isPending) return <LoadingState label="Carregando proposta..." />;
+  if (isPending) return <LoadingState label="Carregando projeto..." />;
   if (isError) return <ErrorState error={error} onRetry={() => void refetch()} />;
 
   const { inscricao } = item;
@@ -42,7 +42,7 @@ export function TriagemDetalhePage() {
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         <div className="space-y-6">
           <Card>
-            <CardHeader title="Proposta" />
+            <CardHeader title="Projeto" />
             <div className="p-5">
               <PropostaConteudo inscricao={inscricao} />
             </div>
@@ -54,16 +54,11 @@ export function TriagemDetalhePage() {
           <Card>
             <CardHeader title="Pessoas" />
             <dl className="grid gap-4 p-5">
-              <DataItem label="Discente">{inscricao.discente?.nome}</DataItem>
-              <DataItem label="Orientador(a)">
+              <DataItem label="Aluno(a) selecionado(a)">{inscricao.discente?.nome}</DataItem>
+              <DataItem label="Professor(a) orientador(a)">
                 {inscricao.orientador?.nome}
                 {inscricao.orientador?.departamento && <Code className="ml-2">{inscricao.orientador.departamento}</Code>}
               </DataItem>
-              {inscricao.vinculoStatus && (
-                <DataItem label="Vínculo">
-                  <StatusBadge status={VINCULO_STATUS[inscricao.vinculoStatus]} />
-                </DataItem>
-              )}
               <DataItem label="Edital">
                 {inscricao.edital?.numero}, nota de corte {formatNota(inscricao.edital?.notaCorte)}
               </DataItem>
@@ -98,7 +93,7 @@ function Consolidacao({ item }: { item: ItemTriagem }) {
         </dl>
         {consolidado.divergente && (
           <Alert tone="warning" title="Divergência entre avaliadores (RN08)">
-            As notas diferem em mais de {LIMIAR_DIVERGENCIA} pontos. Considere atribuir mais um avaliador antes de homologar.
+            As notas diferem em mais de {LIMIAR_DIVERGENCIA} pontos. Leia os pareceres com atenção antes de homologar.
           </Alert>
         )}
       </div>
@@ -114,24 +109,17 @@ function Atribuicao({ item }: { item: ItemTriagem }) {
   const toast = useToast();
   const [selecionados, setSelecionados] = useState<string[]>([]);
 
-  const podeAtribuir =
-    (inscricao.status === 'SUBMETIDA' || inscricao.status === 'EM_AVALIACAO') && inscricao.vinculoStatus === 'CONFIRMADO';
+  // Os três avaliadores são indicados pelo professor no envio; a gestão só substitui quem não respondeu.
+  const podeAtribuir = inscricao.status === 'EM_AVALIACAO';
   const vagas = MAX_AVALIADORES - avaliacoes.length;
   const jaAtribuidos = new Set(avaliacoes.map((a) => a.avaliador.id));
-  const deptOrientador = inscricao.orientador?.departamento;
 
-  if (!podeAtribuir && avaliacoes.length === 0) {
-    return inscricao.status === 'SUBMETIDA' ? (
-      <Alert tone="info" title="Aguardando o orientador">
-        A distribuição fica disponível depois que o orientador confirmar o vínculo.
-      </Alert>
-    ) : null;
-  }
+  if (avaliacoes.length === 0 && !podeAtribuir) return null;
 
   async function enviar() {
     try {
       await atribuir.mutateAsync(selecionados);
-      toast.success('Avaliadores atribuídos e notificados.');
+      toast.success('Avaliador(es) atribuído(s) e notificado(s).');
       setSelecionados([]);
     } catch (e) {
       toast.error(errorMessage(e));
@@ -140,7 +128,10 @@ function Atribuicao({ item }: { item: ItemTriagem }) {
 
   return (
     <Card>
-      <CardHeader title="Avaliadores" description={`Até ${MAX_AVALIADORES} por proposta`} />
+      <CardHeader
+        title="Professores avaliadores"
+        description={`${MAX_AVALIADORES} por projeto, indicados pelo orientador. Remova quem não puder avaliar e indique um substituto.`}
+      />
       <div className="space-y-4 p-5">
         {avaliacoes.length > 0 && (
           <ul className="space-y-2">
@@ -169,15 +160,13 @@ function Atribuicao({ item }: { item: ItemTriagem }) {
 
         {podeAtribuir && vagas > 0 && (
           <fieldset className="space-y-2">
-            <legend className="mb-1 text-sm font-medium text-ink">Atribuir avaliadores</legend>
-            {avaliadores.isPending && <p className="text-sm text-ink-muted">Carregando avaliadores...</p>}
-            {avaliadores.data?.length === 0 && (
-              <p className="text-sm text-ink-muted">Nenhum avaliador cadastrado. Promova usuários em Usuários.</p>
-            )}
+            <legend className="mb-1 text-sm font-medium text-ink">Indicar substituto</legend>
+            {avaliadores.isPending && <p className="text-sm text-ink-muted">Carregando professores...</p>}
             {avaliadores.data
               ?.filter((av) => !jaAtribuidos.has(av.id))
               .map((av) => {
-                const conflito = Boolean(deptOrientador && av.departamento === deptOrientador);
+                // O orientador não avalia o próprio projeto.
+                const conflito = av.id === inscricao.orientador?.id;
                 const marcado = selecionados.includes(av.id);
                 const lotado = !marcado && selecionados.length >= vagas;
                 return (
@@ -206,7 +195,7 @@ function Atribuicao({ item }: { item: ItemTriagem }) {
                       {conflito && (
                         <span className="mt-1 flex items-center gap-1 text-xs font-medium text-warning-800">
                           <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
-                          Conflito: mesmo departamento do orientador
+                          Orientador do projeto
                         </span>
                       )}
                     </span>

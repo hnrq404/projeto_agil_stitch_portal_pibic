@@ -86,4 +86,9 @@ export class NotificacoesService {
   countUnread(userId: string): Promise<number> {
     return this.repository.countUnread(userId);
   }
+
+  /** Quem já recebeu este aviso sobre esta referência (evita lembrete repetido). */
+  jaNotificados(tipo: Notificacao['tipo'], referenceId: string): Promise<string[]> {
+    return this.repository.listUserIdsNotificados(tipo, referenceId);
+  }
 }

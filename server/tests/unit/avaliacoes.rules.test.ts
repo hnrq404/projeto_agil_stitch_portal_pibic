@@ -1,6 +1,8 @@
 import {
+  assertIndicacaoAvaliadores,
   assertParecer,
   assertQuantidadeAvaliadores,
+  avaliacaoCompleta,
   calcularNotaFinal,
   consolidar,
   LIMIAR_DIVERGENCIA,
@@ -90,21 +92,32 @@ describe('consolidar (RF17 / RN08)', () => {
   });
 });
 
-describe('conflito de interesse', () => {
-  const orientador = { id: 'doc', departamento: 'DCC' };
-
-  it('bloqueia o próprio orientador e o mesmo departamento', () => {
-    expect(motivoConflito({ id: 'doc', departamento: 'DCC' }, orientador, 'disc')).toMatch(/orientador/);
-    expect(motivoConflito({ id: 'av', departamento: 'DCC' }, orientador, 'disc')).toMatch(/departamento/);
+describe('três professores avaliadores indicados pelo dono do projeto', () => {
+  it('o professor não avalia o próprio projeto, nem o aluno', () => {
+    expect(motivoConflito('doc', 'doc', 'disc')).toMatch(/próprio projeto/);
+    expect(motivoConflito('disc', 'doc', 'disc')).toMatch(/aluno/);
   });
 
-  it('libera avaliador de outro departamento ou sem departamento', () => {
-    expect(motivoConflito({ id: 'av', departamento: 'FIS' }, orientador, 'disc')).toBeNull();
-    expect(motivoConflito({ id: 'av', departamento: '' }, { id: 'doc', departamento: '' }, 'disc')).toBeNull();
+  it('qualquer outro professor pode avaliar, inclusive do mesmo departamento', () => {
+    expect(motivoConflito('colega', 'doc', 'disc')).toBeNull();
+    expect(motivoConflito('colega', 'doc', null)).toBeNull();
   });
 
-  it('limita a 3 avaliadores por proposta', () => {
+  it('exige exatamente três avaliadores distintos', () => {
+    expect(() => assertIndicacaoAvaliadores(['a', 'b', 'c'])).not.toThrow();
+    expect(() => assertIndicacaoAvaliadores(['a', 'b'])).toThrow(/exatamente 3/);
+    expect(() => assertIndicacaoAvaliadores(['a', 'b', 'c', 'd'])).toThrow(/exatamente 3/);
+    expect(() => assertIndicacaoAvaliadores(['a', 'a', 'b'])).toThrow(/diferentes/);
+  });
+
+  it('limita a 3 avaliadores por projeto nas substituições da gestão', () => {
     expect(() => assertQuantidadeAvaliadores(2, 1)).not.toThrow();
     expect(() => assertQuantidadeAvaliadores(2, 2)).toThrow(UnprocessableEntityError);
+  });
+
+  it('o projeto só fica avaliado com os três pareceres concluídos', () => {
+    expect(avaliacaoCompleta([avaliacao(8), avaliacao(7)])).toBe(false);
+    expect(avaliacaoCompleta([avaliacao(8), avaliacao(7), avaliacao(null, 'PENDENTE')])).toBe(false);
+    expect(avaliacaoCompleta([avaliacao(8), avaliacao(7), avaliacao(9)])).toBe(true);
   });
 });

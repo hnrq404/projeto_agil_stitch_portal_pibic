@@ -19,7 +19,7 @@ import { useToast } from '@/shared/ui/Toast';
 
 import { usePainelGestor } from './api';
 
-const FUNIL: InscricaoStatus[] = ['SUBMETIDA', 'EM_AVALIACAO', 'AVALIADA', 'APROVADA', 'RECUSADA'];
+const FUNIL: InscricaoStatus[] = ['DIVULGADA', 'EM_AVALIACAO', 'AVALIADA', 'APROVADA', 'RECUSADA'];
 
 /** Painel do gestor (RF23/RF24): KPIs, funil de propostas, cotas por subárea e alertas. */
 export function PainelGestor() {
@@ -94,10 +94,10 @@ function Conteudo({ painel }: { painel: Painel }) {
           accent="secondary"
         />
         <KpiTile
-          label="Propostas recebidas"
+          label="Projetos enviados ao edital"
           icon={<ClipboardList className="h-5 w-5" />}
-          value={inscricoes.total}
-          detail={`${inscricoes.porStatus.SUBMETIDA} aguardando distribuição`}
+          value={inscricoes.total - inscricoes.porStatus.DIVULGADA}
+          detail={`${inscricoes.porStatus.DIVULGADA} ainda em divulgação pelos professores`}
         />
         <KpiTile
           label="Pareceres pendentes"

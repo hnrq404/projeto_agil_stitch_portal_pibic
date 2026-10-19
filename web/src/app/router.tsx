@@ -69,6 +69,8 @@ export const router = createBrowserRouter([
               { path: '/editais', element: <EditaisPublicosPage /> },
               { path: '/editais/:id', lazy: page(() => import('@/features/editais/EditalPublicoPage'), 'EditalPublicoPage') },
               { path: '/pesquisas', lazy: page(() => import('@/features/vitrine/VitrinePesquisasPage'), 'VitrinePesquisasPage') },
+              // Projetos divulgados pelos professores: o aluno logado se candidata na própria página.
+              { path: '/oportunidades', lazy: page(() => import('@/features/candidaturas/OportunidadesPage'), 'OportunidadesPage') },
             ],
           },
         ],
@@ -85,7 +87,7 @@ export const router = createBrowserRouter([
             children: [
               { path: '/inicio', lazy: page(() => import('@/features/dashboard/InicioPage'), 'InicioPage') },
               { path: '/notificacoes', lazy: page(() => import('@/features/notificacoes/NotificacoesPage'), 'NotificacoesPage') },
-              // Detalhe da inscrição: dono, orientador, avaliador designado e gestão (o backend decide).
+              // Detalhe do projeto: professor dono, aluno selecionado, avaliador indicado e gestão (o backend decide).
               { path: '/inscricoes/:id', lazy: page(() => import('@/features/inscricoes/InscricaoDetalhePage'), 'InscricaoDetalhePage') },
               {
                 element: <RequireRole roles={GESTORES} />,
@@ -101,23 +103,20 @@ export const router = createBrowserRouter([
                 ],
               },
               {
-                element: <RequireRole roles={['DISCENTE']} />,
+                // Professor: escreve, divulga, seleciona o aluno, envia ao edital e avalia projetos de colegas.
+                element: <RequireRole roles={['DOCENTE']} />,
                 children: [
                   { path: '/inscricoes', lazy: page(() => import('@/features/inscricoes/MinhasInscricoesPage'), 'MinhasInscricoesPage') },
                   { path: '/inscricoes/nova', lazy: page(() => import('@/features/inscricoes/NovaInscricaoPage'), 'NovaInscricaoPage') },
                   { path: '/inscricoes/:id/editar', lazy: page(() => import('@/features/inscricoes/InscricaoWizardPage'), 'InscricaoWizardPage') },
+                  { path: '/avaliacoes', lazy: page(() => import('@/features/avaliacoes/MinhasAvaliacoesPage'), 'MinhasAvaliacoesPage') },
+                  { path: '/avaliacoes/:id', lazy: page(() => import('@/features/avaliacoes/AvaliacaoPage'), 'AvaliacaoPage') },
                 ],
               },
               {
-                element: <RequireRole roles={['DOCENTE']} />,
-                children: [{ path: '/orientacoes', lazy: page(() => import('@/features/inscricoes/OrientacoesPage'), 'OrientacoesPage') }],
-              },
-              {
-                // Só o avaliador: /api/avaliacoes/minhas e o envio do parecer recusam o gestor (403).
-                element: <RequireRole roles={['AVALIADOR']} />,
+                element: <RequireRole roles={['DISCENTE']} />,
                 children: [
-                  { path: '/avaliacoes', lazy: page(() => import('@/features/avaliacoes/MinhasAvaliacoesPage'), 'MinhasAvaliacoesPage') },
-                  { path: '/avaliacoes/:id', lazy: page(() => import('@/features/avaliacoes/AvaliacaoPage'), 'AvaliacaoPage') },
+                  { path: '/candidaturas', lazy: page(() => import('@/features/candidaturas/MinhasCandidaturasPage'), 'MinhasCandidaturasPage') },
                 ],
               },
               {

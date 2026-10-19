@@ -8,7 +8,6 @@ import type {
   Inscricao,
   InscricaoFiltro,
   InscricaoStatus,
-  VinculoStatus,
 } from '../../modules/inscricoes/domain/inscricoes.types';
 import type {
   AprovacaoResultado,
@@ -125,6 +124,7 @@ export class PrismaInscricoesRepository implements InscricoesRepository {
   async clear(): Promise<void> {
     await this.prisma.sequenciaProtocolo.deleteMany();
     await this.prisma.relatorio.deleteMany();
+    await this.prisma.candidatura.deleteMany();
     await this.prisma.avaliacao.deleteMany();
     await this.prisma.anexo.deleteMany();
     await this.prisma.inscricao.deleteMany();
@@ -146,9 +146,8 @@ function toRow(i: Inscricao) {
     objetivos: i.objetivos,
     metodologia: i.metodologia,
     status: i.status,
-    vinculoStatus: i.vinculoStatus,
-    vinculoComentario: i.vinculoComentario,
     homologacaoJustificativa: i.homologacaoJustificativa,
+    divulgadaEm: i.divulgadaEm,
     submetidaEm: i.submetidaEm,
     homologadaEm: i.homologadaEm,
     criadoEm: i.criadoEm,
@@ -173,8 +172,9 @@ type InscricaoRow = Prisma.InscricaoGetPayload<{ include: { anexos: true } }>;
 function toDomain(row: InscricaoRow): Inscricao {
   return {
     ...row,
+    // Coluna anulável só por dados antigos; todo projeto novo nasce com o professor.
+    orientadorId: row.orientadorId ?? '',
     status: row.status as InscricaoStatus,
-    vinculoStatus: row.vinculoStatus as VinculoStatus | null,
     anexos: row.anexos.map((a) => ({
       id: a.id,
       tipo: a.tipo as AnexoTipo,

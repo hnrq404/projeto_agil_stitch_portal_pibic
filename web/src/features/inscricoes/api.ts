@@ -1,32 +1,40 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { http, uploadPdf } from '@/shared/api/http';
-import type { AnexoTipo, Docente, Inscricao, ListResponse, RascunhoInput } from '@/shared/types/api';
+import type {
+  AnexoTipo,
+  Candidatura,
+  Inscricao,
+  ListResponse,
+  ProjetoDivulgado,
+  RascunhoInput,
+} from '@/shared/types/api';
 
+/** Projetos de pesquisa do professor (o recurso da API ainda se chama "inscrições"). */
 export const inscricoesKeys = {
   all: ['inscricoes'] as const,
   minhas: ['inscricoes', 'minhas'] as const,
-  orientacoes: ['inscricoes', 'orientacoes'] as const,
   detalhe: (id: string) => ['inscricoes', 'detalhe', id] as const,
-  docentes: ['docentes'] as const,
+  candidaturas: (id: string) => ['inscricoes', 'candidaturas', id] as const,
+};
+
+export const candidaturasKeys = {
+  all: ['candidaturas'] as const,
+  minhas: ['candidaturas', 'minhas'] as const,
+  divulgados: (filtro: FiltroDivulgados) => ['candidaturas', 'divulgados', filtro] as const,
 };
 
 export const anexoUrl = (inscricaoId: string, anexoId: string) =>
   `/api/inscricoes/${inscricaoId}/anexos/${anexoId}/arquivo`;
 
-export function useMinhasInscricoes() {
+// ── Professor ──────────────────────────────────────────────────────────────
+
+export function useMinhasInscricoes(enabled = true) {
   return useQuery({
     queryKey: inscricoesKeys.minhas,
     queryFn: ({ signal }) => http.get<ListResponse<Inscricao>>('/api/inscricoes/minhas', signal),
     select: (res) => res.data,
-  });
-}
-
-export function useOrientacoes() {
-  return useQuery({
-    queryKey: inscricoesKeys.orientacoes,
-    queryFn: ({ signal }) => http.get<ListResponse<Inscricao>>('/api/orientacoes', signal),
-    select: (res) => res.data,
+    enabled,
   });
 }
 
@@ -38,12 +46,12 @@ export function useInscricao(id: string | undefined) {
   });
 }
 
-export function useDocentes() {
+export function useCandidaturasDoProjeto(id: string, enabled: boolean) {
   return useQuery({
-    queryKey: inscricoesKeys.docentes,
-    queryFn: ({ signal }) => http.get<ListResponse<Docente>>('/api/usuarios/docentes', signal),
+    queryKey: inscricoesKeys.candidaturas(id),
+    queryFn: ({ signal }) => http.get<ListResponse<Candidatura>>(`/api/inscricoes/${id}/candidaturas`, signal),
     select: (res) => res.data,
-    staleTime: 5 * 60_000,
+    enabled,
   });
 }
 
@@ -89,22 +97,82 @@ export function useRemoverAnexo(id: string) {
   });
 }
 
-export function useSubmeterInscricao(id: string) {
+export function useDivulgarProjeto(id: string) {
   const setDetalhe = useSetDetalhe();
   return useMutation({
-    mutationFn: () => http.post<Inscricao>(`/api/inscricoes/${id}/submissao`),
+    mutationFn: () => http.post<Inscricao>(`/api/inscricoes/${id}/divulgacao`),
     onSuccess: setDetalhe,
   });
 }
 
-export function useResponderVinculo(id: string) {
+export function useSelecionarAluno(id: string) {
+  const setDetalhe = useSetDetalhe();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { decisao: 'CONFIRMAR' | 'RECUSAR'; comentario?: string }) =>
-      http.post<Inscricao>(`/api/inscricoes/${id}/vinculo`, input),
+    mutationFn: (candidaturaId: string) => http.post<Inscricao>(`/api/inscricoes/${id}/selecao`, { candidaturaId }),
     onSuccess: (inscricao) => {
-      queryClient.setQueryData(inscricoesKeys.detalhe(id), inscricao);
-      void queryClient.invalidateQueries({ queryKey: inscricoesKeys.orientacoes });
+      setDetalhe(inscricao);
+      void queryClient.invalidateQueries({ queryKey: inscricoesKeys.candidaturas(id) });
     },
+  });
+}
+
+/** Envio ao edital com os três professores avaliadores. */
+export function useEnviarAoEdital(id: string) {
+  const setDetalhe = useSetDetalhe();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (avaliadorIds: string[]) => http.post<Inscricao>(`/api/inscricoes/${id}/submissao`, { avaliadorIds }),
+    onSuccess: (inscricao) => {
+      setDetalhe(inscricao);
+      void queryClient.invalidateQueries({ queryKey: inscricoesKeys.candidaturas(id) });
+    },
+  });
+}
+
+// ── Aluno ──────────────────────────────────────────────────────────────────
+
+export interface FiltroDivulgados {
+  editalId?: string;
+  q?: string;
+}
+
+/** Projetos divulgados com vaga (rota pública: visitantes também veem). */
+export function useProjetosDivulgados(filtro: FiltroDivulgados = {}) {
+  const params = new URLSearchParams();
+  if (filtro.editalId) params.set('editalId', filtro.editalId);
+  if (filtro.q) params.set('q', filtro.q);
+  const qs = params.toString();
+  return useQuery({
+    queryKey: candidaturasKeys.divulgados(filtro),
+    queryFn: ({ signal }) =>
+      http.get<ListResponse<ProjetoDivulgado>>(`/api/publico/projetos${qs ? `?${qs}` : ''}`, signal),
+    select: (res) => res.data,
+  });
+}
+
+export function useMinhasCandidaturas(enabled = true) {
+  return useQuery({
+    queryKey: candidaturasKeys.minhas,
+    queryFn: ({ signal }) => http.get<ListResponse<Candidatura>>('/api/candidaturas/minhas', signal),
+    select: (res) => res.data,
+    enabled,
+  });
+}
+
+export function useCandidatar() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ projetoId, mensagem }: { projetoId: string; mensagem: string }) =>
+      http.post<Candidatura>(`/api/inscricoes/${projetoId}/candidaturas`, { mensagem }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: candidaturasKeys.minhas }),
+  });
+}
+
+export function useDesistirCandidatura() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (candidaturaId: string) => http.delete<void>(`/api/candidaturas/${candidaturaId}`),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: candidaturasKeys.minhas }),
   });
 }
