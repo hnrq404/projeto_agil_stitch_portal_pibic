@@ -5,6 +5,8 @@ coverage/
 .env
 server/src/infra/prisma/dev.db
 server/src/infra/prisma/dev.db-journal
+server/src/infra/prisma/e2e.db
+server/src/infra/prisma/e2e.db-journal
 web/test-results/
 web/playwright-report/
 web/blob-report/

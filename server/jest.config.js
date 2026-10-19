@@ -29,6 +29,11 @@ module.exports = {
     // Só tests/unit: sem isso, a regex também pegava os *.int.test.ts e eles rodavam duas vezes.
     makeProject('unit', 'tests/unit/.*\\.test\\.ts$'),
     makeProject('integration', '\\.int\\.test\\.ts$'),
-    makeProject('e2e', '\\.e2e\\.ts$'),
+    // Banco próprio (e2e.db): os E2E limpam as tabelas e não podem apagar o dev.db do seed.
+    {
+      ...makeProject('e2e', '\\.e2e\\.ts$'),
+      globalSetup: '<rootDir>/tests/e2e/global-setup.js',
+      setupFiles: ['<rootDir>/tests/e2e/setup-env.js'],
+    },
   ],
 };

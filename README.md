@@ -67,7 +67,7 @@ Detalhes, regras de negócio e endpoints em [`server/README.md`](./server/README
 | Comando (raiz)                                        | Descrição                                                                                 |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | `npm test`                                          | unitários + integração do server (Jest) e unitários do web (Vitest)                     |
-| `npm run test:e2e:api`                              | E2E de API com JWT + Prisma real (**limpa o banco**: rode `npm run db:seed` depois) |
+| `npm run test:e2e:api`                              | E2E de API com JWT + Prisma real, num banco separado (`e2e.db`): o `dev.db` não é tocado |
 | `npm run test:e2e:ui`                               | build + E2E de browser (Playwright): ciclo completo com os quatro papéis                   |
 | `npm run typecheck`                                 | `tsc` nos dois projetos                                                                   |
 | `npm run lint`                                      | ESLint nos dois projetos (falha com qualquer aviso)                                         |
