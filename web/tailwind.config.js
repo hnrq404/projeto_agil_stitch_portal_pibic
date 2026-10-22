@@ -10,19 +10,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary Navy — navegação, ações principais, cabeçalhos de tabela.
+        // Ruby — navegação, ações principais, cabeçalhos de tabela.
         primary: {
-          DEFAULT: '#0F294A',
-          strong: '#00142F',
-          hover: '#1A365D',
-          soft: '#EAEDFF',
-          muted: '#7A91B7',
+          DEFAULT: '#9B1C31',
+          strong: '#741629',
+          hover: '#83172C',
+          soft: '#FCE8EB',
+          muted: '#B75B6B',
         },
-        // Secondary Teal — bolsas ativas, confirmações, progresso.
+        // Dourado — destaques e ações secundárias.
         secondary: {
-          DEFAULT: '#0D9488',
-          strong: '#0F766E',
-          soft: '#CCFBF1',
+          DEFAULT: '#8A6412',
+          strong: '#6E4D08',
+          soft: '#FAF0D5',
+          light: '#F2C14E',
         },
         canvas: '#F8FAFC',
         surface: '#FFFFFF',

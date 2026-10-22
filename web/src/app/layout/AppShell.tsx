@@ -82,7 +82,7 @@ export function AppShell() {
             </li>
           ))}
         </ul>
-        <p className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-wider text-primary-muted">Público</p>
+        <p className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-wider text-secondary-light">Público</p>
         <ul className="space-y-1">
           {PUBLIC_NAV.map(({ to, label, icon: Icon }) => (
             <li key={to}>
@@ -107,7 +107,7 @@ export function AppShell() {
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{user.nome}</p>
-            <p className="truncate text-xs text-primary-muted">
+            <p className="truncate text-xs text-secondary-light">
               {ROLE_LABEL[user.role]}
               {user.departamento ? `, ${user.departamento}` : ''}
             </p>

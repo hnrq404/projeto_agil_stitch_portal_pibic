@@ -180,7 +180,7 @@ function Atribuicao({ item }: { item: ItemTriagem }) {
                   >
                     <input
                       type="checkbox"
-                      className="mt-0.5 accent-[#0F294A]"
+                      className="mt-0.5 accent-primary"
                       disabled={conflito || lotado}
                       checked={marcado}
                       onChange={(e) =>

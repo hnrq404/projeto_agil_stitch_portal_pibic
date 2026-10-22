@@ -15,16 +15,16 @@ colors:
   inverse-on-surface: '#eef0ff'
   outline: '#74777f'
   outline-variant: '#c4c6cf'
-  surface-tint: '#485f83'
-  primary: '#00142f'
+  surface-tint: '#9b1c31'
+  primary: '#9b1c31'
   on-primary: '#ffffff'
-  primary-container: '#0f294a'
-  on-primary-container: '#7a91b7'
-  inverse-primary: '#b0c8f1'
-  secondary: '#006a61'
+  primary-container: '#fce8eb'
+  on-primary-container: '#741629'
+  inverse-primary: '#e7a8b4'
+  secondary: '#8a6412'
   on-secondary: '#ffffff'
-  secondary-container: '#86f2e4'
-  on-secondary-container: '#006f66'
+  secondary-container: '#faefd5'
+  on-secondary-container: '#6e4d08'
   tertiary: '#240f00'
   on-tertiary: '#ffffff'
   tertiary-container: '#422000'
@@ -154,18 +154,18 @@ spacing:
 This design system targets researchers, university faculty, scientific grant evaluators, and undergraduate research scholars (PIBIC/PIBITI). It embodies Brazilian federal academic rigor (inspired by CNPq, CAPES, and federal university research rectorates) merged with contemporary digital efficiency.
 
 The visual style is **Corporate / Modern Institutional**:
-- **Authoritative & Trustworthy**: Deep, structured indigo conveys institutional legitimacy and regulatory compliance without feeling dated or bureaucratic.
+- **Authoritative & Trustworthy**: Ruby red and golden yellow convey institutional identity and legitimacy without feeling dated or bureaucratic.
 - **Scientific Clarity**: High information density balanced by rigorous whitespace, eliminating visual clutter in favor of scannable metadata, structured registries, and accessible document hierarchies.
 - **Inclusive Accessibility**: Formulated strictly under WCAG 2.1 AA criteria, delivering high text-to-background contrast ratios and distinct, non-color-exclusive state signifiers.
 - **Precise & Analytical**: Subtle geometric boundaries, crisp hairline dividers, tabular numeral alignments, and restrained accents indicate an analytical, data-centric research environment.
 
 ## Colors
 
-The palette establishes an immediate institutional presence, pairing deep academic maritime hues with vibrant scientific teals and standard Brazilian public research state signifiers.
+The palette establishes an immediate institutional presence with ruby red as the primary color and golden yellow as a supporting accent, while preserving distinct semantic status colors.
 
 ### Palette Breakdown
-- **Primary Navy (`#0F294A` / `#1A365D`)**: Anchors primary navigation bars, dominant action buttons, table headers, and structural institution branding.
-- **Secondary Teal (`#0D9488` / `#059669`)**: Highlights active grants, verified scientific outputs, publication confirmations, and primary progress indicators.
+- **Primary Ruby (`#9B1C31` / `#741629`)**: Anchors primary navigation bars, dominant action buttons, table headers, and structural institution branding.
+- **Secondary Gold (`#8A6412` / `#6E4D08`)**: Highlights secondary actions and supporting institutional accents.
 - **Tertiary Amber (`#D97706`)**: Denotes evaluation milestones, draft statuses ("Em Análise"), pending committee reviews, and notice alerts.
 - **Neutral Dark (`#0F172A`)**: Primary text color for body paragraphs, labels, and titles, ensuring a contrast ratio exceeding 12:1 against light canvases.
 - **Neutral Surface & Canvas (`#F8FAFC`, `#FFFFFF`, `#F1F5F9`)**: Canvas backgrounds, layered data card fills, and neutral input fields.
@@ -212,13 +212,13 @@ The design uses a restrained, professional roundedness level (`roundedness: 1`).
 ## Components
 
 ### Buttons
-- **Primary**: Solid Deep Navy (`#0F294A`), text white, font-weight 600. Height 40px (desktop), 8px corner radius. Focus ring: 3px `#93C5FD`.
-- **Secondary**: Outlined hairline border `#CBD5E1`, surface white, text `#0F294A`. Hover background `#F8FAFC`.
+- **Primary**: Solid Ruby (`#9B1C31`), text white, font-weight 600. Height 40px (desktop), 8px corner radius. Focus ring: 3px `#93C5FD`.
+- **Secondary**: Outlined hairline border `#CBD5E1`, surface white, text `#8A6412`. Hover background `#F8FAFC`.
 - **Success / Action**: Solid Emerald Teal (`#0D9488`), text white. Reserved for final grant submission, approval sign-off, or export actions.
 
 ### Academic Search Bars & Quick-Filter Pills
 - Single unified search input with integrated search icon, clear button, and shortcut badge (`⌘K`).
-- Filter bar sits directly beneath the search input: a horizontal track of pill badges with active/inactive states (e.g., "Todos", "Edital 2024/2025", "Bolsas PIBIC", "Voluntários PIVIC"). Inactive pills use `#F1F5F9` background and `#475569` text; active pills use `#0F294A` background with `#FFFFFF` text.
+- Filter bar sits directly beneath the search input: a horizontal track of pill badges with active/inactive states (e.g., "Todos", "Edital 2024/2025", "Bolsas PIBIC", "Voluntários PIVIC"). Inactive pills use `#F1F5F9` background and `#475569` text; active pills use `#9B1C31` background with `#FFFFFF` text.
 
 ### Research Summary Cards
 - White surface, `1px solid #E2E8F0`, 8px padding/radius.
@@ -227,11 +227,11 @@ The design uses a restrained, professional roundedness level (`roundedness: 1`).
 - **Footer**: CNPq subarea tag, quota indicator, and contextual action link ("Ver Parecer", "Submeter Relatório").
 
 ### Metric KPI Stat Tiles
-- Compact white container with an accent top-border strip (2px height) in Primary Navy or Secondary Teal.
+- Compact white container with an accent top-border strip (2px height) in Ruby or Gold.
 - Displays large tabular numeric stat (28px bold), labeled by a clean 12px uppercase title, paired with a delta comparison indicator or total quota tally (e.g., `14/20 Bolsas Alocadas`).
 
 ### Multi-Step Research Registration Forms
-- **Stepper Header**: Sequential track with numeric circular steps. Finished steps display a check icon with `#0D9488` fill; current step displays a navy border and bold label.
+- **Stepper Header**: Sequential track with numeric circular steps. Finished steps display a check icon with `#0D9488` fill; current step displays a ruby border and bold label.
 - **Input Fields**: 40px height, `1px solid #CBD5E1` border, `#FFFFFF` surface, font size 14px. Float label pattern avoided in favor of clear top-aligned labels with explicit asterisks for mandatory CNPq/Lattes fields.
 - **Attachment Dropzones**: Dashed border `2px dashed #94A3B8`, background `#F8FAFC`. Contains centered document upload icon, upload prompt text, allowed format badges (`PDF até 10MB`), and real-time upload progress bars.
 

@@ -99,7 +99,7 @@ export function CadastroPage() {
                   role === perfil.value ? 'border-primary bg-primary-soft' : 'border-line hover:border-line-strong',
                 )}
               >
-                <input type="radio" value={perfil.value} className="mt-1 accent-[#0F294A]" {...register('role')} />
+                <input type="radio" value={perfil.value} className="mt-1 accent-primary" {...register('role')} />
                 <span>
                   <span className="block text-sm font-semibold text-ink">{perfil.label}</span>
                   <span className="block text-xs text-ink-muted">{perfil.descricao}</span>

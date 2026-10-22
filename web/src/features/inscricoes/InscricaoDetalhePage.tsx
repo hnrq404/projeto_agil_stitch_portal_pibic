@@ -377,7 +377,7 @@ function EnvioAoEdital({ inscricao }: { inscricao: Inscricao }) {
                     >
                       <input
                         type="checkbox"
-                        className="accent-[#0F294A]"
+                        className="accent-primary"
                         checked={marcado}
                         disabled={bloqueado}
                         onChange={() => alternar(d.id)}
