@@ -6,10 +6,10 @@ React 18 + Vite + TypeScript + Tailwind, com TanStack Query (estado de servidor)
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173 (proxy /api → :3000; suba o server/ antes)
+npm run dev        # http://localhost:5173 (proxy /api → :3000; na raiz, npm run dev sobe emulador, API e front)
 npm run build      # build de produção em dist/ (servida pelo server/ na :3000)
 npm test           # testes unitários (Vitest)
-npm run test:e2e   # Playwright contra o server full-stack (:3000), após o build
+npm run test:e2e   # Playwright contra o server full-stack (:3000); pela raiz, npm run test:e2e:ui sobe o emulador
 ```
 
 ## Estrutura
@@ -36,7 +36,7 @@ src/
 │   ├── notificacoes/    # lista e contador do sino
 │   └── usuarios/        # gestão de papéis e departamentos (S1.2)
 └── shared/
-    ├── api/             # cliente HTTP (JWT, erros, upload com progresso), QueryClient
+    ├── api/             # cliente HTTP (JWT, erros, upload de PDF direto ao armazenamento), QueryClient
     ├── ui/              # kit de componentes do DESIGN.md (Button, Field, Card, StatusBadge...)
     ├── hooks/           # useAutoSave, useDocumentTitle
     ├── lib/             # formatadores pt-BR, rótulos de status, cn()

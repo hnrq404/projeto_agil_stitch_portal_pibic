@@ -1,5 +1,6 @@
 import request from 'supertest';
-import { buildApp, type AppContainer } from '../../src/infra/config/app.container';
+import type { AppContainer } from '../../src/infra/config/app.container';
+import { buildTestApp } from '../helpers/app';
 import { criarELogar, criarUsuario } from '../helpers/usuarios';
 
 jest.setTimeout(20000);
@@ -8,7 +9,7 @@ let container: AppContainer;
 
 beforeEach(() => {
   // JWT real + repositórios in-memory frescos por cenário.
-  container = buildApp({ jwtSecret: 'test-secret' });
+  container = buildTestApp({ jwtSecret: 'test-secret' });
 });
 
 const discentePayload = () => ({
@@ -257,7 +258,7 @@ describe('Endurecimento da API', () => {
   });
 
   it('bloqueia o login após 10 senhas erradas, mesmo com a senha certa depois', async () => {
-    const app = buildApp({ jwtSecret: 'test-secret', authRateLimit: true }).app;
+    const app = buildTestApp({ jwtSecret: 'test-secret', authRateLimit: true }).app;
     await request(app).post('/api/auth/register').send(discentePayload());
 
     for (let i = 0; i < 10; i += 1) {
@@ -276,7 +277,7 @@ describe('Endurecimento da API', () => {
   });
 
   it('logins bem-sucedidos não contam para o limite', async () => {
-    const app = buildApp({ jwtSecret: 'test-secret', authRateLimit: true }).app;
+    const app = buildTestApp({ jwtSecret: 'test-secret', authRateLimit: true }).app;
     await request(app).post('/api/auth/register').send(discentePayload());
 
     for (let i = 0; i < 12; i += 1) {
@@ -285,5 +286,90 @@ describe('Endurecimento da API', () => {
         .send({ email: discentePayload().email, senha: discentePayload().senha });
       expect(ok.status).toBe(200);
     }
+  });
+});
+
+describe('POST /api/auth/senha', () => {
+  async function registrar() {
+    const res = await request(container.app).post('/api/auth/register').send(discentePayload());
+    return { Authorization: `Bearer ${res.body.token as string}` };
+  }
+
+  it('troca a senha, derruba o token antigo e devolve um token novo que funciona', async () => {
+    const antigo = await registrar();
+
+    const troca = await request(container.app)
+      .post('/api/auth/senha')
+      .set(antigo)
+      .send({ senhaAtual: discentePayload().senha, novaSenha: 'nova-senha-456' });
+    expect(troca.status).toBe(200);
+    const novo = { Authorization: `Bearer ${troca.body.token as string}` };
+
+    const comAntigo = await request(container.app).get('/api/auth/me').set(antigo);
+    expect(comAntigo.status).toBe(401);
+    expect(comAntigo.body.error.message).toMatch(/senha foi alterada/i);
+    expect((await request(container.app).get('/api/auth/me').set(novo)).status).toBe(200);
+
+    const loginAntigo = await request(container.app)
+      .post('/api/auth/login')
+      .send({ email: discentePayload().email, senha: discentePayload().senha });
+    expect(loginAntigo.status).toBe(401);
+    const loginNovo = await request(container.app)
+      .post('/api/auth/login')
+      .send({ email: discentePayload().email, senha: 'nova-senha-456' });
+    expect(loginNovo.status).toBe(200);
+  });
+
+  it('senha atual errada responde 400 (não 401) e mantém a sessão', async () => {
+    const auth = await registrar();
+
+    const res = await request(container.app)
+      .post('/api/auth/senha')
+      .set(auth)
+      .send({ senhaAtual: 'errada-123', novaSenha: 'nova-senha-456' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.message).toMatch(/senha atual/i);
+    expect((await request(container.app).get('/api/auth/me').set(auth)).status).toBe(200);
+  });
+
+  it('recusa nova senha igual à atual ou fraca, e exige login', async () => {
+    const auth = await registrar();
+
+    const igual = await request(container.app)
+      .post('/api/auth/senha')
+      .set(auth)
+      .send({ senhaAtual: discentePayload().senha, novaSenha: discentePayload().senha });
+    expect(igual.status).toBe(400);
+
+    const fraca = await request(container.app)
+      .post('/api/auth/senha')
+      .set(auth)
+      .send({ senhaAtual: discentePayload().senha, novaSenha: 'curta' });
+    expect(fraca.status).toBe(400);
+
+    const semToken = await request(container.app)
+      .post('/api/auth/senha')
+      .send({ senhaAtual: 'x', novaSenha: 'nova-senha-456' });
+    expect(semToken.status).toBe(401);
+  });
+});
+
+describe('Rastreio de requisições e saúde', () => {
+  it('gera X-Request-Id e reaproveita um id válido vindo do proxy', async () => {
+    const gerado = await request(container.app).get('/api/health');
+    expect(gerado.headers['x-request-id']).toMatch(/^[\w-]{1,64}$/);
+
+    const repassado = await request(container.app).get('/api/health').set('X-Request-Id', 'proxy-abc-123');
+    expect(repassado.headers['x-request-id']).toBe('proxy-abc-123');
+
+    const invalido = await request(container.app).get('/api/health').set('X-Request-Id', 'tem espaço e <tag>');
+    expect(invalido.headers['x-request-id']).not.toBe('tem espaço e <tag>');
+  });
+
+  it('readiness responde ok e informa o banco em uso', async () => {
+    const res = await request(container.app).get('/api/health/ready');
+    expect(res.status).toBe(200);
+    const esperado = process.env['TEST_PERSISTENCIA'] === 'firestore' ? 'ok' : 'memoria';
+    expect(res.body).toEqual({ status: 'ok', banco: esperado });
   });
 });

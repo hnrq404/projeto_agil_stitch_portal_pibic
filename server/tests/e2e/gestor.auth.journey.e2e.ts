@@ -1,6 +1,6 @@
 /**
  * E2E (API) — Jornada completa com AUTENTICAÇÃO REAL + persistência REAL:
- *   1. cria uma conta GESTOR (bcrypt no banco SQLite), como o seed
+ *   1. cria uma conta GESTOR (bcrypt no Firestore), como o seed
  *   2. faz login e recebe JWT
  *   3. cria edital com cotas por subárea CNPq
  *   4. tenta quebrar a regra de consistência de cotas (bloqueado)
@@ -8,7 +8,7 @@
  *   6. verifica vitrine pública
  *   7. encerra o edital após o prazo
  *
- * Roda sobre Prisma/SQLite real (usePrisma: true) — o mesmo caminho do bootstrap.
+ * Roda sobre o emulador do Firestore (persistencia: 'firestore') — o mesmo caminho do bootstrap.
  */
 import request from 'supertest';
 import { buildApp, type AppContainer } from '../../src/infra/config/app.container';
@@ -23,9 +23,9 @@ loadEnv();
 let container: AppContainer;
 
 beforeAll(async () => {
-  // Prisma REAL + clock congelado: prazos determinísticos (publicação/encerramento).
+  // Firestore (emulador) + clock congelado: prazos determinísticos (publicação/encerramento).
   container = buildApp({
-    usePrisma: true,
+    persistencia: 'firestore',
     jwtSecret: 'e2e-secret',
     clock: new FixedClock('2026-09-14T12:00:00.000Z'),
   });

@@ -10,11 +10,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: 20
+  NODE_VERSION: 22
+  # O emulador do Firestore exige Java 21+.
+  JAVA_VERSION: 21
 
 jobs:
   server:
-    name: API (typecheck, lint, testes)
+    name: API (typecheck, lint, testes em memória e no Firestore)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -26,11 +28,21 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: server/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('server/package-lock.json') }}
       - run: npm ci
-      - run: npm run db:generate
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      # A mesma suíte de integração, agora contra o emulador do Firestore.
+      - run: npm run test:integration:firestore
+      - run: npm run test:e2e
 
   web:
     name: SPA (typecheck, lint, testes, build)
@@ -52,11 +64,10 @@ jobs:
       - run: npm run build
 
   e2e:
-    name: E2E no navegador (Playwright)
+    name: E2E no navegador (Playwright + emulador)
     needs: [server, web]
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: file:./dev.db
       JWT_SECRET: ci-secret
     steps:
       - uses: actions/checkout@v4
@@ -67,14 +78,20 @@ jobs:
           cache-dependency-path: |
             server/package-lock.json
             web/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: firebase-emulators-${{ hashFiles('server/package-lock.json') }}
       - run: npm ci --prefix server
       - run: npm ci --prefix web
-      - run: npm run db:push --prefix server
       - run: npx playwright install --with-deps chromium
         working-directory: web
-      # O webServer do Playwright aplica o seed e sobe a API servindo o build do web/.
-      - run: npm run build --prefix web
-      - run: npm run test:e2e --prefix web
+      # Sobe o emulador; o webServer do Playwright aplica o seed e sobe a API servindo o build do web/.
+      - run: npm run test:e2e:ui
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

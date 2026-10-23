@@ -16,7 +16,7 @@ Docente e avaliador são o mesmo papel: todo professor pode ser indicado para av
 
 Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda a documentação de produto e arquitetura versionada como uma wiki interna via wikilinks.
 
-**Status atual:** aplicação full-stack cobrindo o ciclo S1 a S6: API Node.js/TypeScript + Express + **Prisma/SQLite** com autenticação real (**JWT + bcrypt**) em [`server/`](./server) e SPA **React + Vite + Tailwind** em [`web/`](./web). Três papéis principais (discente, docente, gestor); editais; projeto do professor em etapas com auto-save e upload de PDF; divulgação, candidatura e seleção do aluno; envio com três professores avaliadores; rubrica 0–10; homologação por cota; relatórios mensais (dia 5) com lembrete automático e relatório final; painel do gestor; vitrine pública. Testes unitários, de integração e E2E (API e browser) verdes. O protótipo com Convex segue em [`portal-lab/`](./portal-lab).
+**Status atual:** aplicação full-stack cobrindo o ciclo S1 a S6, publicada na **Vercel**: API Node.js/TypeScript + Express + **Firestore** (Firebase) com autenticação real (**JWT + bcrypt**) e PDFs no **Vercel Blob**, em [`server/`](./server) e SPA **React + Vite + Tailwind** em [`web/`](./web). Três papéis principais (discente, docente, gestor); editais; projeto do professor em etapas com auto-save e upload de PDF; divulgação, candidatura e seleção do aluno; envio com três professores avaliadores; rubrica 0–10; homologação por cota; relatórios mensais (dia 5) com lembrete automático e relatório final; painel do gestor; vitrine pública. Testes unitários, de integração e E2E (API e browser) verdes. O protótipo com Convex segue em [`portal-lab/`](./portal-lab).
 
 **Previsão de conclusão da versão funcional:** `18/11/2026`. A estimativa considera a entrega das funcionalidades principais até o fim da Sprint 4, prevista para o período de `09/11/2026` a `20/11/2026`, mantendo o limite de conclusão em novembro de 2026. Como referência de ritmo, os commits registrados entre `10/09/2026` e `21/09/2026` ocorreram ao longo de 12 dias corridos; a data permanece uma previsão e pode mudar conforme o andamento das próximas sprints. As etapas de homologação, métricas, relatórios, acessibilidade e apresentação podem ser realizadas posteriormente.
 
@@ -30,35 +30,41 @@ Atividade acadêmica desenvolvida com metodologia ágil (Scrum/Kanban), com toda
 
 ## 🚀 Rodando o projeto
 
-A aplicação roda full-stack em [`server/`](./server) + [`web/`](./web), usando SQLite local.
+A aplicação é full-stack: API em [`server/`](./server) (Express + **Firestore**) e SPA em [`web/`](./web). Em produção roda na **Vercel**, com o banco no **Firebase** e os PDFs no **Vercel Blob**. Na máquina de cada um, o banco é o **emulador do Firestore**.
+
+Pré-requisitos: **Node 22+** e **Java 21+** (o emulador do Firebase é um programa Java; instale, por exemplo, o Temurin 21 em [adoptium.net](https://adoptium.net)).
 
 ```bash
 cd caminho/para/projeto_agil_stitch_portal_pibic
-cp server/.env.example server/.env      # ajuste o JWT_SECRET
-npm run setup                           # instala, cria o banco, aplica o seed e faz o build do web/
+cp server/.env.example server/.env      # já vem apontando para o emulador
+npm run setup                           # instala as dependências do server/ e do web/
+npm run dev                             # emulador (:8080) + API (:3000) + front (:5173)
 ```
 
-Para desenvolver com recarga automática (API em `http://localhost:3000`, front em `http://localhost:5173`):
+Com o `npm run dev` rodando, em outro terminal:
 
 ```bash
-npm run dev
+npm run db:seed                         # contas e dados de demonstração
 ```
 
-Para ver o build do front servido pela própria API em `http://localhost:3000` (sem recarga automática, com as configurações de desenvolvimento):
+O emulador começa vazio a cada vez que sobe: rode o `db:seed` de novo depois de reiniciá-lo. Os PDFs enviados localmente ficam em `server/uploads/`.
+
+Para ver o build do front servido pela própria API em `http://localhost:3000` (o emulador precisa estar rodando: `npm run emulador --prefix server`):
 
 ```bash
 npm start
 ```
 
-Para rodar como em produção (API compilada para `server/dist`, `NODE_ENV=production`):
+### Deploy na Vercel
 
-```bash
-npm run start:prod
-```
+O repositório já traz a configuração ([`vercel.json`](./vercel.json)): a API vira uma função serverless em [`api/index.js`](./api/index.js), o `web/dist` é servido como site estático e duas tarefas agendadas (Vercel Cron) substituem os timers do servidor local.
 
-Em produção, o `JWT_SECRET` precisa ser aleatório e ter ao menos 32 caracteres (`openssl rand -base64 48`); com o valor de exemplo do `.env.example`, a API se recusa a subir. Atrás de um proxy reverso, defina `TRUST_PROXY=1`.
+1. **Firebase**: crie um projeto, ative o **Firestore** (modo de produção) e publique as regras e índices deste repositório: `npx firebase deploy --only firestore --project SEU_PROJETO` (a partir de `server/`). Em *Configurações do projeto > Contas de serviço*, gere uma chave privada.
+2. **Vercel**: importe o repositório (*Root Directory* = raiz). Em *Storage*, crie um **Blob store** e conecte ao projeto (isso define `BLOB_READ_WRITE_TOKEN`).
+3. **Variáveis de ambiente** na Vercel: `JWT_SECRET` (32+ caracteres aleatórios), `CRON_SECRET` (aleatório), `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL` e `FIREBASE_PRIVATE_KEY` (da chave do passo 1). **Não** defina `FIRESTORE_EMULATOR_HOST` lá.
+4. Faça o deploy. Para ter dados de demonstração em produção, rode o seed uma vez da sua máquina com as variáveis de produção num `.env` temporário (sem `FIRESTORE_EMULATOR_HOST`).
 
-Depois de atualizar o código, rode `npm run db:push --prefix server` para aplicar mudanças do schema e, em seguida, `npm run db:seed`: o seed também converte dados do fluxo antigo (contas de avaliador viram docente; propostas do aluno passam ao professor com o aluno já selecionado; relatório parcial vira mensal). Como o push remove as colunas de vínculo do fluxo antigo, o Prisma pede `--accept-data-loss`; faça uma cópia do `dev.db` antes.
+No plano **Hobby** as tarefas agendadas rodam uma vez por dia: editais vencidos são encerrados à meia-noite de Recife (as regras de prazo já valem pela data, então ninguém consegue se inscrever depois do prazo) e os lembretes de relatório saem às 9h. No plano Pro dá para aumentar a frequência em `vercel.json`.
 
 No PowerShell, se `npm` for bloqueado pela política de scripts, use `npm.cmd` no lugar de `npm`.
 
@@ -80,9 +86,10 @@ Detalhes, regras de negócio e endpoints em [`server/README.md`](./server/README
 
 | Comando (raiz)                                        | Descrição                                                                                 |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `npm test`                                          | unitários + integração do server (Jest) e unitários do web (Vitest)                     |
-| `npm run test:e2e:api`                              | E2E de API com JWT + Prisma real, num banco separado (`e2e.db`): o `dev.db` não é tocado |
-| `npm run test:e2e:ui`                               | build + E2E de browser (Playwright): ciclo completo, do edital ao relatório mensal         |
+| `npm test`                                          | unitários + integração do server (Jest, em memória) e unitários do web (Vitest)          |
+| `npm run test:firestore`                            | a suíte de integração e os E2E de API contra o emulador do Firestore (sobe sozinho)       |
+| `npm run test:e2e:api`                              | E2E de API no emulador, inclusive concorrência (protocolo, cota, duplicidade)             |
+| `npm run test:e2e:ui`                               | build + E2E de browser (Playwright) no emulador: ciclo completo, do edital ao relatório     |
 | `npm run typecheck`                                 | `tsc` nos dois projetos                                                                   |
 | `npm run lint`                                      | ESLint nos dois projetos (falha com qualquer aviso)                                         |
 | `npm run format --prefix web` / `--prefix server` | formata o código com o Prettier (config em`.prettierrc.json`)                            |
@@ -90,16 +97,16 @@ Detalhes, regras de negócio e endpoints em [`server/README.md`](./server/README
 
 ## 🏗️ Arquitetura
 
-SPA **React + Vite + TypeScript** consumindo uma API REST **Express + Prisma** organizada em arquitetura hexagonal. Os mesmos papéis e regras valem no front (navegação) e no back (autorização de fato).
+SPA **React + Vite + TypeScript** consumindo uma API REST **Express + Firestore** organizada em arquitetura hexagonal. Os mesmos papéis e regras valem no front (navegação) e no back (autorização de fato).
 
 ```text
 web/ (React SPA)  ──HTTP + JWT──>  server/ (Express)
   TanStack Query                     controllers → services → portas (repositórios, storage, clock, notifier)
   react-hook-form + Zod                                        ↓
-                                     adapters: Prisma/SQLite · PDFs em disco
+                                     adapters: Firestore · Vercel Blob (PDFs) · memória nos testes
 ```
 
-- **Back-end** ([`server/`](./server)): um módulo por domínio (`auth`, `editais`, `inscricoes`, `avaliacoes`, `projetos`, `dashboard`, `notificacoes`, `publico`), cada um com regras puras testáveis, DTOs Zod, porta de repositório, service e controller. O container de DI liga as portas aos adapters Prisma; os testes ligam a implementações em memória.
+- **Back-end** ([`server/`](./server)): um módulo por domínio (`auth`, `editais`, `inscricoes`, `avaliacoes`, `projetos`, `dashboard`, `notificacoes`, `publico`), cada um com regras puras testáveis, DTOs Zod, porta de repositório, service e controller. O container de DI liga as portas aos adapters do Firestore; os testes ligam a implementações em memória, e a mesma suíte também roda contra o emulador.
 - **Front-end** ([`web/`](./web)): organizado por feature (`features/<módulo>` com `api.ts` de hooks e páginas), `shared/ui` com o kit do [DESIGN.md](./institutional_scientific_portal/DESIGN.md) e `app/` com rotas, guards e layouts. Páginas carregadas sob demanda.
 
 **Papéis de acesso**: `DISCENTE`, `DOCENTE` (professor: orienta e também avalia projetos de colegas), `GESTOR`/`ADMIN` e `USUARIO` (visitante). O antigo `AVALIADOR` foi unificado ao `DOCENTE`. Toda rota da API valida o papel; o guard recarrega o usuário a cada requisição, então uma troca de papel vale na hora.
@@ -159,7 +166,7 @@ Demais páginas da wiki (Qualidade, Definition-of-Done, Gestão de Projeto) são
 
 ## 🛠️ Stack
 
-TypeScript · React 18 · Vite · TanStack Query · react-hook-form · Zod · Tailwind CSS · Express · Prisma · SQLite · JWT · Jest · Vitest · Playwright
+TypeScript · React 18 · Vite · TanStack Query · react-hook-form · Zod · Tailwind CSS · Express · Firestore (Firebase) · Vercel Blob · Vercel · JWT · Jest · Vitest · Playwright
 
 ## 📐 Convenções
 

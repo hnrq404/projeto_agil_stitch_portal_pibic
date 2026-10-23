@@ -2,14 +2,8 @@ import type { NextFunction, Request, Response, Router } from 'express';
 import { z } from 'zod';
 
 import { createRoleGuard, requireGestor } from '@shared/auth/auth.middleware';
-import {
-  asyncHandler,
-  parseBody,
-  pdfBodyParser,
-  readUploadBody,
-  readUploadFilename,
-  sendPdf,
-} from '@shared/http/http.middleware';
+import { asyncHandler, parseBody } from '@shared/http/http.middleware';
+import { confirmarEnvioSchema } from '@shared/storage/arquivo.dto';
 
 import { toInscricaoResponse } from '../inscricoes/dto/inscricoes.dto';
 import type { InscricoesService } from '../inscricoes/inscricoes.service';
@@ -56,8 +50,9 @@ function toRelatorioResponse(r: Relatorio) {
  *   GET  /api/projetos/exportacao.csv?editalId=              → CSV (GESTOR)
  *   GET  /api/projetos/:id                                   → detalhe + relatórios + acompanhamento + timeline
  *   POST /api/projetos/:id/relatorios                        → envia o texto do relatório (DISCENTE)
- *   PUT  /api/projetos/:id/relatorios/:relatorioId/arquivo   → anexa o PDF (DISCENTE, enquanto em análise)
- *   GET  /api/projetos/:id/relatorios/:relatorioId/arquivo   → baixa o PDF
+ *   POST /api/projetos/:id/relatorios/:relatorioId/arquivo/envio → autoriza o envio do PDF (DISCENTE, enquanto em análise)
+ *   PUT  /api/projetos/:id/relatorios/:relatorioId/arquivo   → { chave, nome }: confere o PDF enviado e o anexa
+ *   GET  /api/projetos/:id/relatorios/:relatorioId/arquivo   → { nome, url }: link temporário para abrir o PDF
  *   POST /api/projetos/:id/relatorios/:relatorioId/avaliacao → aprova/devolve (DOCENTE)
  */
 export function registerProjetosRoutes(
@@ -118,18 +113,30 @@ export function registerProjetosRoutes(
     }),
   );
 
+  // Envio em duas etapas: autoriza o upload direto ao armazenamento e depois confirma.
+  router.post(
+    '/api/projetos/:id/relatorios/:relatorioId/arquivo/envio',
+    authenticationGuard,
+    requireDiscente,
+    asyncHandler(async (req, res) => {
+      res.json(
+        await service.prepararArquivo(req.params['id'] as string, req.user!.id, req.params['relatorioId'] as string),
+      );
+    }),
+  );
+
   router.put(
     '/api/projetos/:id/relatorios/:relatorioId/arquivo',
     authenticationGuard,
     requireDiscente,
-    pdfBodyParser,
     asyncHandler(async (req, res) => {
+      const dto = parseBody(confirmarEnvioSchema, req.body);
       const relatorio = await service.anexarArquivo(
         req.params['id'] as string,
         req.user!.id,
         req.params['relatorioId'] as string,
-        readUploadFilename(req),
-        readUploadBody(req),
+        dto.chave,
+        dto.nome,
       );
       res.json(toRelatorioResponse(relatorio));
     }),
@@ -144,7 +151,7 @@ export function registerProjetosRoutes(
         req.user!,
         req.params['relatorioId'] as string,
       );
-      sendPdf(res, arquivo.content, arquivo.nome);
+      res.json(arquivo);
     }),
   );
 

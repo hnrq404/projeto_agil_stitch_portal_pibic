@@ -3,6 +3,8 @@ import type { Router, Request, Response, NextFunction } from 'express';
 import { asyncHandler, parseBody } from '@shared/http/http.middleware';
 import { requireGestor } from '@shared/auth/auth.middleware';
 
+import type { AuditoriaService } from '../auditoria/auditoria.service';
+
 import { EditaisService } from './editais.service';
 import {
   createEditalSchema,
@@ -24,6 +26,7 @@ export function registerEditaisRoutes(
   router: Router,
   service: EditaisService,
   authenticationGuard: (req: Request, res: Response, next: NextFunction) => void,
+  auditoria: AuditoriaService,
 ): void {
   const admin = [authenticationGuard, requireGestor];
 
@@ -33,6 +36,7 @@ export function registerEditaisRoutes(
     asyncHandler(async (req, res) => {
       const dto = parseBody(createEditalSchema, req.body);
       const edital = await service.create(dto, req.user!.id);
+      await auditoria.registrar(req.user!, 'EDITAL_CRIADO', 'EDITAL', edital.id, { numero: edital.numero });
       res.status(201).json(toEditalResponse(edital));
     }),
   );
@@ -66,6 +70,10 @@ export function registerEditaisRoutes(
     asyncHandler(async (req, res) => {
       const dto = parseBody(updateEditalSchema, req.body);
       const edital = await service.update(req.params['id'] as string, dto, req.user!.id);
+      await auditoria.registrar(req.user!, 'EDITAL_EDITADO', 'EDITAL', edital.id, {
+        numero: edital.numero,
+        campos: Object.keys(dto),
+      });
       res.json(toEditalResponse(edital));
     }),
   );
@@ -76,6 +84,8 @@ export function registerEditaisRoutes(
     asyncHandler(async (req, res) => {
       const dto = parseBody(transitionSchema, req.body);
       const edital = await service.transition(req.params['id'] as string, dto.acao, req.user!.id);
+      const acao = dto.acao === 'publicar' ? 'EDITAL_PUBLICADO' : 'EDITAL_ENCERRADO';
+      await auditoria.registrar(req.user!, acao, 'EDITAL', edital.id, { numero: edital.numero });
       res.json(toEditalResponse(edital));
     }),
   );
@@ -86,6 +96,7 @@ export function registerEditaisRoutes(
     ...admin,
     asyncHandler(async (req, res) => {
       const edital = await service.transition(req.params['id'] as string, 'publicar', req.user!.id);
+      await auditoria.registrar(req.user!, 'EDITAL_PUBLICADO', 'EDITAL', edital.id, { numero: edital.numero });
       res.json(toEditalResponse(edital));
     }),
   );

@@ -9,9 +9,10 @@ import {
 } from '@shared/errors/domain.errors';
 import type { Notifier } from '@shared/events/notifier';
 import {
-  assertPdfValido,
+  assertPdfEnviado,
   sanitizeNomeArquivo,
   type ArquivoStorage,
+  type InstrucaoUpload,
 } from '@shared/storage/arquivo.storage';
 import type { Clock } from '@shared/time/clock';
 
@@ -142,32 +143,45 @@ export class ProjetosService {
     return relatorio;
   }
 
-  /** Anexa (ou troca) o PDF de um relatório ainda em análise. */
+  /** Primeira etapa do envio do PDF de um relatório: autoriza o upload direto ao armazenamento. */
+  async prepararArquivo(
+    id: string,
+    discenteId: string,
+    relatorioId: string,
+  ): Promise<{ chave: string; upload: InstrucaoUpload }> {
+    const relatorio = await this.getRelatorioEditavel(id, discenteId, relatorioId);
+    const chave = `${relatorio.id}-${randomUUID()}`;
+    return { chave, upload: await this.storage.prepararUpload(chave) };
+  }
+
+  /** Segunda etapa: confere o PDF enviado e anexa (ou troca) no relatório ainda em análise. */
   async anexarArquivo(
     id: string,
     discenteId: string,
     relatorioId: string,
+    storageKey: string,
     nomeOriginal: string,
-    content: Buffer,
   ): Promise<Relatorio> {
-    const inscricao = await this.getProjeto(id);
-    if (inscricao.discenteId !== discenteId) {
-      throw new ForbiddenError('Apenas o bolsista do projeto envia relatórios.');
+    const relatorio = await this.getRelatorioEditavel(id, discenteId, relatorioId);
+    if (!storageKey.startsWith(`${relatorio.id}-`)) {
+      throw new ValidationError('Envio de arquivo inválido. Anexe o PDF novamente.');
     }
-    const relatorio = await this.getRelatorio(id, relatorioId);
-    if (relatorio.status !== 'ENVIADO') {
-      throw new UnprocessableEntityError('Este relatório já foi avaliado; envie uma nova versão.');
-    }
-    const nome = sanitizeNomeArquivo(nomeOriginal);
-    assertPdfValido(content, nome);
+    if (relatorio.arquivo?.storageKey === storageKey) return relatorio;
 
-    const storageKey = randomUUID();
-    await this.storage.save(storageKey, content);
+    const nome = sanitizeNomeArquivo(nomeOriginal);
+    const objeto = await this.storage.inspecionar(storageKey);
+    try {
+      assertPdfEnviado(objeto);
+    } catch (error) {
+      if (objeto) await this.storage.remove(storageKey).catch(() => undefined);
+      throw error;
+    }
+
     let saved: Relatorio;
     try {
       saved = await this.relatorios.update({
         ...relatorio,
-        arquivo: { storageKey, nome, tamanho: content.length, mimeType: 'application/pdf' },
+        arquivo: { storageKey, nome, tamanho: objeto.tamanho, mimeType: 'application/pdf' },
       });
     } catch (error) {
       await this.storage.remove(storageKey).catch(() => undefined);
@@ -227,13 +241,27 @@ export class ProjetosService {
     id: string,
     actor: AuthenticatedUser,
     relatorioId: string,
-  ): Promise<{ nome: string; content: Buffer }> {
+  ): Promise<{ nome: string; url: string }> {
     await this.getProjetoForActor(id, actor);
     const relatorio = await this.getRelatorio(id, relatorioId);
     if (!relatorio.arquivo) {
       throw new NotFoundError('Este relatório não tem PDF anexado.');
     }
-    return { nome: relatorio.arquivo.nome, content: await this.storage.read(relatorio.arquivo.storageKey) };
+    const { storageKey, nome } = relatorio.arquivo;
+    return { nome, url: await this.storage.urlDeLeitura(storageKey, nome) };
+  }
+
+  /** Relatório do próprio bolsista que ainda aceita PDF (em análise). */
+  private async getRelatorioEditavel(id: string, discenteId: string, relatorioId: string): Promise<Relatorio> {
+    const inscricao = await this.getProjeto(id);
+    if (inscricao.discenteId !== discenteId) {
+      throw new ForbiddenError('Apenas o bolsista do projeto envia relatórios.');
+    }
+    const relatorio = await this.getRelatorio(id, relatorioId);
+    if (relatorio.status !== 'ENVIADO') {
+      throw new UnprocessableEntityError('Este relatório já foi avaliado; envie uma nova versão.');
+    }
+    return relatorio;
   }
 
   /**

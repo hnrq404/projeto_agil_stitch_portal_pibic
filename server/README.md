@@ -1,14 +1,14 @@
 # server/ — API do Portal PIBIC
 
-API Node.js + Express + TypeScript com **autenticação real** (JWT + bcrypt), **persistência real** (Prisma + SQLite; troque o datasource para PostgreSQL em produção) e PDFs gravados em disco. Cobre os módulos M1 a M7: usuários e papéis, editais, inscrições, triagem e avaliação, homologação, projetos e relatórios, painel e vitrine.
+API Node.js + Express + TypeScript com **autenticação real** (JWT + bcrypt), **persistência no Firestore** (emulador no dev, Firebase em produção) e PDFs no **Vercel Blob** privado (em disco no dev). Roda como servidor Node comum ou como função serverless da Vercel. Cobre os módulos M1 a M7: usuários e papéis, editais, inscrições, triagem e avaliação, homologação, projetos e relatórios, painel e vitrine.
 
 ## Rodando
 
 ```bash
-cp .env.example .env   # ajuste JWT_SECRET
+cp .env.example .env   # já aponta para o emulador
 npm install
-npm run db:push        # cria/migra o SQLite (src/infra/prisma/dev.db)
-npm run db:seed        # contas de demonstração e dados de exemplo (idempotente)
+npm run emulador       # Firestore local em 127.0.0.1:8080 (exige Java 21+); deixe aberto
+npm run db:seed        # em outro terminal: contas e dados de exemplo (idempotente)
 npm run dev            # http://localhost:3000 (API + SPA de web/dist)
 ```
 
@@ -48,12 +48,11 @@ src/
 │   ├── notificacoes/  # notificações in-app
 │   └── publico/       # vitrines (editais abertos e pesquisas aprovadas), sem autenticação
 └── infra/
-    ├── config/        # container de DI (composition root), env
-    ├── persistence/   # adapters Prisma de cada porta
-    └── prisma/        # schema.prisma
+    ├── config/        # container de DI (composition root), env, rotas de cron
+    └── firestore/     # adapters Firestore de cada porta + contador do limite de tentativas
 ```
 
-Os services dependem só de portas (`*Repository`, `Clock`, `ArquivoStorage`, `Notifier`). Os testes injetam implementações em memória e relógio congelado; o bootstrap injeta Prisma e disco.
+Os services dependem só de portas (`*Repository`, `Clock`, `ArquivoStorage`, `Notifier`). Os testes injetam implementações em memória e relógio congelado; o bootstrap injeta Firestore e Vercel Blob (ou disco no dev).
 
 ## Regras de negócio implementadas
 
@@ -77,7 +76,7 @@ Os services dependem só de portas (`*Repository`, `Clock`, `ArquivoStorage`, `N
 
 ## Endpoints
 
-Erros seguem `{ error: { code, message, details? } }`: 400 (validação), 401, 403, 404, 409, 413, 422 (regra de negócio).
+Erros seguem `{ error: { code, message, details? } }`: 400 (validação), 401, 403, 404, 409, 413, 422 (regra de negócio), 429 (limite de tentativas). Nos 500, `error.requestId` traz o mesmo id do header `X-Request-Id` e da linha de log.
 
 ### Autenticação e usuários
 | Método | Rota | Acesso | Descrição |
@@ -85,6 +84,7 @@ Erros seguem `{ error: { code, message, details? } }`: 400 (validação), 401, 4
 | POST | `/api/auth/register` | público | `{ nome, email, senha, role: DISCENTE \| DOCENTE \| USUARIO, departamento?, matricula? }` |
 | POST | `/api/auth/login` | público | `{ email, senha }` → JWT |
 | GET | `/api/auth/me` | autenticado | perfil atual |
+| POST | `/api/auth/senha` | autenticado | `{ senhaAtual, novaSenha }` → JWT novo; tokens anteriores deixam de valer |
 | GET | `/api/usuarios?role=` | gestor | lista |
 | PATCH | `/api/usuarios/:id` | gestor | `{ role?, departamento? }` |
 | GET | `/api/usuarios/docentes` | autenticado | professores cadastrados |
@@ -104,9 +104,10 @@ Erros seguem `{ error: { code, message, details? } }`: 400 (validação), 401, 4
 | GET | `/api/inscricoes/minhas` | docente | meus projetos, de qualquer status |
 | GET | `/api/inscricoes/:id` | professor dono, aluno selecionado, avaliador indicado, gestor | detalhe (+ `pendencias` para o dono até o envio) |
 | PATCH | `/api/inscricoes/:id` | docente dono | auto-save (rascunho ou divulgado) |
-| PUT | `/api/inscricoes/:id/anexos/:tipo` | docente dono | corpo `application/pdf`, header `X-Filename`; tipo `PLANO_TRABALHO` \| `LATTES` (do aluno) |
+| POST | `/api/inscricoes/:id/anexos/:tipo/envio` | docente dono | autoriza o envio direto ao armazenamento: `{ chave, upload }`; tipo `PLANO_TRABALHO` \| `LATTES` |
+| PUT | `/api/inscricoes/:id/anexos/:tipo` | docente dono | `{ chave, nome }`: confere o PDF recebido (tamanho, `%PDF-`) e o registra |
 | DELETE | `/api/inscricoes/:id/anexos/:anexoId` | docente dono | remove anexo |
-| GET | `/api/inscricoes/:id/anexos/:anexoId/arquivo` | quem vê o projeto | PDF |
+| GET | `/api/inscricoes/:id/anexos/:anexoId/arquivo` | quem vê o projeto | `{ nome, url }`: link que expira em 5 min |
 | POST | `/api/inscricoes/:id/divulgacao` | docente dono | divulga aos alunos (avisa todos os discentes) |
 | GET | `/api/inscricoes/:id/candidaturas` | docente dono | candidatos |
 | POST | `/api/inscricoes/:id/selecao` | docente dono | `{ candidaturaId }` escolhe o aluno (pode trocar até o envio) |
@@ -136,8 +137,9 @@ Erros seguem `{ error: { code, message, details? } }`: 400 (validação), 401, 4
 | GET | `/api/projetos` | discente, docente, gestor | projetos aprovados conforme o papel |
 | GET | `/api/projetos/:id` | bolsista, orientador, gestor | relatórios, calendário mensal, prazos e histórico |
 | POST | `/api/projetos/:id/relatorios` | bolsista | `{ tipo: MENSAL \| FINAL, competencia?: "AAAA-MM", descricao }` |
-| PUT | `/api/projetos/:id/relatorios/:relatorioId/arquivo` | bolsista | PDF opcional no mensal, obrigatório para aprovar o final |
-| GET | `/api/projetos/:id/relatorios/:relatorioId/arquivo` | bolsista, orientador, gestor | PDF |
+| POST | `/api/projetos/:id/relatorios/:relatorioId/arquivo/envio` | bolsista | autoriza o envio do PDF (opcional no mensal, obrigatório para aprovar o final) |
+| PUT | `/api/projetos/:id/relatorios/:relatorioId/arquivo` | bolsista | `{ chave, nome }`: confere o PDF recebido e o anexa |
+| GET | `/api/projetos/:id/relatorios/:relatorioId/arquivo` | bolsista, orientador, gestor | `{ nome, url }`: link que expira em 5 min |
 | POST | `/api/projetos/:id/relatorios/:relatorioId/avaliacao` | orientador | `{ decisao: APROVAR \| DEVOLVER, comentario }` |
 | GET | `/api/projetos/exportacao.csv?editalId=` | gestor | CSV para prestação de contas |
 | GET | `/api/dashboard/gestor?editalId=` | gestor | KPIs, cotas por subárea, alertas |
@@ -147,22 +149,63 @@ Erros seguem `{ error: { code, message, details? } }`: 400 (validação), 401, 4
 | GET | `/api/publico/editais`, `/api/publico/editais/:id` | público | editais abertos + bolsas alocadas |
 | GET | `/api/publico/pesquisas?subareaCode=&ano=&editalId=&q=` | público | pesquisas aprovadas |
 | GET | `/api/cnpq/areas` | público | tabela CNPq |
-| GET | `/api/health` | público | health check |
+| GET | `/api/health` | público | liveness (o processo responde) |
+| GET | `/api/health/ready` | público | readiness (o banco responde); 503 se não |
+| GET | `/api/cron/encerrar-editais`, `/api/cron/lembretes-relatorio` | Vercel Cron (`CRON_SECRET`) | tarefas agendadas |
+| GET | `/api/auditoria?entidade=&entidadeId=&actorId=&limite=` | gestor | trilha de auditoria, mais recentes primeiro (padrão 50, máx. 200) |
 
 ## Testes
 
 ```bash
-npm test              # unit + integração (in-memory)
-npm run test:e2e      # jornada do gestor com JWT + Prisma real
+npm test                           # unit + integração (em memória, sem Java)
+npm run test:integration:firestore # a mesma integração contra o emulador do Firestore
+npm run test:e2e                   # E2E com JWT real no emulador, inclusive concorrência
 ```
 
-`tests/integration/jornada.int.test.ts` cobre o ciclo S3 a S6 inteiro por HTTP. Atenção: `test:e2e` usa o mesmo `DATABASE_URL` do desenvolvimento e **limpa o banco**. Rode `npm run db:seed` depois.
+Os comandos com emulador sobem e derrubam o Firestore sozinhos (`firebase emulators:exec`) e usam projetos próprios (`demo-portal-pibic-integracao`, `demo-portal-pibic-e2e`): limpar os dados ali nunca apaga o que está no emulador de desenvolvimento.
+
+`tests/integration/jornada.int.test.ts` cobre o ciclo S3 a S6 inteiro por HTTP. `tests/e2e/concorrencia.firestore.e2e.ts` confere, com acessos simultâneos, que o protocolo não se repete, a cota não estoura e e-mail e candidatura não duplicam.
+
+## Banco de dados: Firestore
+
+Cada agregado é um documento (o edital leva as cotas; a inscrição, os anexos; a avaliação, as notas). Decisões que valem para qualquer mudança futura:
+
+- **Consultas por um campo só, filtro e ordenação em memória.** Assim nenhuma consulta exige índice composto, que o emulador não cobra e faria a produção falhar. A única exceção, notificações não lidas por usuário, está declarada em [`firestore.indexes.json`](../firestore.indexes.json).
+- **Unicidade por documento-índice.** O Firestore não tem UNIQUE: e-mail, número de edital, candidatura (projeto + aluno) e versão de relatório têm uma coleção `*_unicos` cujo id é a chave única, criada na mesma escrita. Conflito vira 409.
+- **Transações onde há disputa**: sequência do protocolo, aprovação dentro da cota (todas as aprovações da subárea passam por uma mesma trava) e contador de tentativas de login.
+- **Regras de segurança fechadas** ([`firestore.rules`](../firestore.rules)): só a API, com o `firebase-admin`, lê e grava.
+- Não há migrações: campo novo nasce opcional no tipo de domínio e o adapter preenche o padrão na leitura.
+
+Publicar regras e índices no projeto real: `npx firebase deploy --only firestore --project SEU_PROJETO`.
+
+## PDFs: envio direto ao armazenamento
+
+A Vercel limita o corpo das funções a 4,5 MB, e o limite do portal é 10 MB, então o PDF não passa pela API:
+
+1. `POST .../envio`: a API confere a permissão e devolve uma chave e a instrução de envio (token do Vercel Blob restrito àquele caminho, a PDF e a 10 MB, válido por 15 min).
+2. O navegador envia o arquivo direto ao Blob (store **privado**).
+3. `PUT ...` com `{ chave, nome }`: a API confere tamanho e assinatura `%PDF-`, apaga o arquivo se for recusado e registra o anexo. A chave só vale para a inscrição (ou relatório) e o tipo para os quais foi emitida.
+
+A leitura devolve uma URL pré-assinada que expira em 5 minutos, emitida depois da checagem de permissão. Sem `BLOB_READ_WRITE_TOKEN` (dev e testes), o mesmo fluxo usa rotas da própria API (`/api/arquivos/...`) com links assinados por HMAC.
+
+## Tarefas agendadas
+
+No servidor local, timers do `index.ts` encerram editais vencidos (a cada minuto) e enviam lembretes de relatório (de hora em hora). Na Vercel não há processo contínuo: a Vercel Cron chama `GET /api/cron/encerrar-editais` e `GET /api/cron/lembretes-relatorio` com `Authorization: Bearer <CRON_SECRET>` (horários em [`vercel.json`](../vercel.json)).
+
+## Observabilidade
+
+- Cada requisição da API gera uma linha JSON no stdout: `requestId`, método, rota (sem query string), status, duração e id do usuário. Desligado com `NODE_ENV=test`.
+- O `X-Request-Id` de um proxy é reaproveitado se tiver formato seguro; senão, a API gera um.
+- `/api/health` é o liveness e `/api/health/ready` o readiness (consulta o banco).
 
 ## Configuração (`server/.env`, ver `.env.example`)
 
-```env
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="troque-em-producao"
-PORT=3000
-UPLOADS_DIR="uploads"
-```
+| Variável | Dev local | Produção (Vercel) |
+| --- | --- | --- |
+| `FIRESTORE_EMULATOR_HOST` | `127.0.0.1:8080` | não definir |
+| `FIREBASE_PROJECT_ID` | `demo-portal-pibic` | id do projeto Firebase |
+| `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` | não precisa | da conta de serviço |
+| `JWT_SECRET` | qualquer valor | 32+ caracteres aleatórios (obrigatório) |
+| `BLOB_READ_WRITE_TOKEN` | não precisa (PDFs em `UPLOADS_DIR`) | definido ao conectar o Blob store |
+| `CRON_SECRET` | não precisa | valor aleatório |
+| `PERSISTENCIA` | `memoria` sobe sem banco | não definir |

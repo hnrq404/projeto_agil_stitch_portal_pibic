@@ -9,9 +9,10 @@ import {
 } from '@shared/errors/domain.errors';
 import type { Notifier } from '@shared/events/notifier';
 import {
-  assertPdfValido,
+  assertPdfEnviado,
   sanitizeNomeArquivo,
   type ArquivoStorage,
+  type InstrucaoUpload,
 } from '@shared/storage/arquivo.storage';
 import type { Clock } from '@shared/time/clock';
 
@@ -233,24 +234,50 @@ export class InscricoesService {
 
   // ── Anexos (plano de trabalho e Lattes do aluno) ─────────────────────────
 
+  /**
+   * Primeira etapa do envio: autoriza o navegador a mandar o PDF direto ao
+   * armazenamento. O arquivo só passa a valer depois de `anexar`.
+   */
+  async prepararAnexo(
+    id: string,
+    orientadorId: string,
+    tipo: AnexoTipo,
+  ): Promise<{ chave: string; upload: InstrucaoUpload }> {
+    const inscricao = await this.getOwned(id, orientadorId);
+    assertEditavel(inscricao);
+    const chave = `${inscricao.id}-${tipo}-${randomUUID()}`;
+    return { chave, upload: await this.storage.prepararUpload(chave) };
+  }
+
+  /** Segunda etapa: confere o PDF que chegou ao armazenamento e o registra na inscrição. */
   async anexar(
     id: string,
     orientadorId: string,
     tipo: AnexoTipo,
+    storageKey: string,
     nomeOriginal: string,
-    content: Buffer,
   ): Promise<Inscricao> {
     const inscricao = await this.getOwned(id, orientadorId);
     assertEditavel(inscricao);
-
-    const nome = sanitizeNomeArquivo(nomeOriginal);
-    assertPdfValido(content, nome);
-
-    const storageKey = randomUUID();
-    await this.storage.save(storageKey, content);
+    // Só vale uma chave emitida para esta inscrição e este tipo de anexo.
+    if (!storageKey.startsWith(`${inscricao.id}-${tipo}-`)) {
+      throw new ValidationError('Envio de arquivo inválido. Anexe o PDF novamente.');
+    }
 
     // Um anexo por tipo: o novo substitui o anterior.
     const anterior = inscricao.anexos.find((a) => a.tipo === tipo);
+    if (anterior?.storageKey === storageKey) return inscricao;
+
+    const nome = sanitizeNomeArquivo(nomeOriginal);
+    const objeto = await this.storage.inspecionar(storageKey);
+    try {
+      assertPdfEnviado(objeto);
+    } catch (error) {
+      // Arquivo recusado não fica ocupando espaço no armazenamento.
+      if (objeto) await this.storage.remove(storageKey).catch(() => undefined);
+      throw error;
+    }
+
     let saved: Inscricao;
     try {
       saved = await this.inscricoes.update({
@@ -262,7 +289,7 @@ export class InscricoesService {
             tipo,
             storageKey,
             nome,
-            tamanho: content.length,
+            tamanho: objeto.tamanho,
             mimeType: 'application/pdf',
             enviadoEm: this.clock.now(),
           },
@@ -300,13 +327,13 @@ export class InscricoesService {
     id: string,
     actor: AuthenticatedUser,
     anexoId: string,
-  ): Promise<{ nome: string; content: Buffer }> {
+  ): Promise<{ nome: string; url: string }> {
     const inscricao = await this.getForActor(id, actor);
     const anexo = inscricao.anexos.find((a) => a.id === anexoId);
     if (!anexo) {
       throw new NotFoundError('Anexo não encontrado.');
     }
-    return { nome: anexo.nome, content: await this.storage.read(anexo.storageKey) };
+    return { nome: anexo.nome, url: await this.storage.urlDeLeitura(anexo.storageKey, anexo.nome) };
   }
 
   // ── Divulgação aos alunos ────────────────────────────────────────────────

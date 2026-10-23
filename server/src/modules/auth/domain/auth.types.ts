@@ -20,6 +20,8 @@ export interface Usuario {
   /** Matrícula institucional (discentes). Mascarada em exportações (RN09). */
   matricula: string | null;
   criadoEm: Date;
+  /** Última troca de senha; tokens emitidos antes dela são recusados. */
+  senhaAlteradaEm?: Date | null;
 }
 
 /** Representação pública do usuário (sem hash de senha). */
@@ -39,6 +41,13 @@ export interface JwtPayload {
   nome: string;
   email: string;
   role: UserRole;
+  /**
+   * Momento da emissão em milissegundos. O `iat` padrão do JWT é em segundos,
+   * o que deixaria passar um token antigo emitido no mesmo segundo da troca de senha.
+   */
+  emitidoEm?: number;
+  /** Preenchido pelo jsonwebtoken (segundos). */
+  iat?: number;
 }
 
 /** Resposta do POST /auth/login e /auth/register. */

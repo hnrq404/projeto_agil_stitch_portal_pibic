@@ -11,9 +11,10 @@ loadEnv();
 // PORT=0/inválido no ambiente cai no default 3000.
 const parsedPort = Number.parseInt(process.env['PORT'] ?? '', 10);
 const PORT = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 3000;
-const USE_PRISMA = process.env['USE_PRISMA'] !== 'false'; // padrão: persistência REAL
+// Padrão: Firestore (emulador local ou projeto real). PERSISTENCIA=memoria sobe sem banco nenhum.
+const PERSISTENCIA = process.env['PERSISTENCIA'] === 'memoria' ? 'memoria' : 'firestore';
 
-const container = buildApp({ usePrisma: USE_PRISMA });
+const container = buildApp({ persistencia: PERSISTENCIA });
 
 // ── Frontend SPA (web/dist) — mesma origem da API ──────────────────────────
 const webDist = path.resolve(__dirname, '..', '..', 'web', 'dist');
@@ -28,12 +29,13 @@ if (fs.existsSync(webDist)) {
 
 const server = container.app.listen(PORT, () => {
   console.log(`[portal-pibic-server] HTTP on http://localhost:${PORT}`);
-  console.log(`[portal-pibic-server] Persistência: ${USE_PRISMA ? 'Prisma/SQLite (real)' : 'in-memory'}`);
+  console.log(`[portal-pibic-server] Persistência: ${PERSISTENCIA === 'firestore' ? `Firestore (${process.env['FIRESTORE_EMULATOR_HOST'] ? 'emulador' : 'projeto real'})` : 'in-memory'}`);
   console.log('[portal-pibic-server] Contas de demonstração: npm run db:seed (ver README).');
 });
 
 // ── Encerramento automático por prazo (S2.3) ───────────────────────────────
-// Roda aqui, a cada minuto, em vez de em toda listagem pública (GET não grava).
+// No servidor local roda aqui, a cada minuto. Na Vercel não há processo contínuo:
+// a Vercel Cron chama /api/cron/encerrar-editais (ver vercel.json e cron.routes.ts).
 const ENCERRAMENTO_INTERVALO_MS = 60_000;
 function encerrarEditaisVencidos(): void {
   container.editaisService

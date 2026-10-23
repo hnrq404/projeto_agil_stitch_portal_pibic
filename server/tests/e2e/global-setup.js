@@ -1,13 +1,12 @@
-const { execSync } = require('node:child_process');
-const path = require('node:path');
-
-const { E2E_DATABASE_URL } = require('./e2e-db');
-
-/** Cria/atualiza o schema no e2e.db antes da suíte (o dev.db não é tocado). */
-module.exports = function globalSetup() {
-  execSync('npx prisma db push --skip-generate --accept-data-loss --schema src/infra/prisma/schema.prisma', {
-    cwd: path.resolve(__dirname, '../..'),
-    env: { ...process.env, DATABASE_URL: E2E_DATABASE_URL },
-    stdio: 'ignore',
-  });
+/** Falha cedo, com instrução clara, se o emulador do Firestore não estiver de pé. */
+module.exports = async function globalSetup() {
+  const host = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
+  try {
+    await fetch(`http://${host}/`);
+  } catch {
+    throw new Error(
+      `Emulador do Firestore não respondeu em ${host}. Rode "npm run test:e2e" (sobe o emulador sozinho) ` +
+        'ou deixe "npm run emulador" aberto em outro terminal. O emulador exige Java 21+.',
+    );
+  }
 };

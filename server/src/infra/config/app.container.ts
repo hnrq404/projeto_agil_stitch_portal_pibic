@@ -9,6 +9,7 @@ import {
 } from '@shared/auth/auth.middleware';
 import { JwtUserDirectory } from '@shared/auth/jwt.user-directory';
 import {
+  ArmazenamentoLocal,
   DiskArquivoStorage,
   InMemoryArquivoStorage,
   type ArquivoStorage,
@@ -57,24 +58,40 @@ import {
 import { registerProjetosRoutes } from '@projetos/projetos.controller';
 import { DashboardService } from '@dashboard/dashboard.service';
 import { registerDashboardRoutes } from '@dashboard/dashboard.controller';
+import { AuditoriaService } from '@auditoria/auditoria.service';
+import { registerAuditoriaRoutes } from '@auditoria/auditoria.controller';
+import {
+  InMemoryAuditoriaRepository,
+  type AuditoriaRepository,
+} from '@auditoria/repositories/auditoria.repository';
 import { errorHandler } from '@shared/http/http.middleware';
 import { createRateLimiter, securityHeaders } from '@shared/http/security.middleware';
+import { requestContext, requestLogger } from '@shared/http/request-context.middleware';
 import { registerCnpqRoutes } from '@shared/domain/cnpq.routes';
 
-import { createPrismaClient } from '../persistence/prisma.client';
+import { registerArquivosLocaisRoutes } from '@shared/storage/arquivos-locais.controller';
+import { VercelBlobStorage } from '@shared/storage/vercel-blob.storage';
+import type { RateLimitStore } from '@shared/http/security.middleware';
+import { createFirestoreRateLimitStore } from '../firestore/firestore.rate-limit.store';
 import { resolveJwtSecret } from './env';
-import { PrismaEditaisRepository } from '../persistence/prisma.editais.repository';
-import { PrismaNotificacoesRepository } from '../persistence/prisma.notificacoes.repository';
-import { PrismaUsuariosRepository } from '../persistence/prisma.usuarios.repository';
-import { PrismaInscricoesRepository } from '../persistence/prisma.inscricoes.repository';
-import { PrismaCandidaturasRepository } from '../persistence/prisma.candidaturas.repository';
-import { PrismaAvaliacoesRepository } from '../persistence/prisma.avaliacoes.repository';
-import { PrismaRelatoriosRepository } from '../persistence/prisma.relatorios.repository';
+import { registerCronRoutes } from './cron.routes';
+import { encerrarFirestore, obterFirestore } from '../firestore/firestore.client';
+import { FirestoreEditaisRepository } from '../firestore/firestore.editais.repository';
+import { FirestoreNotificacoesRepository } from '../firestore/firestore.notificacoes.repository';
+import { FirestoreUsuariosRepository } from '../firestore/firestore.usuarios.repository';
+import { FirestoreInscricoesRepository } from '../firestore/firestore.inscricoes.repository';
+import { FirestoreCandidaturasRepository } from '../firestore/firestore.candidaturas.repository';
+import { FirestoreAvaliacoesRepository } from '../firestore/firestore.avaliacoes.repository';
+import { FirestoreRelatoriosRepository } from '../firestore/firestore.relatorios.repository';
+import { FirestoreAuditoriaRepository } from '../firestore/firestore.auditoria.repository';
 
 export interface AppContainerOptions {
   clock?: Clock;
-  /** Ativa persistência REAL (Prisma/SQLite + PDFs em disco). Padrão: in-memory (testes/CI). */
-  usePrisma?: boolean;
+  /**
+   * Onde ficam os dados. `firestore`: emulador local ou projeto real (ver
+   * firestore.client.ts). Padrão: `memoria` (testes de unidade e integração).
+   */
+  persistencia?: 'firestore' | 'memoria';
   editaisRepository?: EditaisRepository;
   notificacoesRepository?: NotificacoesRepository;
   usuariosRepository?: UsuariosRepository;
@@ -82,11 +99,14 @@ export interface AppContainerOptions {
   candidaturasRepository?: CandidaturasRepository;
   avaliacoesRepository?: AvaliacoesRepository;
   relatoriosRepository?: RelatoriosRepository;
+  auditoriaRepository?: AuditoriaRepository;
   arquivoStorage?: ArquivoStorage;
   userDirectory?: UserDirectory & { listUsers(): { id: string }[] };
   jwtSecret?: string;
   /** Limite de tentativas em login/cadastro. Padrão: ligado, exceto com NODE_ENV=test. */
   authRateLimit?: boolean;
+  /** Uma linha de log JSON por requisição da API. Padrão: ligado, exceto com NODE_ENV=test. */
+  requestLogging?: boolean;
 }
 
 export interface AppContainer {
@@ -99,13 +119,15 @@ export interface AppContainer {
   candidaturasRepository: CandidaturasRepository;
   avaliacoesRepository: AvaliacoesRepository;
   relatoriosRepository: RelatoriosRepository;
+  auditoriaRepository: AuditoriaRepository;
   editaisService: EditaisService;
   notificacoesService: NotificacoesService;
   authService: AuthService;
   inscricoesService: InscricoesService;
   avaliacoesService: AvaliacoesService;
   projetosService: ProjetosService;
-  /** Fecha a conexão Prisma quando a persistência real está ativa. */
+  arquivoStorage: ArquivoStorage;
+  /** Fecha a conexão com o Firestore quando a persistência real está ativa. */
   disconnect?: () => Promise<void>;
 }
 
@@ -118,46 +140,47 @@ function createEditalEventsAdapter(notificacoesService: NotificacoesService): Ed
 
 /**
  * Composição de dependências da aplicação.
- * - Bootstrap (index.ts): Prisma REAL (SQLite) + JWT + PDFs em disco.
+ * - Servidor local (index.ts) e função da Vercel (api/index.js): Firestore + JWT;
+ *   PDFs no Vercel Blob quando há BLOB_READ_WRITE_TOKEN, senão em disco.
  * - Testes: repositórios in-memory, clock congelado e directories falsos.
  */
 export function buildApp(options: AppContainerOptions = {}): AppContainer {
   const clock = options.clock ?? new SystemClock();
-  const prisma = options.usePrisma ? createPrismaClientOnce() : undefined;
+  const db = options.persistencia === 'firestore' ? obterFirestore() : undefined;
+  const jwtSecret = options.jwtSecret ?? resolveJwtSecret();
 
-  // ── Persistência: Prisma real ou in-memory ─────────────────────────────
+  // ── Persistência: Firestore ou in-memory ───────────────────────────────
   const editaisRepository =
     options.editaisRepository ??
-    (prisma ? new PrismaEditaisRepository(prisma) : new InMemoryEditaisRepository());
+    (db ? new FirestoreEditaisRepository(db) : new InMemoryEditaisRepository());
   const notificacoesRepository =
     options.notificacoesRepository ??
-    (prisma ? new PrismaNotificacoesRepository(prisma) : new InMemoryNotificacoesRepository());
+    (db ? new FirestoreNotificacoesRepository(db) : new InMemoryNotificacoesRepository());
   const usuariosRepository =
     options.usuariosRepository ??
-    (prisma ? new PrismaUsuariosRepository(prisma) : new InMemoryUsuariosRepository());
+    (db ? new FirestoreUsuariosRepository(db) : new InMemoryUsuariosRepository());
   const inscricoesRepository =
     options.inscricoesRepository ??
-    (prisma ? new PrismaInscricoesRepository(prisma) : new InMemoryInscricoesRepository());
+    (db ? new FirestoreInscricoesRepository(db) : new InMemoryInscricoesRepository());
   const candidaturasRepository =
     options.candidaturasRepository ??
-    (prisma ? new PrismaCandidaturasRepository(prisma) : new InMemoryCandidaturasRepository());
+    (db ? new FirestoreCandidaturasRepository(db) : new InMemoryCandidaturasRepository());
   const avaliacoesRepository =
     options.avaliacoesRepository ??
-    (prisma ? new PrismaAvaliacoesRepository(prisma) : new InMemoryAvaliacoesRepository());
+    (db ? new FirestoreAvaliacoesRepository(db) : new InMemoryAvaliacoesRepository());
   const relatoriosRepository =
     options.relatoriosRepository ??
-    (prisma ? new PrismaRelatoriosRepository(prisma) : new InMemoryRelatoriosRepository());
-  const arquivoStorage =
-    options.arquivoStorage ??
-    (prisma
-      ? new DiskArquivoStorage(path.resolve(__dirname, '..', '..', '..', process.env['UPLOADS_DIR'] ?? 'uploads'))
-      : new InMemoryArquivoStorage());
+    (db ? new FirestoreRelatoriosRepository(db) : new InMemoryRelatoriosRepository());
+  const auditoriaRepository =
+    options.auditoriaRepository ??
+    (db ? new FirestoreAuditoriaRepository(db) : new InMemoryAuditoriaRepository());
+  const arquivoStorage = options.arquivoStorage ?? criarArquivoStorage(Boolean(db), jwtSecret);
 
   // ── Auth (JWT + bcrypt) ────────────────────────────────────────────────
-  const jwtSecret = options.jwtSecret ?? resolveJwtSecret();
   const authService = new AuthService(usuariosRepository, new JwtTokenSigner(jwtSecret));
   const userDirectory: UserDirectory = options.userDirectory ?? new JwtUserDirectory(authService);
   const usuariosService = new UsuariosService(usuariosRepository);
+  const auditoriaService = new AuditoriaService(auditoriaRepository, clock);
 
   const notificacoesService = new NotificacoesService(notificacoesRepository, {
     listUsers: async () => {
@@ -215,15 +238,21 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   app.disable('x-powered-by');
   // Atrás de proxy reverso (nginx, Render...), req.ip precisa vir do X-Forwarded-For;
   // sem isso o rate limit trata todos os usuários como um só IP. Ex.: TRUST_PROXY=1.
-  const trustProxy = process.env['TRUST_PROXY'];
+  const trustProxy = process.env['TRUST_PROXY'] ?? (process.env['VERCEL'] ? '1' : undefined);
   if (trustProxy) {
     app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
+  }
+  app.use(requestContext());
+  if (options.requestLogging ?? process.env['NODE_ENV'] !== 'test') {
+    app.use(requestLogger());
   }
   app.use(securityHeaders());
   app.use(express.json({ limit: '1mb' }));
 
   // Contra força bruta de senha e criação de contas em massa (por IP).
   const authRateLimit = options.authRateLimit ?? process.env['NODE_ENV'] !== 'test';
+  // Na Vercel cada requisição pode cair numa instância diferente: o contador fica no Firestore.
+  const limiteStore: RateLimitStore | undefined = db ? createFirestoreRateLimitStore(db) : undefined;
   if (authRateLimit) {
     app.use(
       '/api/auth/login',
@@ -231,6 +260,8 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
         windowMs: 15 * 60 * 1000,
         max: 10,
         onlyFailures: true,
+        store: limiteStore,
+        prefixo: 'login',
         message: 'Muitas tentativas de login sem sucesso. Aguarde 15 minutos e tente novamente.',
       }),
     );
@@ -239,7 +270,20 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
       createRateLimiter({
         windowMs: 60 * 60 * 1000,
         max: 20,
+        store: limiteStore,
+        prefixo: 'cadastro',
         message: 'Muitos cadastros a partir desta rede. Aguarde uma hora e tente novamente.',
+      }),
+    );
+    // Com um token roubado, a troca de senha viraria um jeito de testar senhas atuais.
+    app.use(
+      '/api/auth/senha',
+      createRateLimiter({
+        windowMs: 15 * 60 * 1000,
+        max: 10,
+        store: limiteStore,
+        prefixo: 'senha',
+        message: 'Muitas tentativas de troca de senha. Aguarde 15 minutos e tente novamente.',
       }),
     );
   }
@@ -247,14 +291,22 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   const router: Router = express.Router();
   const authenticationGuard = createAuthenticationGuard(userDirectory);
 
-  registerAuthRoutes(router, authService);
-  registerUsuariosRoutes(router, usuariosService, authenticationGuard);
-  registerEditaisRoutes(router, editaisService, authenticationGuard);
+  registerAuthRoutes(router, authService, authenticationGuard);
+  registerUsuariosRoutes(router, usuariosService, authenticationGuard, auditoriaService);
+  registerEditaisRoutes(router, editaisService, authenticationGuard, auditoriaService);
   registerNotificacoesRoutes(router, notificacoesService, authenticationGuard);
   registerInscricoesRoutes(router, inscricoesService, authenticationGuard);
-  registerAvaliacoesRoutes(router, avaliacoesService, inscricoesService, usuariosRepository, authenticationGuard);
+  registerAvaliacoesRoutes(
+    router,
+    avaliacoesService,
+    inscricoesService,
+    usuariosRepository,
+    authenticationGuard,
+    auditoriaService,
+  );
   registerProjetosRoutes(router, projetosService, inscricoesService, authenticationGuard);
   registerDashboardRoutes(router, dashboardService, authenticationGuard);
+  registerAuditoriaRoutes(router, auditoriaService, authenticationGuard);
   registerPublicoRoutes(router, {
     editaisService,
     inscricoesService,
@@ -263,11 +315,32 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
     clock,
   });
   registerCnpqRoutes(router);
+  registerCronRoutes(router, { editaisService, projetosService });
+  if (arquivoStorage instanceof ArmazenamentoLocal) {
+    registerArquivosLocaisRoutes(router, arquivoStorage);
+  }
 
   app.use(router);
 
+  // Liveness: o processo responde.
   app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', service: 'portal-pibic-server' });
+  });
+
+  // Readiness: o processo responde E o banco também (para o orquestrador/balanceador).
+  app.get('/api/health/ready', (req, res) => {
+    if (!db) {
+      res.json({ status: 'ok', banco: 'memoria' });
+      return;
+    }
+    db.collection('saude')
+      .limit(1)
+      .get()
+      .then(() => res.json({ status: 'ok', banco: 'ok' }))
+      .catch((error: unknown) => {
+        console.error('[health] Banco indisponível', { requestId: req.requestId }, error);
+        res.status(503).json({ status: 'erro', banco: 'indisponivel' });
+      });
   });
 
   // Rotas /api inexistentes respondem JSON (e não caem no fallback da SPA).
@@ -287,19 +360,30 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
     candidaturasRepository,
     avaliacoesRepository,
     relatoriosRepository,
+    auditoriaRepository,
     editaisService,
     notificacoesService,
     authService,
     inscricoesService,
     avaliacoesService,
     projetosService,
-    disconnect: prisma ? () => prisma.$disconnect() : undefined,
+    arquivoStorage,
+    disconnect: db ? () => encerrarFirestore() : undefined,
   };
 }
 
-/** Client Prisma singleton — compartilhado entre os repositórios do container. */
-let prismaSingleton: ReturnType<typeof createPrismaClient> | undefined;
-function createPrismaClientOnce() {
-  prismaSingleton = prismaSingleton ?? createPrismaClient();
-  return prismaSingleton;
+/**
+ * PDFs: Vercel Blob quando há token (produção ou quem quiser testar o Blob de
+ * verdade); disco no dev local com Firestore; memória nos testes.
+ */
+function criarArquivoStorage(persistente: boolean, jwtSecret: string): ArquivoStorage {
+  const blobToken = process.env['BLOB_READ_WRITE_TOKEN'];
+  if (blobToken) return new VercelBlobStorage(blobToken);
+  // As URLs locais são assinadas com uma chave derivada do segredo do JWT (nunca o próprio segredo).
+  const segredo = `arquivos:${jwtSecret}`;
+  if (!persistente) return new InMemoryArquivoStorage(segredo);
+  if (process.env['VERCEL']) {
+    throw new Error('Na Vercel não há disco permanente: configure o Vercel Blob (BLOB_READ_WRITE_TOKEN).');
+  }
+  return new DiskArquivoStorage(path.resolve(__dirname, '..', '..', '..', process.env['UPLOADS_DIR'] ?? 'uploads'), segredo);
 }
