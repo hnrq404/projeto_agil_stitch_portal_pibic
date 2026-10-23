@@ -8,7 +8,8 @@
  */
 import request from 'supertest';
 
-import { buildApp, type AppContainer } from '../../src/infra/config/app.container';
+import type { AppContainer } from '../../src/infra/config/app.container';
+import { buildTestApp } from '../helpers/app';
 import { FixedClock } from '../../src/shared/testing/fixed-clock';
 import { criarELogar } from '../helpers/usuarios';
 
@@ -43,7 +44,7 @@ const notasAltas = [
 
 beforeEach(async () => {
   clock = new FixedClock('2026-09-14T12:00:00.000Z');
-  container = buildApp({ clock, jwtSecret: 'jornada-secret' });
+  container = buildTestApp({ clock, jwtSecret: 'jornada-secret' });
 
   gestor = (await criarELogar(container, { nome: 'Gestora', email: 'gestora@pibic.edu.br', role: 'GESTOR' })).auth;
   const aluno = await criarELogar(container, {
@@ -91,13 +92,17 @@ async function editalPublicado(): Promise<string> {
   return created.body.id as string;
 }
 
-function upload(path: string, auth: Auth, nome: string, content: Buffer = PDF) {
-  return request(container.app)
-    .put(path)
-    .set(auth)
+/** Envio em três passos, como o navegador faz: autoriza, manda o PDF ao armazenamento e confirma. */
+async function upload(path: string, auth: Auth, nome: string, content: Buffer = PDF) {
+  const envio = await request(container.app).post(`${path}/envio`).set(auth);
+  if (envio.status !== 200) return envio;
+  // Nos testes o "armazenamento" é a rota local assinada, no lugar do Vercel Blob.
+  const enviado = await request(container.app)
+    .put(envio.body.upload.url as string)
     .set('Content-Type', 'application/pdf')
-    .set('X-Filename', encodeURIComponent(nome))
     .send(content);
+  if (enviado.status !== 204) return enviado;
+  return request(container.app).put(path).set(auth).send({ chave: envio.body.chave as string, nome });
 }
 
 /** Professor escreve o projeto e o divulga aos alunos. */
@@ -307,6 +312,30 @@ describe('Projeto de pesquisa: divulgação, candidatura, seleção e envio', ()
     expect(res.body.error.message).toMatch(/PDF/);
   });
 
+  it('só confirma um PDF enviado com a chave emitida para aquela inscrição e tipo de anexo', async () => {
+    const editalId = await editalPublicado();
+    const criado = await request(container.app).post('/api/inscricoes').set(docente).send({ editalId });
+    const id = criado.body.id as string;
+    const envio = await request(container.app).post(`/api/inscricoes/${id}/anexos/LATTES/envio`).set(docente);
+    await request(container.app).put(envio.body.upload.url as string).set('Content-Type', 'application/pdf').send(PDF);
+
+    // A chave foi emitida para o Lattes: não serve para registrar o plano de trabalho.
+    const trocado = await request(container.app)
+      .put(`/api/inscricoes/${id}/anexos/PLANO_TRABALHO`)
+      .set(docente)
+      .send({ chave: envio.body.chave as string, nome: 'plano.pdf' });
+    expect(trocado.status).toBe(400);
+
+    // Confirmar sem ter enviado o arquivo também é recusado.
+    const semArquivo = await request(container.app).post(`/api/inscricoes/${id}/anexos/PLANO_TRABALHO/envio`).set(docente);
+    const vazio = await request(container.app)
+      .put(`/api/inscricoes/${id}/anexos/PLANO_TRABALHO`)
+      .set(docente)
+      .send({ chave: semArquivo.body.chave as string, nome: 'plano.pdf' });
+    expect(vazio.status).toBe(400);
+    expect(vazio.body.error.message).toMatch(/não chegou/);
+  });
+
   it('candidato não selecionado e professores não indicados não veem o projeto (404)', async () => {
     const editalId = await editalPublicado();
     const id = await projetoPronto(editalId);
@@ -329,7 +358,10 @@ describe('Avaliação pelos três professores e homologação', () => {
     const minhas = await request(container.app).get('/api/avaliacoes/minhas').set(profFis);
     expect(minhas.body.total).toBe(1);
     const anexoId = minhas.body.data[0].inscricao.anexos[0].id as string;
-    const pdf = await request(container.app).get(`/api/inscricoes/${id}/anexos/${anexoId}/arquivo`).set(profFis);
+    const link = await request(container.app).get(`/api/inscricoes/${id}/anexos/${anexoId}/arquivo`).set(profFis);
+    expect(link.status).toBe(200);
+    expect(link.body.nome).toBe('plano.pdf');
+    const pdf = await request(container.app).get(link.body.url as string);
     expect(pdf.status).toBe(200);
     expect(pdf.headers['content-type']).toBe('application/pdf');
 

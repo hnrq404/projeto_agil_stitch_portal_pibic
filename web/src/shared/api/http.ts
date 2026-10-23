@@ -116,29 +116,68 @@ export const http = {
   get: <T>(path: string, signal?: AbortSignal) => request<T>(path, { signal }),
   post: <T>(path: string, body?: unknown) => request<T>(path, withBody('POST', body)),
   patch: <T>(path: string, body?: unknown) => request<T>(path, withBody('PATCH', body)),
+  put: <T>(path: string, body?: unknown) => request<T>(path, withBody('PUT', body)),
   delete: <T = void>(path: string) => request<T>(path, { method: 'DELETE' }),
 };
 
+/** Onde o navegador envia o PDF (espelha InstrucaoUpload do backend). */
+type InstrucaoUpload = { provedor: 'api'; url: string } | { provedor: 'vercel-blob'; pathname: string; token: string };
+
 /**
- * Upload de PDF com progresso real (fetch não expõe progresso de envio).
- * O corpo vai cru (application/pdf) e o nome original no header X-Filename.
+ * Envio de PDF com progresso real, em três passos. O arquivo não passa pela
+ * API, porque a Vercel limita o corpo das funções a 4,5 MB:
+ * 1. POST {path}/envio: a API confere a permissão e diz para onde enviar;
+ * 2. o navegador envia o PDF direto ao Vercel Blob (no dev local, à rota assinada da API);
+ * 3. PUT {path} com { chave, nome }: a API confere o arquivo recebido e o registra.
  */
-export function uploadPdf<T>(
-  path: string,
+export async function uploadPdf<T>(path: string, file: File, onProgress?: (percent: number) => void): Promise<T> {
+  const { chave, upload } = await http.post<{ chave: string; upload: InstrucaoUpload }>(`${path}/envio`);
+  await enviarAoArmazenamento(upload, file, onProgress);
+  return http.put<T>(path, { chave, nome: file.name });
+}
+
+async function enviarAoArmazenamento(
+  upload: InstrucaoUpload,
   file: File,
   onProgress?: (percent: number) => void,
-): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
+): Promise<void> {
+  if (upload.provedor === 'api') {
+    await putComProgresso(upload.url, file, onProgress);
+    return;
+  }
+  // Carregado sob demanda: só quem envia arquivo baixa o cliente do Blob.
+  const { put } = await import('@vercel/blob/client');
+  try {
+    await put(upload.pathname, file, {
+      access: 'private',
+      token: upload.token,
+      contentType: 'application/pdf',
+      onUploadProgress: (evento) => onProgress?.(Math.round(evento.percentage)),
+    });
+  } catch {
+    throw new ApiError(
+      0,
+      'UPLOAD_FALHOU',
+      'Não foi possível enviar o arquivo. Confira se é um PDF de até 10 MB e tente de novo.',
+    );
+  }
+}
+
+/** PUT do PDF cru com progresso (fetch não expõe o progresso de envio). */
+function putComProgresso(url: string, file: File, onProgress?: (percent: number) => void): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('PUT', path);
-    for (const [key, value] of Object.entries(authHeaders())) xhr.setRequestHeader(key, value);
+    xhr.open('PUT', url);
     xhr.setRequestHeader('Content-Type', 'application/pdf');
-    xhr.setRequestHeader('X-Filename', encodeURIComponent(file.name));
     xhr.upload.onprogress = (event) => {
       if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100));
     };
     xhr.onerror = () => reject(new TypeError('Falha de rede no envio do arquivo.'));
     xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+        return;
+      }
       // Um proxy pode responder HTML (413/502); sem o try, o parse lançaria e a Promise nunca terminaria.
       let body: unknown;
       try {
@@ -146,11 +185,6 @@ export function uploadPdf<T>(
       } catch {
         body = undefined;
       }
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(body as T);
-        return;
-      }
-      handleUnauthorized(xhr.status);
       const err = (body as ApiErrorBody | undefined)?.error;
       const fallback = xhr.status === 413 ? 'Arquivo acima do limite de 10 MB.' : `Erro ${xhr.status}`;
       reject(new ApiError(xhr.status, err?.code ?? 'HTTP_ERROR', err?.message ?? fallback, err?.details));

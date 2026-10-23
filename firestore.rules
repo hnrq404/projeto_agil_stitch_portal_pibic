@@ -1,0 +1,12 @@
+rules_version = '2';
+
+// O site nunca fala direto com o Firestore: todo acesso passa pela API (firebase-admin),
+// que ignora estas regras e aplica as permissões por papel. Fechar tudo aqui impede
+// que alguém com a configuração do projeto leia ou grave dados pelo SDK do navegador.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

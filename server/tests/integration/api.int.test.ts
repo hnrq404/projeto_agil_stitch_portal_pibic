@@ -1,5 +1,6 @@
 import request from 'supertest';
-import { buildApp, type AppContainer } from '../../src/infra/config/app.container';
+import type { AppContainer } from '../../src/infra/config/app.container';
+import { buildTestApp } from '../helpers/app';
 import { FixedClock } from '../../src/shared/testing/fixed-clock';
 
 jest.setTimeout(20000);
@@ -9,7 +10,7 @@ const NOW = '2026-09-14T12:00:00.000Z';
 let container: AppContainer;
 
 beforeEach(() => {
-  container = buildApp({
+  container = buildTestApp({
     clock: new FixedClock(NOW),
     userDirectory: {
       resolveUser: (token) => {

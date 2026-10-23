@@ -3,6 +3,8 @@ dist/
 coverage/
 *.tsbuildinfo
 .env
+.env.*
+!.env.example
 server/src/infra/prisma/dev.db
 server/src/infra/prisma/dev.db-journal
 server/src/infra/prisma/e2e.db
@@ -15,3 +17,21 @@ server.log
 # Notas locais do agente Freebuff (caminhos pessoais, launchd)
 .freebuff/
 server/src/infra/prisma/dev.backup-*.db
+
+# Firebase / emulador
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebase/
+server/uploads/
+
+# Vercel
+.vercel
+
+# Chaves de conta de serviço do Firebase: nunca versionar
+*firebase-adminsdk*.json
+*-admin.json
+service-account*.json
+
+.vercel
+.env*

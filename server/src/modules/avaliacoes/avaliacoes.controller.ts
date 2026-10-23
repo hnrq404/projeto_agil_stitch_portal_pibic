@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response, Router } from 'express';
 import { createRoleGuard, requireGestor } from '@shared/auth/auth.middleware';
 import { asyncHandler, parseBody } from '@shared/http/http.middleware';
 
+import type { AuditoriaService } from '../auditoria/auditoria.service';
 import type { UsuariosRepository } from '../auth/repositories/usuarios.repository';
 import type { InscricaoStatus } from '../inscricoes/domain/inscricoes.types';
 import { toInscricaoResponse } from '../inscricoes/dto/inscricoes.dto';
@@ -45,6 +46,7 @@ export function registerAvaliacoesRoutes(
   inscricoesService: InscricoesService,
   usuarios: UsuariosRepository,
   authenticationGuard: (req: Request, res: Response, next: NextFunction) => void,
+  auditoria: AuditoriaService,
 ): void {
   const gestor = [authenticationGuard, requireGestor];
 
@@ -108,6 +110,9 @@ export function registerAvaliacoesRoutes(
     asyncHandler(async (req, res) => {
       const dto = parseBody(atribuirSchema, req.body);
       await service.atribuir(req.params['inscricaoId'] as string, dto.avaliadorIds);
+      await auditoria.registrar(req.user!, 'AVALIADORES_ATRIBUIDOS', 'INSCRICAO', req.params['inscricaoId'] as string, {
+        avaliadorIds: dto.avaliadorIds,
+      });
       const item = await service.itemTriagem(req.params['inscricaoId'] as string);
       const [response] = await itensResponse([item]);
       res.status(201).json(response);
@@ -119,6 +124,7 @@ export function registerAvaliacoesRoutes(
     ...gestor,
     asyncHandler(async (req, res) => {
       await service.removerAtribuicao(req.params['avaliacaoId'] as string);
+      await auditoria.registrar(req.user!, 'ATRIBUICAO_REMOVIDA', 'AVALIACAO', req.params['avaliacaoId'] as string);
       res.status(204).end();
     }),
   );
@@ -129,6 +135,10 @@ export function registerAvaliacoesRoutes(
     asyncHandler(async (req, res) => {
       const dto = parseBody(homologacaoSchema, req.body);
       await service.homologar(req.params['inscricaoId'] as string, dto.decisao, dto.justificativa);
+      await auditoria.registrar(req.user!, 'INSCRICAO_HOMOLOGADA', 'INSCRICAO', req.params['inscricaoId'] as string, {
+        decisao: dto.decisao,
+        justificativa: dto.justificativa,
+      });
       const item = await service.itemTriagem(req.params['inscricaoId'] as string);
       const [response] = await itensResponse([item]);
       res.json(response);

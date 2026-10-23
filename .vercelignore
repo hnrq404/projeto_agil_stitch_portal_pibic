@@ -1,0 +1,29 @@
+# Nunca enviar segredos nem arquivos locais para a Vercel.
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+*firebase-adminsdk*.json
+*-admin.json
+server/uploads
+server/.emulador
+
+# Gerados no build da própria Vercel.
+**/node_modules
+**/dist
+web/test-results
+web/playwright-report
+
+# Fora do app publicado (protótipos, mockups e notas).
+portal-lab
+prototipo
+autentica_o_n_veis_de_acesso
+cadastro_e_edi_o_de_pesquisa
+central_de_triagem_de_solicita_es
+detalhes_da_pesquisa_submiss_o
+painel_do_gestor_m_tricas
+pibic_logo_institucional
+vitrine_p_blica_de_pesquisas_pibic
+.freebuff
+*.log

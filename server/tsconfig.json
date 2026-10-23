@@ -27,7 +27,8 @@
       "@inscricoes/*": ["src/modules/inscricoes/*"],
       "@avaliacoes/*": ["src/modules/avaliacoes/*"],
       "@projetos/*": ["src/modules/projetos/*"],
-      "@dashboard/*": ["src/modules/dashboard/*"]
+      "@dashboard/*": ["src/modules/dashboard/*"],
+      "@auditoria/*": ["src/modules/auditoria/*"]
     }
   },
   "include": ["src/**/*.ts"],

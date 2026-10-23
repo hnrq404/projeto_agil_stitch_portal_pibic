@@ -4,14 +4,17 @@
  * → professor seleciona e envia ao edital com três avaliadores → gestão homologa
  * → bolsista envia o relatório mensal até o dia 5.
  *
- *   npm run db:seed --prefix server
+ *   npm run db:seed --prefix server      (com o emulador rodando: npm run emulador)
+ *
+ * Grava pelos repositórios do container: no Firestore (emulador ou projeto
+ * configurado no .env) e os PDFs no armazenamento ativo (disco ou Vercel Blob).
  *
  * Contas:
  *   gestor@pibic.edu.br      / gestor123     (GESTOR)
  *   docente@pibic.edu.br     / docente123    (DOCENTE, DCC) dono de um projeto divulgado e de um aprovado;
  *                                            também avalia o projeto da Profa. Marina
  *   docente2@pibic.edu.br    / docente123    (DOCENTE, DEMAT) projeto em avaliação
- *   avaliador@pibic.edu.br   / docente123    (DOCENTE, FIS) conta antiga de avaliador, hoje professora
+ *   avaliador@pibic.edu.br   / docente123    (DOCENTE, FIS)
  *   avaliador2@pibic.edu.br  / docente123    (DOCENTE, QUI)
  *   discente@pibic.edu.br    / discente123   (DISCENTE, bolsista com relatório mensal em atraso)
  *   bruno@pibic.edu.br       / discente123   (DISCENTE, candidato ao projeto divulgado)
@@ -22,24 +25,22 @@
  * Idempotente: pode rodar várias vezes sem duplicar dados.
  */
 import { randomUUID } from 'node:crypto';
-import path from 'node:path';
 
 import bcrypt from 'bcryptjs';
-import { PrismaClient } from '@prisma/client';
 
+import type { UserRole } from '../shared/auth/auth.types';
+import type { Usuario } from '../modules/auth/domain/auth.types';
+import type { Avaliacao, NotaCriterio } from '../modules/avaliacoes/domain/avaliacoes.types';
+import type { Edital } from '../modules/editais/domain/editais.types';
+import type { Anexo, Candidatura, Inscricao } from '../modules/inscricoes/domain/inscricoes.types';
 import { gerarProtocolo } from '../modules/inscricoes/domain/inscricoes.rules';
 import { competenciasDaVigencia, competenciaDe, prazoMensal } from '../modules/projetos/domain/projetos.rules';
-import { DiskArquivoStorage } from '../shared/storage/arquivo.storage';
+import { buildApp } from './config/app.container';
 import { loadEnv } from './config/env';
-import { migrarLegado } from './migrar-legado';
 
 loadEnv();
 
-const prisma = new PrismaClient();
-const storage = new DiskArquivoStorage(
-  path.resolve(__dirname, '..', '..', process.env['UPLOADS_DIR'] ?? 'uploads'),
-);
-
+const container = buildApp({ persistencia: 'firestore' });
 const DIA = 24 * 60 * 60 * 1000;
 
 /** PDF mínimo válido, com uma linha de texto, para os anexos de demonstração. */
@@ -66,10 +67,16 @@ function pdfDemo(titulo: string): Buffer {
   return Buffer.from(corpo, 'latin1');
 }
 
-async function anexoDemo(tipo: 'PLANO_TRABALHO' | 'LATTES', nome: string, titulo: string) {
+async function anexoDemo(
+  inscricaoId: string,
+  tipo: Anexo['tipo'],
+  nome: string,
+  titulo: string,
+): Promise<Anexo> {
   const content = pdfDemo(titulo);
-  const storageKey = randomUUID();
-  await storage.save(storageKey, content);
+  // Mesmo formato de chave do envio pelo site: prefixo da inscrição e do tipo.
+  const storageKey = `${inscricaoId}-${tipo}-${randomUUID()}`;
+  await container.arquivoStorage.salvar(storageKey, content);
   return {
     id: randomUUID(),
     tipo,
@@ -85,33 +92,72 @@ async function usuario(
   email: string,
   nome: string,
   senha: string,
-  role: string,
+  role: UserRole,
   extra: { departamento?: string; matricula?: string } = {},
-) {
+): Promise<Usuario> {
   const senhaHash = await bcrypt.hash(senha, 10);
-  return prisma.usuario.upsert({
-    where: { email },
-    update: { senhaHash, role, departamento: extra.departamento ?? '' },
-    create: {
-      nome,
-      email,
+  const existente = await container.usuariosRepository.findByEmail(email);
+  if (existente) {
+    return container.usuariosRepository.update({
+      ...existente,
       senhaHash,
       role,
       departamento: extra.departamento ?? '',
-      matricula: extra.matricula ?? null,
-    },
+      senhaAlteradaEm: null,
+    });
+  }
+  return container.usuariosRepository.create({
+    id: randomUUID(),
+    nome,
+    email,
+    senhaHash,
+    role,
+    departamento: extra.departamento ?? '',
+    matricula: extra.matricula ?? null,
+    criadoEm: new Date(),
+    senhaAlteradaEm: null,
   });
 }
 
-const notas = (n: number[]) =>
-  JSON.stringify(['MERITO', 'VIABILIDADE', 'ADEQUACAO', 'FORMACAO'].map((criterio, i) => ({ criterio, nota: n[i] })));
+async function edital(dados: Omit<Edital, 'id' | 'criadoEm' | 'atualizadoEm'>): Promise<Edital> {
+  const existente = await container.editaisRepository.findByNumero(dados.numero);
+  if (existente) return existente;
+  const agora = new Date();
+  return container.editaisRepository.create({ ...dados, id: randomUUID(), criadoEm: agora, atualizadoEm: agora });
+}
+
+function inscricaoBase(
+  dados: Omit<Inscricao, 'protocolo' | 'discenteId' | 'homologacaoJustificativa' | 'submetidaEm' | 'homologadaEm'> &
+    Partial<Inscricao>,
+): Inscricao {
+  return {
+    protocolo: null,
+    discenteId: null,
+    homologacaoJustificativa: null,
+    submetidaEm: null,
+    homologadaEm: null,
+    ...dados,
+  };
+}
+
+async function candidatura(dados: Omit<Candidatura, 'id' | 'respondidaEm'> & Partial<Candidatura>): Promise<void> {
+  await container.candidaturasRepository.create({ id: randomUUID(), respondidaEm: null, ...dados });
+}
+
+async function avaliacao(dados: Omit<Avaliacao, 'id'>): Promise<void> {
+  await container.avaliacoesRepository.create({ id: randomUUID(), ...dados });
+}
+
+const notas = (n: number[]): NotaCriterio[] =>
+  (['MERITO', 'VIABILIDADE', 'ADEQUACAO', 'FORMACAO'] as const).map((criterio, i) => ({ criterio, nota: n[i]! }));
+
+async function protocolo(): Promise<string> {
+  const ano = new Date().getUTCFullYear();
+  return gerarProtocolo(await container.inscricoesRepository.proximoSequencialProtocolo(ano), ano);
+}
 
 async function main(): Promise<void> {
-  for (const linha of await migrarLegado(prisma)) console.log(`Migração: ${linha}`);
-
-  const gestor = await usuario('gestor@pibic.edu.br', 'Maria Gestora', 'gestor123', 'GESTOR', {
-    departamento: 'PRPQ',
-  });
+  const gestor = await usuario('gestor@pibic.edu.br', 'Maria Gestora', 'gestor123', 'GESTOR', { departamento: 'PRPQ' });
   const roberto = await usuario('docente@pibic.edu.br', 'Prof. Roberto Alencar', 'docente123', 'DOCENTE', {
     departamento: 'DCC',
   });
@@ -143,75 +189,56 @@ async function main(): Promise<void> {
   await usuario('visitante@pibic.edu.br', 'Ana Visitante', 'visitante123', 'USUARIO');
 
   const agora = Date.now();
+  const em = (dias: number) => new Date(agora + dias * DIA);
 
   // ── Edital aberto pela UNICAP (projetos sendo divulgados e enviados) ───
-  let aberto = await prisma.edital.findUnique({ where: { numero: '01/2026' } });
-  if (!aberto) {
-    aberto = await prisma.edital.create({
-      data: {
-        numero: '01/2026',
-        titulo: 'Edital PIBIC 2026/2027',
-        descricao:
-          'Programa Institucional de Bolsas de Iniciação Científica da UNICAP. Os professores divulgam seus projetos, selecionam o aluno e enviam ao edital até o prazo final.',
-        status: 'PUBLICADO',
-        tipoBolsa: 'PIBIC',
-        totalCotas: 8,
-        notaCorte: 7,
-        dataInicioInscricoes: new Date(agora - 5 * DIA),
-        dataFimInscricoes: new Date(agora + 60 * DIA),
-        publicadoEm: new Date(agora - 5 * DIA),
-        cotas: {
-          create: [
-            { subareaCode: '1.03', subareaNome: 'Ciência da Computação', quantidade: 4 },
-            { subareaCode: '1.01', subareaNome: 'Matemática', quantidade: 2 },
-            { subareaCode: '2.04', subareaNome: 'Ecologia', quantidade: 2 },
-          ],
-        },
-      },
-    });
-  }
+  const aberto = await edital({
+    numero: '01/2026',
+    titulo: 'Edital PIBIC 2026/2027',
+    descricao:
+      'Programa Institucional de Bolsas de Iniciação Científica da UNICAP. Os professores divulgam seus projetos, selecionam o aluno e enviam ao edital até o prazo final.',
+    status: 'PUBLICADO',
+    tipoBolsa: 'PIBIC',
+    totalCotas: 8,
+    notaCorte: 7,
+    dataInicioInscricoes: em(-5),
+    dataFimInscricoes: em(60),
+    publicadoEm: em(-5),
+    encerradoEm: null,
+    cotas: [
+      { subareaCode: '1.03', subareaNome: 'Ciência da Computação', quantidade: 4 },
+      { subareaCode: '1.01', subareaNome: 'Matemática', quantidade: 2 },
+      { subareaCode: '2.04', subareaNome: 'Ecologia', quantidade: 2 },
+    ],
+  });
 
   // ── Edital encerrado com projeto aprovado (vitrine e relatórios mensais) ──
-  let encerrado = await prisma.edital.findUnique({ where: { numero: '02/2025' } });
-  if (!encerrado) {
-    encerrado = await prisma.edital.create({
-      data: {
-        numero: '02/2025',
-        titulo: 'Edital PIBITI 2025/2026',
-        descricao: 'Bolsas de Iniciação em Desenvolvimento Tecnológico e Inovação.',
-        status: 'ENCERRADO',
-        tipoBolsa: 'PIBITI',
-        totalCotas: 3,
-        notaCorte: 6,
-        dataInicioInscricoes: new Date(agora - 200 * DIA),
-        dataFimInscricoes: new Date(agora - 150 * DIA),
-        publicadoEm: new Date(agora - 200 * DIA),
-        encerradoEm: new Date(agora - 150 * DIA),
-        cotas: {
-          create: [
-            { subareaCode: '1.03', subareaNome: 'Ciência da Computação', quantidade: 2 },
-            { subareaCode: '3.04', subareaNome: 'Engenharia Elétrica', quantidade: 1 },
-          ],
-        },
-      },
-    });
-  }
-
-  const anoAtual = new Date().getUTCFullYear();
-  let sequencial = await prisma.inscricao.count({ where: { protocolo: { contains: `/${anoAtual}-` } } });
+  const encerrado = await edital({
+    numero: '02/2025',
+    titulo: 'Edital PIBITI 2025/2026',
+    descricao: 'Bolsas de Iniciação em Desenvolvimento Tecnológico e Inovação.',
+    status: 'ENCERRADO',
+    tipoBolsa: 'PIBITI',
+    totalCotas: 3,
+    notaCorte: 6,
+    dataInicioInscricoes: em(-200),
+    dataFimInscricoes: em(-150),
+    publicadoEm: em(-200),
+    encerradoEm: em(-150),
+    cotas: [
+      { subareaCode: '1.03', subareaNome: 'Ciência da Computação', quantidade: 2 },
+      { subareaCode: '3.04', subareaNome: 'Engenharia Elétrica', quantidade: 1 },
+    ],
+  });
 
   // 1. Aprovado: Ana é bolsista do Prof. Roberto; avaliado por três professores.
-  const aprovadoExiste = await prisma.inscricao.findUnique({
-    where: { editalId_discenteId: { editalId: encerrado.id, discenteId: ana.id } },
-  });
-  if (!aprovadoExiste) {
-    sequencial += 1;
-    const homologadaEm = new Date(agora - 120 * DIA);
-    const projetoId = randomUUID();
-    await prisma.inscricao.create({
-      data: {
-        id: projetoId,
-        protocolo: gerarProtocolo(sequencial, anoAtual),
+  if (!(await container.inscricoesRepository.findByEditalAndDiscente(encerrado.id, ana.id))) {
+    const homologadaEm = em(-120);
+    const id = randomUUID();
+    await container.inscricoesRepository.create(
+      inscricaoBase({
+        id,
+        protocolo: await protocolo(),
         editalId: encerrado.id,
         discenteId: ana.id,
         orientadorId: roberto.id,
@@ -222,83 +249,76 @@ async function main(): Promise<void> {
         resumo:
           'O projeto desenvolve modelos de aprendizado de máquina para detectar anomalias em medições de redes elétricas inteligentes, reduzindo perdas técnicas e apoiando a manutenção preditiva em parceria com a concessionária local.',
         objetivos: 'Construir uma base rotulada de medições e comparar modelos de detecção não supervisionada.',
-        metodologia: 'Coleta de séries temporais, engenharia de atributos, avaliação com validação temporal e estudo de caso.',
+        metodologia:
+          'Coleta de séries temporais, engenharia de atributos, avaliação com validação temporal e estudo de caso.',
         status: 'APROVADA',
         homologacaoJustificativa: 'Aprovado com média 8,75 na avaliação por pares.',
-        divulgadaEm: new Date(agora - 190 * DIA),
-        submetidaEm: new Date(agora - 170 * DIA),
+        divulgadaEm: em(-190),
+        submetidaEm: em(-170),
         homologadaEm,
-        criadoEm: new Date(agora - 195 * DIA),
+        criadoEm: em(-195),
         atualizadoEm: homologadaEm,
-        candidaturas: {
-          create: [
-            {
-              id: randomUUID(),
-              discenteId: ana.id,
-              mensagem: 'Tenho interesse em aprendizado de máquina aplicado a energia e já cursei a disciplina de séries temporais.',
-              status: 'SELECIONADA',
-              criadoEm: new Date(agora - 185 * DIA),
-              respondidaEm: new Date(agora - 180 * DIA),
-            },
-          ],
-        },
-        avaliacoes: {
-          create: [
-            [carla.id, [9, 8, 9, 9], 8.75, 'Proposta relevante, com metodologia clara e cronograma factível.'],
-            [fernando.id, [9, 9, 8, 9], 8.75, ''],
-            [marina.id, [8, 9, 9, 9], 8.75, ''],
-          ].map(([avaliadorId, n, notaFinal, parecer]) => ({
-            id: randomUUID(),
-            avaliadorId: avaliadorId as string,
-            status: 'CONCLUIDA',
-            notas: notas(n as number[]),
-            notaFinal: notaFinal as number,
-            parecer: parecer as string,
-            atribuidaEm: new Date(agora - 170 * DIA),
-            concluidaEm: new Date(agora - 150 * DIA),
-          })),
-        },
-        anexos: {
-          create: [
-            await anexoDemo('PLANO_TRABALHO', 'plano-de-trabalho.pdf', 'Plano de trabalho - Smart grid'),
-            await anexoDemo('LATTES', 'curriculo-lattes.pdf', 'Curriculo Lattes - Ana Discente'),
-          ],
-        },
-      },
+        anexos: [
+          await anexoDemo(id, 'PLANO_TRABALHO', 'plano-de-trabalho.pdf', 'Plano de trabalho - Smart grid'),
+          await anexoDemo(id, 'LATTES', 'curriculo-lattes.pdf', 'Curriculo Lattes - Ana Discente'),
+        ],
+      }),
+    );
+    await candidatura({
+      inscricaoId: id,
+      discenteId: ana.id,
+      mensagem: 'Tenho interesse em aprendizado de máquina aplicado a energia e já cursei a disciplina de séries temporais.',
+      status: 'SELECIONADA',
+      criadoEm: em(-185),
+      respondidaEm: em(-180),
     });
+    const pareceres: [string, number[], string][] = [
+      [carla.id, [9, 8, 9, 9], 'Proposta relevante, com metodologia clara e cronograma factível.'],
+      [fernando.id, [9, 9, 8, 9], ''],
+      [marina.id, [8, 9, 9, 9], ''],
+    ];
+    for (const [avaliadorId, n, parecer] of pareceres) {
+      await avaliacao({
+        inscricaoId: id,
+        avaliadorId,
+        status: 'CONCLUIDA',
+        notas: notas(n),
+        notaFinal: 8.75,
+        parecer,
+        atribuidaEm: em(-170),
+        concluidaEm: em(-150),
+      });
+    }
 
     // Relatórios mensais aprovados até dois meses atrás; o do mês passado fica faltando
     // para a demonstração do atraso (ou do lembrete, antes do dia 5).
-    const mesPassado = competenciaDe(new Date(agora - 30 * DIA));
-    const enviados = competenciasDaVigencia(homologadaEm).filter((c) => c < mesPassado);
-    for (const competencia of enviados) {
+    const mesPassado = competenciaDe(em(-30));
+    for (const competencia of competenciasDaVigencia(homologadaEm).filter((c) => c < mesPassado)) {
       const enviadoEm = new Date(prazoMensal(competencia).getTime() - 2 * DIA);
-      await prisma.relatorio.create({
-        data: {
-          id: randomUUID(),
-          inscricaoId: projetoId,
-          tipo: 'MENSAL',
-          competencia,
-          versao: 1,
-          status: 'APROVADO',
-          descricao: `Atividades de ${competencia}: leitura de artigos, limpeza da base de medições e experimentos com isolation forest e autoencoders, com resultados registrados no caderno do projeto.`,
-          comentarioOrientador: 'Bom progresso. Siga com a validação temporal.',
-          enviadoEm,
-          avaliadoEm: new Date(enviadoEm.getTime() + DIA),
-        },
+      await container.relatoriosRepository.create({
+        id: randomUUID(),
+        inscricaoId: id,
+        tipo: 'MENSAL',
+        competencia,
+        versao: 1,
+        status: 'APROVADO',
+        descricao: `Atividades de ${competencia}: leitura de artigos, limpeza da base de medições e experimentos com isolation forest e autoencoders, com resultados registrados no caderno do projeto.`,
+        arquivo: null,
+        comentarioOrientador: 'Bom progresso. Siga com a validação temporal.',
+        enviadoEm,
+        avaliadoEm: new Date(enviadoEm.getTime() + DIA),
       });
     }
   }
 
   // 2. Divulgado: o Prof. Roberto recebe candidaturas de Bruno e Júlia.
   const tituloDivulgado = 'Segmentação de tomografias pulmonares com redes neurais convolucionais';
-  const divulgadoExiste = await prisma.inscricao.findFirst({
-    where: { orientadorId: roberto.id, titulo: tituloDivulgado },
-  });
-  if (!divulgadoExiste) {
-    await prisma.inscricao.create({
-      data: {
-        id: randomUUID(),
+  const doRoberto = await container.inscricoesRepository.list({ orientadorId: roberto.id });
+  if (!doRoberto.some((i) => i.titulo === tituloDivulgado)) {
+    const id = randomUUID();
+    await container.inscricoesRepository.create(
+      inscricaoBase({
+        id,
         editalId: aberto.id,
         orientadorId: roberto.id,
         titulo: tituloDivulgado,
@@ -310,44 +330,35 @@ async function main(): Promise<void> {
         objetivos: 'Treinar e comparar arquiteturas de segmentação e avaliar a interpretabilidade dos modelos.',
         metodologia: 'Revisão sistemática, preparação das bases, treino com validação cruzada e análise estatística.',
         status: 'DIVULGADA',
-        divulgadaEm: new Date(agora - 3 * DIA),
-        criadoEm: new Date(agora - 4 * DIA),
-        atualizadoEm: new Date(agora - 3 * DIA),
-        anexos: {
-          create: [await anexoDemo('PLANO_TRABALHO', 'plano-tomografia.pdf', 'Plano de trabalho - Tomografia')],
-        },
-        candidaturas: {
-          create: [
-            {
-              id: randomUUID(),
-              discenteId: bruno.id,
-              mensagem: 'Fiz o curso de visão computacional e quero trabalhar com aplicações em saúde.',
-              status: 'PENDENTE',
-              criadoEm: new Date(agora - 2 * DIA),
-            },
-            {
-              id: randomUUID(),
-              discenteId: julia.id,
-              mensagem: 'Tenho experiência com PyTorch em projetos da disciplina e disponibilidade de 20 horas semanais.',
-              status: 'PENDENTE',
-              criadoEm: new Date(agora - 1 * DIA),
-            },
-          ],
-        },
-      },
+        divulgadaEm: em(-3),
+        criadoEm: em(-4),
+        atualizadoEm: em(-3),
+        anexos: [await anexoDemo(id, 'PLANO_TRABALHO', 'plano-tomografia.pdf', 'Plano de trabalho - Tomografia')],
+      }),
+    );
+    await candidatura({
+      inscricaoId: id,
+      discenteId: bruno.id,
+      mensagem: 'Fiz o curso de visão computacional e quero trabalhar com aplicações em saúde.',
+      status: 'PENDENTE',
+      criadoEm: em(-2),
+    });
+    await candidatura({
+      inscricaoId: id,
+      discenteId: julia.id,
+      mensagem: 'Tenho experiência com PyTorch em projetos da disciplina e disponibilidade de 20 horas semanais.',
+      status: 'PENDENTE',
+      criadoEm: em(-1),
     });
   }
 
   // 3. Em avaliação: a Profa. Marina enviou com Caio; Roberto, Carla e Fernando avaliam.
-  const emAvaliacaoExiste = await prisma.inscricao.findUnique({
-    where: { editalId_discenteId: { editalId: aberto.id, discenteId: caio.id } },
-  });
-  if (!emAvaliacaoExiste) {
-    sequencial += 1;
-    await prisma.inscricao.create({
-      data: {
-        id: randomUUID(),
-        protocolo: gerarProtocolo(sequencial, anoAtual),
+  if (!(await container.inscricoesRepository.findByEditalAndDiscente(aberto.id, caio.id))) {
+    const id = randomUUID();
+    await container.inscricoesRepository.create(
+      inscricaoBase({
+        id,
+        protocolo: await protocolo(),
         editalId: aberto.id,
         discenteId: caio.id,
         orientadorId: marina.id,
@@ -358,40 +369,39 @@ async function main(): Promise<void> {
         resumo:
           'O projeto modela a dinâmica populacional de espécies de manguezal com equações diferenciais estocásticas, calibradas com dados de monitoramento ambiental do litoral de Pernambuco.',
         objetivos: 'Propor e calibrar modelos estocásticos e comparar suas previsões com séries observadas.',
-        metodologia: 'Revisão de modelos, estimação de parâmetros por máxima verossimilhança e simulação de Monte Carlo.',
+        metodologia:
+          'Revisão de modelos, estimação de parâmetros por máxima verossimilhança e simulação de Monte Carlo.',
         status: 'EM_AVALIACAO',
-        divulgadaEm: new Date(agora - 4 * DIA),
-        submetidaEm: new Date(agora - 1 * DIA),
-        criadoEm: new Date(agora - 5 * DIA),
-        atualizadoEm: new Date(agora - 1 * DIA),
-        candidaturas: {
-          create: [
-            {
-              id: randomUUID(),
-              discenteId: caio.id,
-              mensagem: 'Curso Matemática e gostaria de aplicar processos estocásticos a problemas ambientais.',
-              status: 'SELECIONADA',
-              criadoEm: new Date(agora - 3 * DIA),
-              respondidaEm: new Date(agora - 2 * DIA),
-            },
-          ],
-        },
-        avaliacoes: {
-          create: [roberto.id, carla.id, fernando.id].map((avaliadorId) => ({
-            id: randomUUID(),
-            avaliadorId,
-            status: 'PENDENTE',
-            atribuidaEm: new Date(agora - 1 * DIA),
-          })),
-        },
-        anexos: {
-          create: [
-            await anexoDemo('PLANO_TRABALHO', 'plano-manguezais.pdf', 'Plano de trabalho - Manguezais'),
-            await anexoDemo('LATTES', 'lattes-caio.pdf', 'Curriculo Lattes - Caio Albuquerque'),
-          ],
-        },
-      },
+        divulgadaEm: em(-4),
+        submetidaEm: em(-1),
+        criadoEm: em(-5),
+        atualizadoEm: em(-1),
+        anexos: [
+          await anexoDemo(id, 'PLANO_TRABALHO', 'plano-manguezais.pdf', 'Plano de trabalho - Manguezais'),
+          await anexoDemo(id, 'LATTES', 'lattes-caio.pdf', 'Curriculo Lattes - Caio Albuquerque'),
+        ],
+      }),
+    );
+    await candidatura({
+      inscricaoId: id,
+      discenteId: caio.id,
+      mensagem: 'Curso Matemática e gostaria de aplicar processos estocásticos a problemas ambientais.',
+      status: 'SELECIONADA',
+      criadoEm: em(-3),
+      respondidaEm: em(-2),
     });
+    for (const avaliadorId of [roberto.id, carla.id, fernando.id]) {
+      await avaliacao({
+        inscricaoId: id,
+        avaliadorId,
+        status: 'PENDENTE',
+        notas: [],
+        notaFinal: null,
+        parecer: '',
+        atribuidaEm: em(-1),
+        concluidaEm: null,
+      });
+    }
   }
 
   console.log(`Seed OK: gestor ${gestor.email}, editais 01/2026 (aberto) e 02/2025 (encerrado).`);
@@ -402,4 +412,4 @@ main()
     console.error(error);
     process.exitCode = 1;
   })
-  .finally(() => prisma.$disconnect());
+  .finally(() => container.disconnect?.());

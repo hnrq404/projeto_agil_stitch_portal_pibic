@@ -2,10 +2,11 @@
   "name": "portal-pibic-server",
   "version": "1.0.0",
   "private": true,
-  "description": "API do Portal de Gestão de Laboratório — Sprint 2: Edital & Publicação (M2) + Auth",
+  "description": "API do Portal PIBIC: Express + Firestore, pronta para a Vercel (editais, inscrições, triagem, homologação, relatórios)",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "emulador": "firebase emulators:start --only firestore --project demo-portal-pibic",
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "serve": "tsx src/index.ts",
@@ -13,22 +14,19 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"tests/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/**/*.ts\"",
-    "db:push": "prisma db push --schema src/infra/prisma/schema.prisma",
-    "db:generate": "prisma generate --schema src/infra/prisma/schema.prisma",
-    "db:studio": "prisma studio --schema src/infra/prisma/schema.prisma",
     "db:seed": "tsx src/infra/seed.ts",
     "test": "jest --selectProjects unit integration --runInBand",
     "test:unit": "jest --selectProjects unit --runInBand",
     "test:integration": "jest --selectProjects integration --runInBand",
-    "test:e2e": "jest --selectProjects e2e --runInBand"
-  },
-  "prisma": {
-    "schema": "src/infra/prisma/schema.prisma"
+    "test:integration:firestore": "firebase emulators:exec --only firestore --project demo-portal-pibic \"cross-env TEST_PERSISTENCIA=firestore jest --selectProjects integration --runInBand\"",
+    "test:e2e": "firebase emulators:exec --only firestore --project demo-portal-pibic \"jest --selectProjects e2e --runInBand\"",
+    "e2e:ui": "firebase emulators:exec --only firestore --project demo-portal-pibic \"npm run test:e2e --prefix ../web\""
   },
   "dependencies": {
-    "@prisma/client": "5.16.1",
+    "@vercel/blob": "^2.8.2",
     "bcryptjs": "2.4.3",
     "express": "4.22.3",
+    "firebase-admin": "^14.5.0",
     "jsonwebtoken": "9.0.2",
     "zod": "3.23.8"
   },
@@ -42,15 +40,18 @@
     "@types/supertest": "6.0.2",
     "cross-env": "7.0.3",
     "eslint": "10.12.0",
+    "firebase-tools": "^15.34.1",
     "globals": "17.13.0",
     "jest": "29.7.0",
     "prettier": "3.9.9",
-    "prisma": "5.16.1",
     "supertest": "7.0.0",
     "ts-jest": "29.1.5",
     "tsc-alias": "1.8.10",
     "tsx": "4.15.7",
     "typescript": "5.5.3",
     "typescript-eslint": "8.71.0"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

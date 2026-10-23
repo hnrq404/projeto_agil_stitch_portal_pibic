@@ -1,40 +1,43 @@
 import { useEffect, useState } from 'react';
 import { Download, ExternalLink } from 'lucide-react';
 
-import { errorMessage, fetchBlob, saveBlob } from '@/shared/api/http';
+import { errorMessage, http, saveBlob } from '@/shared/api/http';
 
 import { Button } from './Button';
 import { Alert, LoadingState } from './Feedback';
 
 interface PdfViewerProps {
-  /** Rota da API que devolve o PDF (exige o token, por isso não usamos src direto). */
+  /** Rota da API que confere a permissão e devolve o link temporário do PDF. */
   src: string;
   nome: string;
   className?: string;
 }
 
-/** Pré-visualização de PDF protegido: baixa com o token e exibe via blob URL. */
+interface LinkPdf {
+  nome: string;
+  /** Link que expira em minutos (Vercel Blob privado ou rota assinada da API no dev). */
+  url: string;
+}
+
+/** Pede à API o link temporário do PDF; a permissão é conferida lá. */
+export function obterLinkPdf(src: string): Promise<LinkPdf> {
+  return http.get<LinkPdf>(src);
+}
+
+/** Pré-visualização de PDF protegido, exibido pelo link temporário. */
 export function PdfViewer({ src, nome, className }: PdfViewerProps) {
   const [url, setUrl] = useState<string | null>(null);
-  const [blob, setBlob] = useState<Blob | null>(null);
   const [erro, setErro] = useState<unknown>(null);
 
   useEffect(() => {
     let ativo = true;
-    let objectUrl: string | null = null;
     setUrl(null);
     setErro(null);
-    fetchBlob(src)
-      .then((b) => {
-        if (!ativo) return;
-        objectUrl = URL.createObjectURL(b);
-        setBlob(b);
-        setUrl(objectUrl);
-      })
+    obterLinkPdf(src)
+      .then((link) => ativo && setUrl(link.url))
       .catch((e: unknown) => ativo && setErro(e));
     return () => {
       ativo = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
   }, [src]);
 
@@ -48,7 +51,7 @@ export function PdfViewer({ src, nome, className }: PdfViewerProps) {
           variant="secondary"
           size="sm"
           icon={<ExternalLink className="h-4 w-4" aria-hidden />}
-          onClick={() => window.open(url, '_blank', 'noopener')}
+          onClick={() => void abrirPdf(src)}
         >
           Abrir em nova aba
         </Button>
@@ -56,7 +59,7 @@ export function PdfViewer({ src, nome, className }: PdfViewerProps) {
           variant="secondary"
           size="sm"
           icon={<Download className="h-4 w-4" aria-hidden />}
-          onClick={() => blob && saveBlob(blob, nome)}
+          onClick={() => void baixarPdf(src, nome)}
         >
           Baixar
         </Button>
@@ -66,15 +69,36 @@ export function PdfViewer({ src, nome, className }: PdfViewerProps) {
   );
 }
 
-/** Abre um PDF protegido em nova aba (sem embutir na página). */
+/**
+ * Abre um PDF protegido em nova aba. A aba é aberta antes da chamada à API,
+ * ainda dentro do clique, para o bloqueador de pop-ups não barrar.
+ */
 export async function abrirPdf(src: string): Promise<void> {
   const janela = window.open('', '_blank');
-  const blob = await fetchBlob(src);
-  const url = URL.createObjectURL(blob);
-  if (janela) {
-    janela.location.href = url;
-  } else {
-    window.location.href = url;
+  try {
+    const { url } = await obterLinkPdf(src);
+    if (janela) {
+      janela.location.href = url;
+    } else {
+      window.location.href = url;
+    }
+  } catch (error) {
+    janela?.close();
+    throw error;
   }
-  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+/**
+ * Baixa com o nome original. Se o armazenamento não permitir a leitura pelo
+ * script (CORS), abre o link e o navegador oferece o download.
+ */
+async function baixarPdf(src: string, nome: string): Promise<void> {
+  const { url } = await obterLinkPdf(src);
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Erro ${res.status}`);
+    saveBlob(await res.blob(), nome);
+  } catch {
+    window.open(url, '_blank', 'noopener');
+  }
 }

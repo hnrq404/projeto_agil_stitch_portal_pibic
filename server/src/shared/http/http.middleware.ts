@@ -9,13 +9,15 @@ export interface ApiErrorPayload {
     code: string;
     message: string;
     details?: unknown;
+    /** Só nos erros 500: o usuário informa este código e achamos a linha no log. */
+    requestId?: string;
   };
 }
 
 /** Converte qualquer erro lançado pela aplicação em uma resposta HTTP consistente. */
 export function errorHandler(
   error: unknown,
-  _req: Request,
+  req: Request,
   res: Response<ApiErrorPayload>,
   _next: NextFunction,
 ): void {
@@ -63,9 +65,9 @@ export function errorHandler(
     return;
   }
 
-  console.error('[unhandled-error]', error);
+  console.error('[unhandled-error]', { requestId: req.requestId, rota: req.originalUrl.split('?')[0] }, error);
   res.status(500).json({
-    error: { code: 'INTERNAL_ERROR', message: 'Erro interno inesperado.' },
+    error: { code: 'INTERNAL_ERROR', message: 'Erro interno inesperado.', requestId: req.requestId },
   });
 }
 

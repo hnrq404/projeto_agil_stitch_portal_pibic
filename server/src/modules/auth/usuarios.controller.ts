@@ -4,6 +4,8 @@ import { asyncHandler, parseBody } from '@shared/http/http.middleware';
 import { requireGestor } from '@shared/auth/auth.middleware';
 import { USER_ROLES, type UserRole } from '@shared/auth/auth.types';
 
+import type { AuditoriaService } from '../auditoria/auditoria.service';
+
 import { toPublicUsuario } from './auth.service';
 import { updateUsuarioSchema } from './dto/auth.dto';
 import type { UsuariosService } from './usuarios.service';
@@ -24,6 +26,7 @@ export function registerUsuariosRoutes(
   router: Router,
   service: UsuariosService,
   authenticationGuard: (req: Request, res: Response, next: NextFunction) => void,
+  auditoria: AuditoriaService,
 ): void {
   router.get(
     '/api/usuarios/docentes',
@@ -53,7 +56,15 @@ export function registerUsuariosRoutes(
     requireGestor,
     asyncHandler(async (req, res) => {
       const dto = parseBody(updateUsuarioSchema, req.body);
-      const usuario = await service.update(req.user!.id, req.params['id'] as string, dto);
+      const antes = await service.getById(req.params['id'] as string);
+      const usuario = await service.update(req.user!.id, antes.id, dto);
+      await auditoria.registrar(req.user!, 'USUARIO_ATUALIZADO', 'USUARIO', usuario.id, {
+        email: usuario.email,
+        ...(dto.role !== undefined && { role: { de: antes.role, para: usuario.role } }),
+        ...(dto.departamento !== undefined && {
+          departamento: { de: antes.departamento, para: usuario.departamento },
+        }),
+      });
       res.json(toPublicUsuario(usuario));
     }),
   );

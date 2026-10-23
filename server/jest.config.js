@@ -20,16 +20,26 @@ const makeProject = (displayName, testRegex) => ({
     '^@avaliacoes/(.*)$': '<rootDir>/src/modules/avaliacoes/$1',
     '^@projetos/(.*)$': '<rootDir>/src/modules/projetos/$1',
     '^@dashboard/(.*)$': '<rootDir>/src/modules/dashboard/$1',
+    '^@auditoria/(.*)$': '<rootDir>/src/modules/auditoria/$1',
   },
   clearMocks: true,
 });
+
+// Com TEST_PERSISTENCIA=firestore a suíte de integração roda contra o emulador.
+const integracaoNoFirestore =
+  process.env.TEST_PERSISTENCIA === 'firestore'
+    ? {
+        setupFiles: ['<rootDir>/tests/integration/firestore-env.js'],
+        setupFilesAfterEnv: ['<rootDir>/tests/integration/firestore-setup.ts'],
+      }
+    : {};
 
 module.exports = {
   projects: [
     // Só tests/unit: sem isso, a regex também pegava os *.int.test.ts e eles rodavam duas vezes.
     makeProject('unit', 'tests/unit/.*\\.test\\.ts$'),
-    makeProject('integration', '\\.int\\.test\\.ts$'),
-    // Banco próprio (e2e.db): os E2E limpam as tabelas e não podem apagar o dev.db do seed.
+    { ...makeProject('integration', '\\.int\\.test\\.ts$'), ...integracaoNoFirestore },
+    // Emulador do Firestore num projeto próprio: os E2E limpam as coleções sem tocar nos dados de dev.
     {
       ...makeProject('e2e', '\\.e2e\\.ts$'),
       globalSetup: '<rootDir>/tests/e2e/global-setup.js',

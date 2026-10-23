@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import { ConflictError } from '@shared/errors/domain.errors';
+import { ConflictError, ValidationError } from '@shared/errors/domain.errors';
 import { UnauthorizedError } from '@shared/auth/auth.types';
 
 import type { AuthResult, JwtPayload, PublicUsuario, RegistroRole, Usuario } from './domain/auth.types';
@@ -104,12 +104,44 @@ export class AuthService {
     return this.issueToken(usuario);
   }
 
+  /**
+   * Troca de senha pelo próprio usuário. Exige a senha atual e invalida os
+   * tokens emitidos antes (outras abas e aparelhos); devolve um token novo
+   * para a sessão atual continuar.
+   */
+  async alterarSenha(usuarioId: string, input: { senhaAtual: string; novaSenha: string }): Promise<AuthResult> {
+    const usuario = await this.usuarios.findById(usuarioId);
+    if (!usuario) {
+      throw new UnauthorizedError('Token válido, mas usuário não existe mais.');
+    }
+    // 400 e não 401: na SPA, um 401 encerra a sessão, e aqui o usuário só errou a senha.
+    if (!(await bcrypt.compare(input.senhaAtual, usuario.senhaHash))) {
+      throw new ValidationError('A senha atual está incorreta.');
+    }
+    if (input.senhaAtual === input.novaSenha) {
+      throw new ValidationError('A nova senha deve ser diferente da atual.');
+    }
+
+    const atualizado = await this.usuarios.update({
+      ...usuario,
+      senhaHash: await bcrypt.hash(input.novaSenha, BCRYPT_ROUNDS),
+      senhaAlteradaEm: new Date(),
+    });
+    return this.issueToken(atualizado);
+  }
+
   /** Resolve um token Bearer para o guard de autenticação (UserDirectory). */
   async resolveToken(token: string): Promise<PublicUsuario> {
     const payload = this.signer.verify(token);
     const usuario = await this.usuarios.findById(payload.sub);
     if (!usuario) {
       throw new UnauthorizedError('Token válido, mas usuário não existe mais.');
+    }
+    if (usuario.senhaAlteradaEm) {
+      const emitidoEm = payload.emitidoEm ?? (payload.iat ?? 0) * 1000;
+      if (emitidoEm < usuario.senhaAlteradaEm.getTime()) {
+        throw new UnauthorizedError('Sua senha foi alterada. Entre novamente.');
+      }
     }
     return toPublicUsuario(usuario);
   }
@@ -120,6 +152,7 @@ export class AuthService {
       nome: usuario.nome,
       email: usuario.email,
       role: usuario.role,
+      emitidoEm: Date.now(),
     });
     return { token, usuario: toPublicUsuario(usuario) };
   }

@@ -1,15 +1,9 @@
 import type { NextFunction, Request, Response, Router } from 'express';
 
 import { createRoleGuard } from '@shared/auth/auth.middleware';
-import {
-  asyncHandler,
-  parseBody,
-  pdfBodyParser,
-  readUploadBody,
-  readUploadFilename,
-  sendPdf,
-} from '@shared/http/http.middleware';
+import { asyncHandler, parseBody } from '@shared/http/http.middleware';
 import { ValidationError } from '@shared/errors/domain.errors';
+import { confirmarEnvioSchema } from '@shared/storage/arquivo.dto';
 
 import type { InscricoesService } from './inscricoes.service';
 import type { Inscricao } from './domain/inscricoes.types';
@@ -34,7 +28,8 @@ const requireDocente = createRoleGuard(['DOCENTE']);
  *   POST   /api/inscricoes                           → cria o rascunho num edital aberto
  *   GET    /api/inscricoes/minhas                    → meus projetos, de qualquer status
  *   PATCH  /api/inscricoes/:id                       → auto-save (até o envio ao edital)
- *   PUT    /api/inscricoes/:id/anexos/:tipo          → envia PDF (application/pdf, header X-Filename)
+ *   POST   /api/inscricoes/:id/anexos/:tipo/envio    → autoriza o envio do PDF direto ao armazenamento
+ *   PUT    /api/inscricoes/:id/anexos/:tipo          → { chave, nome }: confere o PDF enviado e o registra
  *   DELETE /api/inscricoes/:id/anexos/:anexoId       → remove anexo
  *   POST   /api/inscricoes/:id/divulgacao            → divulga aos alunos
  *   GET    /api/inscricoes/:id/candidaturas          → candidatos do projeto
@@ -48,7 +43,7 @@ const requireDocente = createRoleGuard(['DOCENTE']);
  *
  * Todos com acesso ao projeto
  *   GET    /api/inscricoes/:id                       → detalhe (professor, aluno selecionado, avaliador, gestor)
- *   GET    /api/inscricoes/:id/anexos/:anexoId/arquivo → baixa/visualiza o PDF
+ *   GET    /api/inscricoes/:id/anexos/:anexoId/arquivo → { nome, url }: link temporário para abrir o PDF
  */
 export function registerInscricoesRoutes(
   router: Router,
@@ -126,22 +121,30 @@ export function registerInscricoesRoutes(
     }),
   );
 
+  function parseAnexoTipo(valor: unknown) {
+    const tipo = anexoTipoSchema.safeParse(valor);
+    if (!tipo.success) {
+      throw new ValidationError('Tipo de anexo inválido. Use PLANO_TRABALHO ou LATTES.');
+    }
+    return tipo.data;
+  }
+
+  router.post(
+    '/api/inscricoes/:id/anexos/:tipo/envio',
+    ...docente,
+    asyncHandler(async (req, res) => {
+      const tipo = parseAnexoTipo(req.params['tipo']);
+      res.json(await service.prepararAnexo(req.params['id'] as string, req.user!.id, tipo));
+    }),
+  );
+
   router.put(
     '/api/inscricoes/:id/anexos/:tipo',
     ...docente,
-    pdfBodyParser,
     asyncHandler(async (req, res) => {
-      const tipo = anexoTipoSchema.safeParse(req.params['tipo']);
-      if (!tipo.success) {
-        throw new ValidationError('Tipo de anexo inválido. Use PLANO_TRABALHO ou LATTES.');
-      }
-      const inscricao = await service.anexar(
-        req.params['id'] as string,
-        req.user!.id,
-        tipo.data,
-        readUploadFilename(req),
-        readUploadBody(req),
-      );
+      const tipo = parseAnexoTipo(req.params['tipo']);
+      const dto = parseBody(confirmarEnvioSchema, req.body);
+      const inscricao = await service.anexar(req.params['id'] as string, req.user!.id, tipo, dto.chave, dto.nome);
       res.json(await respostaDoDono(inscricao));
     }),
   );
@@ -168,7 +171,7 @@ export function registerInscricoesRoutes(
         req.user!,
         req.params['anexoId'] as string,
       );
-      sendPdf(res, arquivo.content, arquivo.nome);
+      res.json(arquivo);
     }),
   );
 

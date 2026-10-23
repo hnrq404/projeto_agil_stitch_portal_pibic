@@ -4,16 +4,18 @@ import { USER_ROLES } from '@shared/auth/auth.types';
 
 import { REGISTRO_ROLES, type AuthResult, type PublicUsuario } from '../domain/auth.types';
 
+// Mínimo de 8 com letra e número; máximo de 72 bytes porque o bcrypt ignora o que passa disso.
+const senhaForte = z
+  .string()
+  .min(8, 'senha deve ter ao menos 8 caracteres')
+  .refine((s) => Buffer.byteLength(s, 'utf8') <= 72, 'senha deve ter no máximo 72 caracteres')
+  .refine((s) => /\p{L}/u.test(s) && /\d/.test(s), 'senha deve combinar letras e números');
+
 export const registerSchema = z
   .object({
     nome: z.string().trim().min(3, 'nome deve ter ao menos 3 caracteres'),
     email: z.string().trim().toLowerCase().email('e-mail inválido'),
-    // Mínimo de 8 com letra e número; máximo de 72 bytes porque o bcrypt ignora o que passa disso.
-    senha: z
-      .string()
-      .min(8, 'senha deve ter ao menos 8 caracteres')
-      .refine((s) => Buffer.byteLength(s, 'utf8') <= 72, 'senha deve ter no máximo 72 caracteres')
-      .refine((s) => /\p{L}/u.test(s) && /\d/.test(s), 'senha deve combinar letras e números'),
+    senha: senhaForte,
     role: z.enum(REGISTRO_ROLES),
     departamento: z.string().trim().max(60).optional(),
     matricula: z.string().trim().max(30).optional(),
@@ -24,6 +26,14 @@ export const loginSchema = z
   .object({
     email: z.string().trim().toLowerCase().email('e-mail inválido'),
     senha: z.string().min(1, 'senha é obrigatória'),
+  })
+  .strict();
+
+/** Troca de senha pelo próprio usuário logado. */
+export const alterarSenhaSchema = z
+  .object({
+    senhaAtual: z.string().min(1, 'informe a senha atual'),
+    novaSenha: senhaForte,
   })
   .strict();
 
@@ -40,6 +50,7 @@ export const updateUsuarioSchema = z
 
 export type RegisterDto = z.infer<typeof registerSchema>;
 export type LoginDto = z.infer<typeof loginSchema>;
+export type AlterarSenhaDto = z.infer<typeof alterarSenhaSchema>;
 export type UpdateUsuarioDto = z.infer<typeof updateUsuarioSchema>;
 
 export function toAuthResponse(result: AuthResult) {
