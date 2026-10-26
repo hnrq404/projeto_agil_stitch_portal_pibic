@@ -33,6 +33,7 @@ const requireDocente = createRoleGuard(['DOCENTE']);
  *   DELETE /api/inscricoes/:id/anexos/:anexoId       → remove anexo
  *   POST   /api/inscricoes/:id/divulgacao            → divulga aos alunos
  *   GET    /api/inscricoes/:id/candidaturas          → candidatos do projeto
+ *   GET    /api/inscricoes/:id/candidaturas/:candidaturaId/curriculo → { nome, url }: Lattes do candidato
  *   POST   /api/inscricoes/:id/selecao               → escolhe o aluno
  *   POST   /api/inscricoes/:id/submissao             → envia ao edital com três avaliadores (gera protocolo)
  *
@@ -190,6 +191,20 @@ export function registerInscricoesRoutes(
     asyncHandler(async (req, res) => {
       const views = await service.candidaturasDoProjeto(req.params['id'] as string, req.user!.id);
       res.json({ data: views.map(toCandidaturaResponse), total: views.length });
+    }),
+  );
+
+  router.get(
+    '/api/inscricoes/:id/candidaturas/:candidaturaId/curriculo',
+    ...docente,
+    asyncHandler(async (req, res) => {
+      res.json(
+        await service.curriculoDoCandidato(
+          req.params['id'] as string,
+          req.user!.id,
+          req.params['candidaturaId'] as string,
+        ),
+      );
     }),
   );
 

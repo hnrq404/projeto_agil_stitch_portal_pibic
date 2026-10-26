@@ -1,4 +1,4 @@
-import type { ApiErrorBody } from '@/shared/types/api';
+import type { ApiErrorBody, InstrucaoUpload } from '@/shared/types/api';
 
 /**
  * Cliente HTTP da SPA: anexa o JWT, normaliza erros da API em ApiError e
@@ -120,8 +120,6 @@ export const http = {
   delete: <T = void>(path: string) => request<T>(path, { method: 'DELETE' }),
 };
 
-/** Onde o navegador envia o PDF (espelha InstrucaoUpload do backend). */
-type InstrucaoUpload = { provedor: 'api'; url: string } | { provedor: 'vercel-blob'; pathname: string; token: string };
 
 /**
  * Envio de PDF com progresso real, em três passos. O arquivo não passa pela
@@ -136,7 +134,8 @@ export async function uploadPdf<T>(path: string, file: File, onProgress?: (perce
   return http.put<T>(path, { chave, nome: file.name });
 }
 
-async function enviarAoArmazenamento(
+/** Envia o PDF para onde a API autorizou (usado também no cadastro, que ainda não tem sessão). */
+export async function enviarAoArmazenamento(
   upload: InstrucaoUpload,
   file: File,
   onProgress?: (percent: number) => void,

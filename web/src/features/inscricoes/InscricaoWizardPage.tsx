@@ -284,20 +284,17 @@ function EtapaDocumentos({ inscricao }: { inscricao: Inscricao }) {
     <fieldset className="space-y-6">
       <legend className="text-lg font-semibold">Documentos</legend>
       <p className="text-sm text-ink-muted">
-        Os dois PDFs são exigidos no envio ao edital, não na divulgação. O Lattes é o do aluno que você selecionar.
+        O plano de trabalho é exigido no envio ao edital, não na divulgação. O currículo Lattes vem do perfil do aluno que
+        você selecionar e entra no projeto automaticamente no envio.
       </p>
-      {(['PLANO_TRABALHO', 'LATTES'] as const).map((tipo) => {
+      {(['PLANO_TRABALHO'] as const).map((tipo) => {
         const atual = doTipo(tipo);
         return (
           <FileDropzone
             key={tipo}
             label={ANEXO_LABEL[tipo]}
             required
-            description={
-              tipo === 'PLANO_TRABALHO'
-                ? 'Cronograma de atividades do bolsista para 12 meses.'
-                : 'Currículo do aluno selecionado, exportado da Plataforma Lattes em PDF.'
-            }
+            description="Cronograma de atividades do bolsista para 12 meses."
             current={atual}
             onUpload={(file, onProgress) => enviar.mutateAsync({ tipo, file, onProgress })}
             onOpen={atual ? () => void abrirPdf(anexoUrl(inscricao.id, atual.id)).catch((e) => toast.error(errorMessage(e))) : undefined}

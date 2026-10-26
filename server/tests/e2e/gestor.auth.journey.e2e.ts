@@ -14,6 +14,7 @@ import request from 'supertest';
 import { buildApp, type AppContainer } from '../../src/infra/config/app.container';
 import { loadEnv } from '../../src/infra/config/env';
 import { FixedClock } from '../../src/shared/testing/fixed-clock';
+import { cadastrar } from '../helpers/conta';
 import { criarUsuario } from '../helpers/usuarios';
 
 jest.setTimeout(60000);
@@ -38,7 +39,7 @@ afterAll(async () => {
   await container.disconnect?.();
 });
 
-const GESTOR_EMAIL = 'gestor.e2e@pibic.edu.br';
+const GESTOR_EMAIL = 'gestor.e2e@unicap.br';
 const GESTOR_SENHA = 'senha-segura-e2e';
 
 const editalPayload = () => ({
@@ -73,10 +74,10 @@ it('E2E: cadastro → login → criar edital → cotas → publicar → vitrine 
   const token = login.body.token as string;
   const auth = { Authorization: `Bearer ${token}` };
 
-  // Também cadastra um usuário comum para receber a notificação de publicação.
-  await request(container.app).post('/api/auth/register').send({
+  // Também cadastra (e confirma pelo link do e-mail) um usuário comum para receber a notificação de publicação.
+  await cadastrar(container, {
     nome: 'Visitante E2E',
-    email: 'visitante.e2e@pibic.edu.br',
+    email: 'visitante.e2e@unicap.br',
     senha: 'senha-visitante-1',
     role: 'USUARIO',
   });
@@ -116,7 +117,7 @@ it('E2E: cadastro → login → criar edital → cotas → publicar → vitrine 
   expect(gestorNotifs.body.data[0].referenceId).toBe(editalId);
 
   const visitanteLogin = await request(container.app).post('/api/auth/login').send({
-    email: 'visitante.e2e@pibic.edu.br',
+    email: 'visitante.e2e@unicap.br',
     senha: 'senha-visitante-1',
   });
   const visitanteNotifs = await request(container.app)

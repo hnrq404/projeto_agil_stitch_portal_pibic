@@ -15,6 +15,21 @@ export interface Usuario {
   departamento: string;
   matricula: string | null;
   criadoEm: string;
+  /** Currículo Lattes do aluno (só metadados; o arquivo abre por link temporário). */
+  curriculo: { nome: string; tamanho: number; enviadoEm: string } | null;
+}
+
+/** Onde o navegador envia um PDF (espelha InstrucaoUpload do backend). */
+export type InstrucaoUpload = { provedor: 'api'; url: string } | { provedor: 'vercel-blob'; pathname: string; token: string };
+
+/** Cadastro: a conta fica pendente até a pessoa clicar no link enviado ao e-mail. */
+export interface CadastroResponse {
+  pendente: true;
+  usuarioId: string;
+  email: string;
+  emailEnviado: boolean;
+  /** Só para aluno: autorização para enviar o Lattes logo após o cadastro. */
+  envioCurriculo: { chave: string; upload: InstrucaoUpload } | null;
 }
 
 export interface AuthResponse {
@@ -181,7 +196,7 @@ export interface Candidatura {
   mensagem: string;
   criadoEm: string;
   respondidaEm: string | null;
-  discente: (Pessoa & { matricula: string | null }) | null;
+  discente: (Pessoa & { matricula: string | null; temCurriculo?: boolean }) | null;
   /** Presente nas candidaturas do próprio aluno. */
   projeto?: ProjetoDivulgado & { status: InscricaoStatus };
 }

@@ -1,6 +1,7 @@
 import request from 'supertest';
 import type { AppContainer } from '../../src/infra/config/app.container';
 import { buildTestApp } from '../helpers/app';
+import { cadastrar, tokenDoUltimoEmail } from '../helpers/conta';
 import { criarELogar, criarUsuario } from '../helpers/usuarios';
 
 jest.setTimeout(20000);
@@ -14,7 +15,7 @@ beforeEach(() => {
 
 const discentePayload = () => ({
   nome: 'Maria Discente',
-  email: 'maria.discente@pibic.edu.br',
+  email: 'maria.discente@unicap.br',
   senha: 'senha-segura-123',
   role: 'DISCENTE',
   departamento: 'dcc',
@@ -23,33 +24,86 @@ const discentePayload = () => ({
 
 const usuarioPayload = () => ({
   nome: 'Ana Visitante',
-  email: 'ana.visitante@pibic.edu.br',
+  email: 'ana.visitante@unicap.br',
   senha: 'senha-segura-456',
   role: 'USUARIO',
 });
 
 describe('POST /api/auth/register', () => {
-  it('cadastra DISCENTE com hash bcrypt e retorna JWT válido', async () => {
+  it('cria a conta pendente, envia o link de confirmação e não devolve sessão', async () => {
     const res = await request(container.app).post('/api/auth/register').send(discentePayload());
 
     expect(res.status).toBe(201);
-    expect(res.body.token).toBeTruthy();
-    expect(res.body.usuario.nome).toBe('Maria Discente');
-    expect(res.body.usuario.email).toBe('maria.discente@pibic.edu.br');
-    expect(res.body.usuario.role).toBe('DISCENTE');
-    expect(res.body.usuario.departamento).toBe('DCC');
+    expect(res.body).toMatchObject({ pendente: true, email: 'maria.discente@unicap.br', emailEnviado: true });
+    expect(res.body.token).toBeUndefined();
+    // Aluno recebe junto a autorização para enviar o Lattes.
+    expect(res.body.envioCurriculo.chave).toMatch(new RegExp(`^cv-${res.body.usuarioId as string}-`));
     // O hash NUNCA atravessa a API:
     expect(JSON.stringify(res.body)).not.toContain('senhaHash');
 
-    const stored = await container.usuariosRepository.findByEmail('maria.discente@pibic.edu.br');
-    expect(stored).toBeDefined();
-    expect(stored!.senhaHash).not.toBe('senha-segura-123');
+    const stored = await container.usuariosRepository.findByEmail('maria.discente@unicap.br');
+    expect(stored?.emailPendente).toBe(true);
     expect(stored!.senhaHash.startsWith('$2')).toBe(true); // formato bcrypt
+    expect(tokenDoUltimoEmail(container, 'maria.discente@unicap.br')).toContain(stored!.id);
+  });
+
+  it('o link do e-mail confirma a conta e já inicia a sessão; o mesmo link não vale duas vezes', async () => {
+    await request(container.app).post('/api/auth/register').send(discentePayload());
+    const token = tokenDoUltimoEmail(container, 'maria.discente@unicap.br');
+
+    const confirmado = await request(container.app).post('/api/auth/verificar-email').send({ token });
+    expect(confirmado.status).toBe(200);
+    expect(confirmado.body.usuario).toMatchObject({ email: 'maria.discente@unicap.br', role: 'DISCENTE', departamento: 'DCC' });
+    const me = await request(container.app)
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${confirmado.body.token as string}`);
+    expect(me.status).toBe(200);
+
+    const denovo = await request(container.app).post('/api/auth/verificar-email').send({ token });
+    expect(denovo.status).toBe(400);
+  });
+
+  it('link adulterado ou de outra conta é recusado', async () => {
+    await request(container.app).post('/api/auth/register').send(discentePayload());
+    const token = tokenDoUltimoEmail(container, 'maria.discente@unicap.br');
+    const [id] = token.split('.');
+
+    for (const falso of [`${token}x`, `${id as string}.segredo-inventado`, 'sem-ponto-nenhum']) {
+      const res = await request(container.app).post('/api/auth/verificar-email').send({ token: falso });
+      expect(res.status).toBe(400);
+    }
+  });
+
+  it('só aceita e-mail institucional @unicap.br', async () => {
+    for (const email of ['maria@gmail.com', 'maria@unicap.br.com', 'maria@aluno.unicap.edu']) {
+      const res = await request(container.app).post('/api/auth/register').send({ ...discentePayload(), email });
+      expect(res.status).toBe(400);
+    }
+    expect(await container.usuariosRepository.list()).toHaveLength(0);
+  });
+
+  it('reenviar o link vale só para conta pendente e responde igual para e-mail inexistente', async () => {
+    await request(container.app).post('/api/auth/register').send(discentePayload());
+    const primeiro = tokenDoUltimoEmail(container, 'maria.discente@unicap.br');
+
+    const reenvio = await request(container.app)
+      .post('/api/auth/reenviar-verificacao')
+      .send({ email: 'maria.discente@unicap.br' });
+    const fantasma = await request(container.app).post('/api/auth/reenviar-verificacao').send({ email: 'ninguem@unicap.br' });
+    expect(reenvio.status).toBe(202);
+    expect(fantasma.status).toBe(202);
+    expect(fantasma.body).toEqual(reenvio.body);
+
+    // O link novo substitui o anterior.
+    const segundo = tokenDoUltimoEmail(container, 'maria.discente@unicap.br');
+    expect(segundo).not.toBe(primeiro);
+    expect((await request(container.app).post('/api/auth/verificar-email').send({ token: primeiro })).status).toBe(400);
+    expect((await request(container.app).post('/api/auth/verificar-email').send({ token: segundo })).status).toBe(200);
   });
 
   it('cadastra USUARIO (visitante) com role correta', async () => {
-    const res = await request(container.app).post('/api/auth/register').send(usuarioPayload());
-    expect(res.status).toBe(201);
+    const res = await cadastrar(container, usuarioPayload());
+    expect(res.status).toBe(200);
     expect(res.body.usuario.role).toBe('USUARIO');
   });
 
@@ -64,8 +118,8 @@ describe('POST /api/auth/register', () => {
   });
 
   it('rejeita e-mail duplicado (409)', async () => {
-    await request(container.app).post('/api/auth/register').send(discentePayload());
-    const res = await request(container.app).post('/api/auth/register').send(discentePayload());
+    await cadastrar(container, discentePayload());
+    const res = await cadastrar(container, discentePayload());
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe('CONFLICT');
   });
@@ -75,43 +129,52 @@ describe('POST /api/auth/register', () => {
       { ...discentePayload(), senha: '123' },
       { ...discentePayload(), email: 'nao-e-email' },
       { ...discentePayload(), role: 'SUPERUSER' },
-      { nome: 'x', email: 'x@x.com', senha: '123456' }, // sem role
+      { nome: 'x', email: 'x@unicap.br', senha: '123456' }, // sem role
     ];
     for (const payload of cases) {
-      const res = await request(container.app).post('/api/auth/register').send(payload);
+      const res = await cadastrar(container, payload);
       expect(res.status).toBe(400);
     }
   });
 });
 
 describe('POST /api/auth/login', () => {
-  it('o MESMO usuário cadastrado autentica no login (fluxo completo)', async () => {
+  it('conta ainda não confirmada não entra (403) e a resposta diz o que fazer', async () => {
     await request(container.app).post('/api/auth/register').send(discentePayload());
+    const res = await request(container.app)
+      .post('/api/auth/login')
+      .send({ email: 'maria.discente@unicap.br', senha: 'senha-segura-123' });
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('EMAIL_NAO_CONFIRMADO');
+  });
+
+  it('o MESMO usuário cadastrado autentica no login (fluxo completo)', async () => {
+    await cadastrar(container, discentePayload());
 
     const res = await request(container.app).post('/api/auth/login').send({
-      email: 'maria.discente@pibic.edu.br',
+      email: 'maria.discente@unicap.br',
       senha: 'senha-segura-123',
     });
     expect(res.status).toBe(200);
     expect(res.body.token).toBeTruthy();
-    expect(res.body.usuario.email).toBe('maria.discente@pibic.edu.br');
+    expect(res.body.usuario.email).toBe('maria.discente@unicap.br');
     expect(res.body.usuario.role).toBe('DISCENTE');
   });
 
   it('autentica com e-mail em caixa diferente (normalização)', async () => {
-    await request(container.app).post('/api/auth/register').send(usuarioPayload());
+    await cadastrar(container, usuarioPayload());
 
     const res = await request(container.app).post('/api/auth/login').send({
-      email: 'ANA.VISITANTE@PIBIC.EDU.BR',
+      email: 'ANA.VISITANTE@UNICAP.BR',
       senha: 'senha-segura-456',
     });
     expect(res.status).toBe(200);
   });
 
   it('rejeita senha incorreta (401)', async () => {
-    await request(container.app).post('/api/auth/register').send(discentePayload());
+    await cadastrar(container, discentePayload());
     const res = await request(container.app).post('/api/auth/login').send({
-      email: 'maria.discente@pibic.edu.br',
+      email: 'maria.discente@unicap.br',
       senha: 'errada!',
     });
     expect(res.status).toBe(401);
@@ -119,7 +182,7 @@ describe('POST /api/auth/login', () => {
 
   it('rejeita e-mail inexistente (401) sem vazar existência', async () => {
     const res = await request(container.app).post('/api/auth/login').send({
-      email: 'fantasma@pibic.edu.br',
+      email: 'fantasma@unicap.br',
       senha: 'qualquer',
     });
     expect(res.status).toBe(401);
@@ -131,13 +194,13 @@ describe('JWT nas rotas protegidas (integração auth ↔ editais)', () => {
     if (role === 'GESTOR') {
       const { auth } = await criarELogar(container, {
         nome: 'Maria Gestora',
-        email: 'maria.gestora@pibic.edu.br',
+        email: 'maria.gestora@unicap.br',
         role: 'GESTOR',
       });
       return auth.Authorization.replace('Bearer ', '');
     }
     const payload = usuarioPayload();
-    await request(container.app).post('/api/auth/register').send(payload);
+    await cadastrar(container, payload);
     const login = await request(container.app).post('/api/auth/login').send({
       email: payload.email,
       senha: payload.senha,
@@ -191,10 +254,10 @@ describe('Gestão de usuários (S1.2) e papéis no token', () => {
   it('troca de papel vale na próxima requisição, com o mesmo token (RN11)', async () => {
     const gestor = await criarELogar(container, {
       nome: 'Gestora',
-      email: 'gestora@pibic.edu.br',
+      email: 'gestora@unicap.br',
       role: 'GESTOR',
     });
-    const reg = await request(container.app).post('/api/auth/register').send(usuarioPayload());
+    const reg = await cadastrar(container, usuarioPayload());
     const tokenVisitante = `Bearer ${reg.body.token as string}`;
 
     const antes = await request(container.app)
@@ -219,7 +282,7 @@ describe('Gestão de usuários (S1.2) e papéis no token', () => {
   it('gestor não altera o próprio papel (422)', async () => {
     const gestor = await criarELogar(container, {
       nome: 'Gestora',
-      email: 'gestora@pibic.edu.br',
+      email: 'gestora@unicap.br',
       role: 'GESTOR',
     });
     const proprio = await request(container.app)
@@ -232,11 +295,11 @@ describe('Gestão de usuários (S1.2) e papéis no token', () => {
   it('lista de usuários é restrita ao gestor; a de docentes é aberta a autenticados', async () => {
     await criarUsuario(container, {
       nome: 'Prof. Paulo',
-      email: 'paulo@pibic.edu.br',
+      email: 'paulo@unicap.br',
       role: 'DOCENTE',
       departamento: 'DCC',
     });
-    const reg = await request(container.app).post('/api/auth/register').send(usuarioPayload());
+    const reg = await cadastrar(container, usuarioPayload());
     const auth = { Authorization: `Bearer ${reg.body.token as string}` };
 
     expect((await request(container.app).get('/api/usuarios').set(auth)).status).toBe(403);
@@ -258,8 +321,9 @@ describe('Endurecimento da API', () => {
   });
 
   it('bloqueia o login após 10 senhas erradas, mesmo com a senha certa depois', async () => {
-    const app = buildTestApp({ jwtSecret: 'test-secret', authRateLimit: true }).app;
-    await request(app).post('/api/auth/register').send(discentePayload());
+    const limitado = buildTestApp({ jwtSecret: 'test-secret', authRateLimit: true });
+    const app = limitado.app;
+    await cadastrar(limitado, discentePayload());
 
     for (let i = 0; i < 10; i += 1) {
       const falha = await request(app)
@@ -277,8 +341,9 @@ describe('Endurecimento da API', () => {
   });
 
   it('logins bem-sucedidos não contam para o limite', async () => {
-    const app = buildTestApp({ jwtSecret: 'test-secret', authRateLimit: true }).app;
-    await request(app).post('/api/auth/register').send(discentePayload());
+    const limitado = buildTestApp({ jwtSecret: 'test-secret', authRateLimit: true });
+    const app = limitado.app;
+    await cadastrar(limitado, discentePayload());
 
     for (let i = 0; i < 12; i += 1) {
       const ok = await request(app)
@@ -291,7 +356,7 @@ describe('Endurecimento da API', () => {
 
 describe('POST /api/auth/senha', () => {
   async function registrar() {
-    const res = await request(container.app).post('/api/auth/register').send(discentePayload());
+    const res = await cadastrar(container, discentePayload());
     return { Authorization: `Bearer ${res.body.token as string}` };
   }
 

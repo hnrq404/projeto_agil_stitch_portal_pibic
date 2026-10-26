@@ -108,11 +108,21 @@ describe('pendências do professor', () => {
       anexos: [],
     });
     const pendencias = pendenciasParaSubmissao(vazia, edital);
-    expect(pendencias).toHaveLength(9);
+    // O Lattes só é cobrado depois que há aluno selecionado (ele vem do perfil do aluno).
+    expect(pendencias).toHaveLength(8);
     expect(pendencias.join(' ')).toContain('Divulgue');
     expect(pendencias.join(' ')).toContain('Selecione o aluno');
     expect(pendencias.join(' ')).toContain('plano de trabalho');
-    expect(pendencias.join(' ')).toContain('currículo lattes');
+    expect(pendencias.join(' ')).not.toContain('Lattes');
+  });
+
+  it('com aluno selecionado, cobra o Lattes do perfil dele (ou aceita o anexado no fluxo antigo)', () => {
+    const semLattes = inscricaoCompleta({ anexos: inscricaoCompleta().anexos.filter((a) => a.tipo !== 'LATTES') });
+    expect(pendenciasParaSubmissao(semLattes, edital)).toEqual([
+      'O aluno selecionado ainda não anexou o currículo Lattes no perfil dele.',
+    ]);
+    expect(pendenciasParaSubmissao(semLattes, edital, { alunoTemCurriculo: true })).toEqual([]);
+    expect(pendenciasParaSubmissao(inscricaoCompleta(), edital)).toEqual([]);
   });
 
   it('exige subárea com cota no edital', () => {

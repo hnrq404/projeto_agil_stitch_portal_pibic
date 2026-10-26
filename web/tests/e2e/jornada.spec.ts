@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { CONTAS, dataInput, entrar, pdf, sessao } from './support';
+import { CONTAS, dataInput, entrar, linkDoEmail, pdf, sessao } from './support';
 
 /**
  * E2E (browser) — fluxo UNICAP completo sobre o servidor real (API + SPA +
- * SQLite com seed). Cria o próprio edital, projeto e conta de aluno, então
+ * Firestore com seed). Cria o próprio edital, projeto e conta de aluno, então
  * pode rodar várias vezes seguidas.
  */
 test('ciclo completo: edital, divulgação, candidatura, seleção, três pareceres, homologação e relatório mensal', async ({ browser }) => {
@@ -58,16 +58,32 @@ test('ciclo completo: edital, divulgação, candidatura, seleção, três parece
   await expect(docente).toHaveURL(new RegExp(`/inscricoes/${projetoId}$`));
   await expect(docente.getByText('Recebendo candidaturas')).toBeVisible();
 
-  // ── 3. O aluno cria a conta e se candidata ao projeto divulgado
+  // ── 3. O aluno cria a conta com o e-mail @unicap.br e o Lattes, confirma o e-mail e se candidata
+  const emailAluno = `discente.${sufixo}@unicap.br`;
   const discente = await (await browser.newContext()).newPage();
   await discente.goto('/cadastro');
   await discente.getByLabel('Nome completo').fill(nomeAluno);
-  await discente.getByLabel('E-mail').fill(`discente.${sufixo}@aluno.edu.br`);
+  await discente.getByLabel('E-mail').fill(`discente.${sufixo}@gmail.com`);
   await discente.getByLabel('Departamento').fill('BIO');
   await discente.getByLabel('Matrícula').fill(`2024${sufixo}`);
+  await discente.getByLabel('Currículo Lattes (PDF)').setInputFiles(pdf('lattes.pdf'));
   await discente.getByLabel('Senha', { exact: true }).fill('senha123');
   await discente.getByLabel('Confirmar senha').fill('senha123');
   await discente.getByRole('button', { name: 'Criar conta' }).click();
+  // A mensagem de erro do campo (o subtítulo da página também cita o domínio, por isso o texto exato).
+  await expect(discente.getByText('Use seu e-mail institucional @unicap.br.', { exact: true })).toBeVisible();
+  await discente.getByLabel('E-mail').fill(emailAluno);
+  await discente.getByRole('button', { name: 'Criar conta' }).click();
+  await expect(discente.getByRole('heading', { name: 'Confirme seu e-mail' })).toBeVisible();
+
+  // Antes de confirmar, a conta não entra.
+  await discente.goto('/login');
+  await discente.getByLabel('E-mail').fill(emailAluno);
+  await discente.getByLabel('Senha').fill('senha123');
+  await discente.getByRole('button', { name: 'Entrar' }).click();
+  await expect(discente.getByText('Confirme seu e-mail para entrar')).toBeVisible();
+
+  await discente.goto(await linkDoEmail(discente, emailAluno));
   await expect(discente).toHaveURL(/\/inicio/);
 
   await discente.goto('/oportunidades');
@@ -77,20 +93,13 @@ test('ciclo completo: edital, divulgação, candidatura, seleção, três parece
   await discente.getByRole('button', { name: 'Enviar candidatura' }).click();
   await expect(projetoCard.getByText('Em análise pelo professor')).toBeVisible();
 
-  // ── 4. O professor seleciona o aluno, anexa o Lattes e envia ao edital com três avaliadores
+  // ── 4. O professor vê o Lattes do candidato, seleciona o aluno e envia ao edital com três avaliadores
+  //       (o Lattes do perfil do aluno entra no projeto sozinho no envio)
   await docente.reload();
   const candidato = docente.locator('li', { hasText: nomeAluno });
+  await expect(candidato.getByRole('button', { name: 'Ver currículo' })).toBeVisible();
   await candidato.getByRole('button', { name: 'Selecionar' }).click();
   await expect(docente.getByText(`Você selecionou ${nomeAluno}`)).toBeVisible();
-
-  await docente.goto(`/inscricoes/${projetoId}/editar`);
-  await docente.getByRole('button', { name: 'Próximo' }).click();
-  await docente.getByRole('button', { name: 'Próximo' }).click();
-  await docente.getByLabel('Currículo Lattes do aluno').setInputFiles(pdf('lattes.pdf'));
-  await expect(docente.getByText('lattes.pdf')).toBeVisible();
-  await docente.getByRole('button', { name: 'Próximo' }).click();
-  await docente.getByRole('button', { name: 'Concluir edição' }).click();
-  await expect(docente).toHaveURL(new RegExp(`/inscricoes/${projetoId}$`));
 
   for (const prof of CONTAS.avaliadores) {
     await docente.getByRole('checkbox', { name: new RegExp(prof.nome) }).check();

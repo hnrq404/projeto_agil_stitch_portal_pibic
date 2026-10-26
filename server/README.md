@@ -16,14 +16,14 @@ Contas do seed (senha = papel + `123`):
 
 | E-mail | Senha | Papel | Para testar |
 | --- | --- | --- | --- |
-| `gestor@pibic.edu.br` | `gestor123` | GESTOR | painel, editais, triagem, usuários |
-| `docente@pibic.edu.br` | `docente123` | DOCENTE (DCC) | projeto divulgado com dois candidatos; avalia o projeto da Profa. Marina |
-| `docente2@pibic.edu.br` | `docente123` | DOCENTE (DEMAT) | projeto em avaliação |
-| `avaliador@pibic.edu.br`, `avaliador2@pibic.edu.br` | `docente123` | DOCENTE (FIS, QUI) | contas antigas de avaliador, unificadas ao docente |
-| `discente@pibic.edu.br` | `discente123` | DISCENTE | bolsista com relatório mensal em atraso |
-| `bruno@pibic.edu.br`, `julia@pibic.edu.br` | `discente123` | DISCENTE | candidatos ao projeto divulgado |
-| `caio@pibic.edu.br` | `discente123` | DISCENTE | selecionado no projeto em avaliação |
-| `visitante@pibic.edu.br` | `visitante123` | USUARIO | parte pública |
+| `gestor.demo@unicap.br` | `gestor123` | GESTOR | painel, editais, triagem, usuários |
+| `docente.demo@unicap.br` | `docente123` | DOCENTE (DCC) | projeto divulgado com dois candidatos; avalia o projeto da Profa. Marina |
+| `docente2.demo@unicap.br` | `docente123` | DOCENTE (DEMAT) | projeto em avaliação |
+| `avaliador.demo@unicap.br`, `avaliador2.demo@unicap.br` | `docente123` | DOCENTE (FIS, QUI) | professores com parecer pendente |
+| `discente.demo@unicap.br` | `discente123` | DISCENTE | bolsista com relatório mensal em atraso |
+| `bruno.demo@unicap.br`, `julia.demo@unicap.br` | `discente123` | DISCENTE | candidatos ao projeto divulgado |
+| `caio.demo@unicap.br` | `discente123` | DISCENTE | selecionado no projeto em avaliação |
+| `visitante.demo@unicap.br` | `visitante123` | USUARIO | parte pública |
 
 O auto-cadastro oferece só DISCENTE, DOCENTE e USUARIO. GESTOR é atribuído por um gestor em `/usuarios`. O seed também migra dados do fluxo antigo (`src/infra/migrar-legado.ts`).
 
@@ -81,10 +81,16 @@ Erros seguem `{ error: { code, message, details? } }`: 400 (validação), 401, 4
 ### Autenticação e usuários
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
-| POST | `/api/auth/register` | público | `{ nome, email, senha, role: DISCENTE \| DOCENTE \| USUARIO, departamento?, matricula? }` |
-| POST | `/api/auth/login` | público | `{ email, senha }` → JWT |
+| POST | `/api/auth/register` | público | `{ nome, email (@unicap.br), senha, role: DISCENTE \| DOCENTE \| USUARIO, departamento?, matricula? }` → conta **pendente** + link de confirmação por e-mail; aluno recebe `envioCurriculo` para o Lattes |
+| PUT | `/api/auth/cadastro/curriculo` | público (chave do cadastro) | `{ usuarioId, chave, nome }`: Lattes enviado logo após o cadastro, enquanto a conta está pendente |
+| POST | `/api/auth/verificar-email` | público | `{ token }` do link → confirma a conta e devolve o JWT |
+| POST | `/api/auth/reenviar-verificacao` | público | `{ email }` → novo link (resposta igual para qualquer e-mail) |
+| POST | `/api/auth/esqueci-senha` | público | `{ email }` → link de redefinição, válido por 1 hora |
+| POST | `/api/auth/redefinir-senha` | público | `{ token, novaSenha }` → troca a senha, encerra as outras sessões e devolve o JWT |
+| POST | `/api/auth/login` | público | `{ email, senha }` → JWT; 403 `EMAIL_NAO_CONFIRMADO` se a conta ainda não foi confirmada |
 | GET | `/api/auth/me` | autenticado | perfil atual |
 | POST | `/api/auth/senha` | autenticado | `{ senhaAtual, novaSenha }` → JWT novo; tokens anteriores deixam de valer |
+| POST | `/api/perfil/curriculo/envio` · PUT `/api/perfil/curriculo` · GET `/api/perfil/curriculo` | aluno | troca e abre o próprio Lattes |
 | GET | `/api/usuarios?role=` | gestor | lista |
 | PATCH | `/api/usuarios/:id` | gestor | `{ role?, departamento? }` |
 | GET | `/api/usuarios/docentes` | autenticado | professores cadastrados |
@@ -104,10 +110,11 @@ Erros seguem `{ error: { code, message, details? } }`: 400 (validação), 401, 4
 | GET | `/api/inscricoes/minhas` | docente | meus projetos, de qualquer status |
 | GET | `/api/inscricoes/:id` | professor dono, aluno selecionado, avaliador indicado, gestor | detalhe (+ `pendencias` para o dono até o envio) |
 | PATCH | `/api/inscricoes/:id` | docente dono | auto-save (rascunho ou divulgado) |
-| POST | `/api/inscricoes/:id/anexos/:tipo/envio` | docente dono | autoriza o envio direto ao armazenamento: `{ chave, upload }`; tipo `PLANO_TRABALHO` \| `LATTES` |
+| POST | `/api/inscricoes/:id/anexos/PLANO_TRABALHO/envio` | docente dono | autoriza o envio do plano de trabalho (o Lattes vem do perfil do aluno e é copiado para o projeto no envio ao edital) |
 | PUT | `/api/inscricoes/:id/anexos/:tipo` | docente dono | `{ chave, nome }`: confere o PDF recebido (tamanho, `%PDF-`) e o registra |
 | DELETE | `/api/inscricoes/:id/anexos/:anexoId` | docente dono | remove anexo |
 | GET | `/api/inscricoes/:id/anexos/:anexoId/arquivo` | quem vê o projeto | `{ nome, url }`: link que expira em 5 min |
+| GET | `/api/inscricoes/:id/candidaturas/:candidaturaId/curriculo` | docente dono | `{ nome, url }`: Lattes do candidato |
 | POST | `/api/inscricoes/:id/divulgacao` | docente dono | divulga aos alunos (avisa todos os discentes) |
 | GET | `/api/inscricoes/:id/candidaturas` | docente dono | candidatos |
 | POST | `/api/inscricoes/:id/selecao` | docente dono | `{ candidaturaId }` escolhe o aluno (pode trocar até o envio) |

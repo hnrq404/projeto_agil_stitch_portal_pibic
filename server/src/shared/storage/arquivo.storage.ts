@@ -46,6 +46,8 @@ export interface ArquivoStorage {
   remove(chave: string): Promise<void>;
   /** Gravação feita pelo próprio servidor (seed de demonstração), sem passar pelo navegador. */
   salvar(chave: string, conteudo: Buffer): Promise<void>;
+  /** Cópia independente: apagar ou trocar a origem depois não afeta o destino. */
+  copiar(origem: string, destino: string): Promise<void>;
 }
 
 /**
@@ -119,6 +121,14 @@ export abstract class ArmazenamentoLocal implements ArquivoStorage {
   async salvar(chave: string, conteudo: Buffer): Promise<void> {
     assertChaveValida(chave);
     await this.gravar(chave, conteudo);
+  }
+
+  async copiar(origem: string, destino: string): Promise<void> {
+    assertChaveValida(origem);
+    assertChaveValida(destino);
+    const conteudo = await this.ler(origem);
+    if (!conteudo) throw new NotFoundError('Arquivo de origem não encontrado.');
+    await this.gravar(destino, conteudo);
   }
 
   async urlDeLeitura(chave: string, nome: string): Promise<string> {

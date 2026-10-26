@@ -11,6 +11,7 @@ import {
   Microscope,
   Send,
   UserCog,
+  UserRound,
   Users,
 } from 'lucide-react';
 
@@ -40,6 +41,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { to: '/candidaturas', label: 'Minhas Candidaturas', icon: Send, roles: ['DISCENTE'] },
   { to: '/projetos', label: 'Bolsas e Relatórios', icon: FolderKanban, roles: ['DISCENTE', 'DOCENTE', 'GESTOR', 'ADMIN'] },
   { to: '/notificacoes', label: 'Notificações', icon: Bell, roles: 'todos' },
+  { to: '/perfil', label: 'Meu perfil', icon: UserRound, roles: 'todos' },
 ];
 
 export const PUBLIC_NAV: readonly { to: string; label: string; icon: LucideIcon }[] = [

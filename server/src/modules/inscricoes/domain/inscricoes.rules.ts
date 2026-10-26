@@ -9,7 +9,7 @@ import type { Clock } from '@shared/time/clock';
 
 import type { Edital } from '../../editais/domain/editais.types';
 import { isInscricaoAberta } from '../../editais/domain/editais.rules';
-import { ANEXO_LABEL, ANEXO_TIPOS, type Inscricao, type InscricaoStatus } from './inscricoes.types';
+import { ANEXO_LABEL, type Inscricao, type InscricaoStatus } from './inscricoes.types';
 
 /** Limites mínimos de conteúdo para um projeto ser divulgado. */
 export const MIN_RESUMO = 100;
@@ -97,8 +97,14 @@ export function pendenciasParaDivulgacao(inscricao: Inscricao, edital: Edital): 
 /**
  * O que falta para enviar ao edital. Vazia = pronto. A mesma lista é devolvida
  * à SPA para montar o checklist. Os avaliadores são validados à parte, no envio.
+ * O professor anexa só o plano de trabalho; o Lattes vem do perfil do aluno
+ * selecionado e é copiado para o projeto no envio.
  */
-export function pendenciasParaSubmissao(inscricao: Inscricao, edital: Edital): string[] {
+export function pendenciasParaSubmissao(
+  inscricao: Inscricao,
+  edital: Edital,
+  opcoes: { alunoTemCurriculo?: boolean } = {},
+): string[] {
   const pendencias = pendenciasParaDivulgacao(inscricao, edital);
   if (inscricao.status === 'RASCUNHO') {
     pendencias.push('Divulgue o projeto para receber candidaturas dos alunos.');
@@ -106,10 +112,13 @@ export function pendenciasParaSubmissao(inscricao: Inscricao, edital: Edital): s
   if (!inscricao.discenteId) {
     pendencias.push('Selecione o aluno entre os candidatos.');
   }
-  for (const tipo of ANEXO_TIPOS) {
-    if (!inscricao.anexos.some((a) => a.tipo === tipo)) {
-      pendencias.push(`Anexe o ${ANEXO_LABEL[tipo].toLowerCase()} em PDF.`);
-    }
+  if (!inscricao.anexos.some((a) => a.tipo === 'PLANO_TRABALHO')) {
+    pendencias.push(`Anexe o ${ANEXO_LABEL.PLANO_TRABALHO.toLowerCase()} em PDF.`);
+  }
+  // Projetos antigos já têm o Lattes anexado pelo professor: continuam valendo.
+  const temLattes = opcoes.alunoTemCurriculo || inscricao.anexos.some((a) => a.tipo === 'LATTES');
+  if (inscricao.discenteId && !temLattes) {
+    pendencias.push('O aluno selecionado ainda não anexou o currículo Lattes no perfil dele.');
   }
   return pendencias;
 }

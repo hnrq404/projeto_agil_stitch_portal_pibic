@@ -52,8 +52,22 @@ export class FirestoreUsuariosRepository implements UsuariosRepository {
   }
 
   async update(usuario: Usuario): Promise<Usuario> {
-    // O e-mail não muda por aqui (não há tela para isso): o índice de unicidade continua válido.
-    await this.colecao.doc(usuario.id).set({ ...usuario, senhaAlteradaEm: usuario.senhaAlteradaEm ?? null });
+    const ref = this.colecao.doc(usuario.id);
+    const dados = { ...usuario, senhaAlteradaEm: usuario.senhaAlteradaEm ?? null };
+    try {
+      await this.db.runTransaction(async (tx) => {
+        const emailAnterior = (await tx.get(ref)).data()?.['email'] as string | undefined;
+        // E-mail trocado: o índice de unicidade acompanha, na mesma transação.
+        if (emailAnterior !== undefined && emailAnterior !== usuario.email) {
+          tx.delete(this.db.collection(COLECOES.usuariosEmails).doc(idSeguro(emailAnterior)));
+          tx.create(this.db.collection(COLECOES.usuariosEmails).doc(idSeguro(usuario.email)), { usuarioId: usuario.id });
+        }
+        tx.set(ref, dados);
+      });
+    } catch (error) {
+      if (jaExiste(error)) throw new ConflictError('Já existe uma conta com este e-mail.', { email: usuario.email });
+      throw error;
+    }
     return { ...usuario };
   }
 

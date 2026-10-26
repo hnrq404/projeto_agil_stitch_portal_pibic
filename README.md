@@ -61,7 +61,7 @@ O repositório já traz a configuração ([`vercel.json`](./vercel.json)): a API
 
 1. **Firebase**: crie um projeto, ative o **Firestore** (modo de produção) e publique as regras e índices deste repositório: `npx firebase deploy --only firestore --project SEU_PROJETO` (a partir de `server/`). Em *Configurações do projeto > Contas de serviço*, gere uma chave privada.
 2. **Vercel**: importe o repositório (*Root Directory* = raiz). Em *Storage*, crie um **Blob store** e conecte ao projeto (isso define `BLOB_READ_WRITE_TOKEN`).
-3. **Variáveis de ambiente** na Vercel: `JWT_SECRET` (32+ caracteres aleatórios), `CRON_SECRET` (aleatório), `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL` e `FIREBASE_PRIVATE_KEY` (da chave do passo 1). **Não** defina `FIRESTORE_EMULATOR_HOST` lá.
+3. **Variáveis de ambiente** na Vercel: `JWT_SECRET` (32+ caracteres aleatórios), `CRON_SECRET` (aleatório), `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL` e `FIREBASE_PRIVATE_KEY` (da chave do passo 1), e o envio de e-mail: `SMTP_USUARIO` e `SMTP_SENHA` (Gmail do projeto com "senha de app", ver `server/.env.example`). **Não** defina `FIRESTORE_EMULATOR_HOST` lá. Sem o SMTP, o site funciona, mas novos cadastros ficam bloqueados (não há como confirmar o e-mail).
 4. Faça o deploy. Para ter dados de demonstração em produção, rode o seed uma vez da sua máquina com as variáveis de produção num `.env` temporário (sem `FIRESTORE_EMULATOR_HOST`).
 
 No plano **Hobby** as tarefas agendadas rodam uma vez por dia: editais vencidos são encerrados à meia-noite de Recife (as regras de prazo já valem pela data, então ninguém consegue se inscrever depois do prazo) e os lembretes de relatório saem às 9h. No plano Pro dá para aumentar a frequência em `vercel.json`.
@@ -72,15 +72,15 @@ Contas de demonstração criadas pelo seed (senha = papel + `123`):
 
 | Perfil    | E-mail                                              | Senha          | O que dá para testar                                                                 |
 | --------- | --------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------ |
-| Gestor    | `gestor@pibic.edu.br`                               | `gestor123`    | painel, editais, triagem, homologação, usuários, CSV                                 |
-| Docente   | `docente@pibic.edu.br`                              | `docente123`   | projeto divulgado com dois candidatos (selecionar e enviar); avaliar projeto de colega |
-| Docente   | `docente2@pibic.edu.br`                             | `docente123`   | projeto em avaliação pelos três professores indicados                                |
-| Docente   | `avaliador@pibic.edu.br`, `avaliador2@pibic.edu.br` | `docente123`   | contas antigas de avaliador, hoje professores: parecer pendente                      |
-| Discente  | `discente@pibic.edu.br`                             | `discente123`  | bolsista com relatório mensal em atraso                                              |
-| Discente  | `bruno@pibic.edu.br`, `julia@pibic.edu.br`          | `discente123`  | candidatos ao projeto divulgado; ver projetos com vaga                               |
-| Visitante | `visitante@pibic.edu.br`                            | `visitante123` | parte pública, inclusive os projetos com vaga                                        |
+| Gestor    | `gestor.demo@unicap.br`                                   | `gestor123`    | painel, editais, triagem, homologação, usuários, CSV                                 |
+| Docente   | `docente.demo@unicap.br`                                  | `docente123`   | projeto divulgado com dois candidatos (ver o Lattes, selecionar e enviar); avaliar projeto de colega |
+| Docente   | `docente2.demo@unicap.br`                                 | `docente123`   | projeto em avaliação pelos três professores indicados                                |
+| Docente   | `avaliador.demo@unicap.br`, `avaliador2.demo@unicap.br`   | `docente123`   | professores com parecer pendente                                                     |
+| Discente  | `discente.demo@unicap.br`                                 | `discente123`  | bolsista com relatório mensal em atraso                                              |
+| Discente  | `bruno.demo@unicap.br`, `julia.demo@unicap.br`            | `discente123`  | candidatos ao projeto divulgado; currículo em Meu perfil                             |
+| Visitante | `visitante.demo@unicap.br`                                | `visitante123` | parte pública, inclusive os projetos com vaga                                        |
 
-O cadastro em `/cadastro` oferece Discente, Docente ou Visitante. O papel de Gestor é atribuído por um gestor em **Usuários**.
+O cadastro em `/cadastro` aceita só e-mails **@unicap.br** e oferece Discente, Docente ou Visitante. A conta só entra depois de clicar no **link de confirmação** enviado ao e-mail (no dev, o link aparece no terminal da API e em `http://localhost:3000/api/dev/emails`). O aluno anexa o **currículo Lattes** no próprio cadastro (ou depois, em **Meu perfil**); o professor o vê nos candidatos, e ele é copiado para o projeto no envio ao edital. O papel de Gestor é atribuído por um gestor em **Usuários**. A tela de entrada tem **Esqueci minha senha**.
 
 Detalhes, regras de negócio e endpoints em [`server/README.md`](./server/README.md); estrutura e convenções do front em [`web/README.md`](./web/README.md).
 

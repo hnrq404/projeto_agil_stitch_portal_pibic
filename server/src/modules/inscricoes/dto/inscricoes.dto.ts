@@ -140,6 +140,8 @@ export function toCandidaturaResponse(view: CandidaturaView) {
           nome: discente.nome,
           email: discente.email,
           departamento: discente.departamento,
+          // O professor abre o Lattes por link temporário; aqui só indica se existe.
+          temCurriculo: Boolean(discente.curriculo),
           matricula: discente.matricula,
         }
       : null,

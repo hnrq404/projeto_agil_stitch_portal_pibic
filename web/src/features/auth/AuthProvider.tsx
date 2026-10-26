@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useQueryClient } from '@tanstack/react-query';
 
 import { http, SESSION_EXPIRED_EVENT, tokenStorage } from '@/shared/api/http';
-import type { AuthResponse, RegistroRole, UserRole, Usuario } from '@/shared/types/api';
+import type { AuthResponse, CadastroResponse, RegistroRole, UserRole, Usuario } from '@/shared/types/api';
 
 export interface RegisterInput {
   nome: string;
@@ -20,7 +20,12 @@ interface AuthContextValue {
   sessionExpired: boolean;
   hasRole(...roles: UserRole[]): boolean;
   login(email: string, senha: string): Promise<Usuario>;
-  register(input: RegisterInput): Promise<Usuario>;
+  /** Cria a conta pendente: a sessão só começa depois do link de confirmação do e-mail. */
+  register(input: RegisterInput): Promise<CadastroResponse>;
+  /** Começa a sessão com uma resposta da API (link de confirmação, nova senha, troca de senha). */
+  iniciarSessao(res: AuthResponse): Usuario;
+  /** Atualiza os dados do usuário logado sem recarregar a sessão (ex.: currículo trocado). */
+  atualizarUsuario(usuario: Usuario): void;
   logout(): void;
 }
 
@@ -73,10 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [startSession],
   );
 
-  const register = useCallback(
-    async (input: RegisterInput) => startSession(await http.post<AuthResponse>('/api/auth/register', input)),
-    [startSession],
-  );
+  const register = useCallback((input: RegisterInput) => http.post<CadastroResponse>('/api/auth/register', input), []);
+
+  const atualizarUsuario = useCallback((usuario: Usuario) => setUser(usuario), []);
 
   const logout = useCallback(() => {
     tokenStorage.clear();
@@ -87,8 +91,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasRole = useCallback((...roles: UserRole[]) => Boolean(user && roles.includes(user.role)), [user]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, loading, sessionExpired, hasRole, login, register, logout }),
-    [user, loading, sessionExpired, hasRole, login, register, logout],
+    () => ({
+      user,
+      loading,
+      sessionExpired,
+      hasRole,
+      login,
+      register,
+      iniciarSessao: startSession,
+      atualizarUsuario,
+      logout,
+    }),
+    [user, loading, sessionExpired, hasRole, login, register, startSession, atualizarUsuario, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,4 +1,4 @@
-import { BlobNotFoundError, del, get, head, issueSignedToken, presignUrl, put } from '@vercel/blob';
+import { BlobNotFoundError, copy, del, get, head, issueSignedToken, presignUrl, put } from '@vercel/blob';
 import { generateClientTokenFromReadWriteToken } from '@vercel/blob/client';
 
 import {
@@ -78,6 +78,15 @@ export class VercelBlobStorage implements ArquivoStorage {
       contentType: 'application/pdf',
       addRandomSuffix: false,
       allowOverwrite: true,
+    });
+  }
+
+  async copiar(origem: string, destino: string): Promise<void> {
+    await copy(this.pathname(origem), this.pathname(destino), {
+      access: 'private',
+      token: this.token,
+      contentType: 'application/pdf',
+      addRandomSuffix: false,
     });
   }
 

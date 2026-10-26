@@ -11,10 +11,18 @@ const senhaForte = z
   .refine((s) => Buffer.byteLength(s, 'utf8') <= 72, 'senha deve ter no máximo 72 caracteres')
   .refine((s) => /\p{L}/u.test(s) && /\d/.test(s), 'senha deve combinar letras e números');
 
+/** Só contas institucionais da UNICAP se cadastram (inclusive visitantes). */
+export const DOMINIO_INSTITUCIONAL = '@unicap.br';
+
+const emailSchema = z.string().trim().toLowerCase().email('e-mail inválido');
+
 export const registerSchema = z
   .object({
     nome: z.string().trim().min(3, 'nome deve ter ao menos 3 caracteres'),
-    email: z.string().trim().toLowerCase().email('e-mail inválido'),
+    email: emailSchema.refine(
+      (e) => e.endsWith(DOMINIO_INSTITUCIONAL),
+      `use seu e-mail institucional ${DOMINIO_INSTITUCIONAL}`,
+    ),
     senha: senhaForte,
     role: z.enum(REGISTRO_ROLES),
     departamento: z.string().trim().max(60).optional(),
@@ -24,8 +32,28 @@ export const registerSchema = z
 
 export const loginSchema = z
   .object({
-    email: z.string().trim().toLowerCase().email('e-mail inválido'),
+    email: emailSchema,
     senha: z.string().min(1, 'senha é obrigatória'),
+  })
+  .strict();
+
+/** Link clicado no e-mail (confirmação de conta). */
+export const tokenSchema = z.object({ token: z.string().trim().min(10).max(500) }).strict();
+
+/** Pedido de novo link (confirmação ou senha): só o e-mail. */
+export const emailPedidoSchema = z.object({ email: emailSchema }).strict();
+
+/** Nova senha pelo link do e-mail. */
+export const redefinirSenhaSchema = z
+  .object({ token: z.string().trim().min(10).max(500), novaSenha: senhaForte })
+  .strict();
+
+/** Currículo enviado logo após o cadastro, antes de a conta ter sessão. */
+export const curriculoCadastroSchema = z
+  .object({
+    usuarioId: z.string().trim().min(1).max(64),
+    chave: z.string().trim().min(1).max(200),
+    nome: z.string().trim().min(1).max(255),
   })
   .strict();
 

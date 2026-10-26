@@ -10,6 +10,7 @@ import request from 'supertest';
 
 import type { AppContainer } from '../../src/infra/config/app.container';
 import { buildTestApp } from '../helpers/app';
+import { anexarCurriculo } from '../helpers/conta';
 import { FixedClock } from '../../src/shared/testing/fixed-clock';
 import { criarELogar } from '../helpers/usuarios';
 
@@ -58,6 +59,9 @@ beforeEach(async () => {
   const outroAluno = await criarELogar(container, { nome: 'Maria Colega', email: 'maria@aluno.edu.br', role: 'DISCENTE' });
   colega = outroAluno.auth;
   colegaId = outroAluno.usuario.id;
+  // O aluno anexa o Lattes no perfil (no cadastro); sem ele não se candidata.
+  expect((await anexarCurriculo(container, discente, 'lattes-lucas.pdf')).status).toBe(200);
+  expect((await anexarCurriculo(container, colega, 'lattes-maria.pdf')).status).toBe(200);
 
   const professor = async (nome: string, email: string, departamento: string) =>
     criarELogar(container, { nome, email, role: 'DOCENTE', departamento });
@@ -123,8 +127,8 @@ async function projetoDivulgado(editalId: string): Promise<string> {
       metodologia: 'Revisão sistemática, preparação das bases, treino com validação cruzada e análise estatística.',
     });
   expect(salvo.status).toBe(200);
-  // Faltam: divulgar, selecionar o aluno e os dois PDFs.
-  expect(salvo.body.pendencias).toHaveLength(4);
+  // Faltam: divulgar, selecionar o aluno e o plano de trabalho (o Lattes vem do aluno).
+  expect(salvo.body.pendencias).toHaveLength(3);
 
   const divulgado = await request(container.app).post(`/api/inscricoes/${id}/divulgacao`).set(docente);
   expect(divulgado.status).toBe(200);
@@ -152,9 +156,9 @@ async function projetoPronto(editalId: string): Promise<string> {
   expect(selecao.status).toBe(200);
   expect(selecao.body.discente.id).toBe(discenteId);
 
-  expect((await upload(`/api/inscricoes/${id}/anexos/PLANO_TRABALHO`, docente, 'plano.pdf')).status).toBe(200);
-  const comLattes = await upload(`/api/inscricoes/${id}/anexos/LATTES`, docente, 'lattes.pdf');
-  expect(comLattes.body.pendencias).toEqual([]);
+  const comPlano = await upload(`/api/inscricoes/${id}/anexos/PLANO_TRABALHO`, docente, 'plano.pdf');
+  expect(comPlano.status).toBe(200);
+  expect(comPlano.body.pendencias).toEqual([]);
   return id;
 }
 
@@ -209,7 +213,6 @@ describe('Projeto de pesquisa: divulgação, candidatura, seleção e envio', ()
     await request(container.app).post(`/api/inscricoes/${id}/selecao`).set(docente).send({ candidaturaId: minha.body.id });
     expect(await tiposDeNotificacao(discente)).toContain('CANDIDATURA_RESULTADO');
     await upload(`/api/inscricoes/${id}/anexos/PLANO_TRABALHO`, docente, 'plano.pdf');
-    await upload(`/api/inscricoes/${id}/anexos/LATTES`, docente, 'lattes.pdf');
 
     const enviado = await enviar(id);
     expect(enviado.status).toBe(200);
@@ -307,33 +310,82 @@ describe('Projeto de pesquisa: divulgação, candidatura, seleção e envio', ()
   it('RN06: rejeita arquivo que não é PDF, mesmo com Content-Type de PDF', async () => {
     const editalId = await editalPublicado();
     const criado = await request(container.app).post('/api/inscricoes').set(docente).send({ editalId });
-    const res = await upload(`/api/inscricoes/${criado.body.id as string}/anexos/LATTES`, docente, 'virus.pdf', Buffer.from('MZ executável'));
+    const res = await upload(`/api/inscricoes/${criado.body.id as string}/anexos/PLANO_TRABALHO`, docente, 'virus.pdf', Buffer.from('MZ executável'));
     expect(res.status).toBe(400);
     expect(res.body.error.message).toMatch(/PDF/);
   });
 
-  it('só confirma um PDF enviado com a chave emitida para aquela inscrição e tipo de anexo', async () => {
+  it('só confirma um PDF enviado com a chave emitida para aquela inscrição', async () => {
     const editalId = await editalPublicado();
-    const criado = await request(container.app).post('/api/inscricoes').set(docente).send({ editalId });
-    const id = criado.body.id as string;
-    const envio = await request(container.app).post(`/api/inscricoes/${id}/anexos/LATTES/envio`).set(docente);
+    const a = (await request(container.app).post('/api/inscricoes').set(docente).send({ editalId })).body.id as string;
+    const b = (await request(container.app).post('/api/inscricoes').set(docente).send({ editalId })).body.id as string;
+    const envio = await request(container.app).post(`/api/inscricoes/${a}/anexos/PLANO_TRABALHO/envio`).set(docente);
     await request(container.app).put(envio.body.upload.url as string).set('Content-Type', 'application/pdf').send(PDF);
 
-    // A chave foi emitida para o Lattes: não serve para registrar o plano de trabalho.
+    // A chave foi emitida para o projeto A: não serve para registrar no projeto B.
     const trocado = await request(container.app)
-      .put(`/api/inscricoes/${id}/anexos/PLANO_TRABALHO`)
+      .put(`/api/inscricoes/${b}/anexos/PLANO_TRABALHO`)
       .set(docente)
       .send({ chave: envio.body.chave as string, nome: 'plano.pdf' });
     expect(trocado.status).toBe(400);
 
     // Confirmar sem ter enviado o arquivo também é recusado.
-    const semArquivo = await request(container.app).post(`/api/inscricoes/${id}/anexos/PLANO_TRABALHO/envio`).set(docente);
+    const semArquivo = await request(container.app).post(`/api/inscricoes/${a}/anexos/PLANO_TRABALHO/envio`).set(docente);
     const vazio = await request(container.app)
-      .put(`/api/inscricoes/${id}/anexos/PLANO_TRABALHO`)
+      .put(`/api/inscricoes/${a}/anexos/PLANO_TRABALHO`)
       .set(docente)
       .send({ chave: semArquivo.body.chave as string, nome: 'plano.pdf' });
     expect(vazio.status).toBe(400);
     expect(vazio.body.error.message).toMatch(/não chegou/);
+  });
+
+  it('o professor não anexa mais o Lattes: ele vem do perfil do aluno', async () => {
+    const editalId = await editalPublicado();
+    const criado = await request(container.app).post('/api/inscricoes').set(docente).send({ editalId });
+    const res = await request(container.app).post(`/api/inscricoes/${criado.body.id as string}/anexos/LATTES/envio`).set(docente);
+    expect(res.status).toBe(422);
+    expect(res.body.error.message).toMatch(/próprio aluno/);
+  });
+
+  it('aluno sem currículo no perfil não se candidata; com currículo, o professor o abre', async () => {
+    const editalId = await editalPublicado();
+    const id = await projetoDivulgado(editalId);
+    const semLattes = await criarELogar(container, { nome: 'Sem Lattes', email: 'semlattes@aluno.edu.br', role: 'DISCENTE' });
+
+    const recusada = await candidatar(semLattes.auth, id);
+    expect(recusada.status).toBe(422);
+    expect(recusada.body.error.message).toMatch(/Meu perfil/);
+
+    const minha = await candidatar(discente, id);
+    const lista = await request(container.app).get(`/api/inscricoes/${id}/candidaturas`).set(docente);
+    expect(lista.body.data[0].discente.temCurriculo).toBe(true);
+    const link = await request(container.app)
+      .get(`/api/inscricoes/${id}/candidaturas/${minha.body.id as string}/curriculo`)
+      .set(docente);
+    expect(link.status).toBe(200);
+    expect(link.body.nome).toBe('lattes-lucas.pdf');
+    expect((await request(container.app).get(link.body.url as string)).status).toBe(200);
+    // Outro professor não abre o Lattes dos candidatos de um projeto que não é dele.
+    const alheio = await request(container.app)
+      .get(`/api/inscricoes/${id}/candidaturas/${minha.body.id as string}/curriculo`)
+      .set(profFis);
+    expect(alheio.status).toBe(404);
+  });
+
+  it('no envio, o Lattes do aluno é congelado no projeto; trocar o do perfil depois não muda o enviado', async () => {
+    const editalId = await editalPublicado();
+    const id = await projetoPronto(editalId);
+    const enviado = await enviar(id);
+    expect(enviado.status).toBe(200);
+    const lattes = (enviado.body.anexos as { tipo: string; nome: string; id: string }[]).find((a) => a.tipo === 'LATTES');
+    expect(lattes?.nome).toBe('lattes-lucas.pdf');
+
+    await anexarCurriculo(container, discente, 'lattes-atualizado.pdf');
+    const depois = await request(container.app).get(`/api/inscricoes/${id}`).set(docente);
+    const lattesDepois = (depois.body.anexos as { tipo: string; nome: string; id: string }[]).find((a) => a.tipo === 'LATTES');
+    expect(lattesDepois).toMatchObject({ id: lattes!.id, nome: 'lattes-lucas.pdf' });
+    const pdf = await request(container.app).get(`/api/inscricoes/${id}/anexos/${lattes!.id}/arquivo`).set(docente);
+    expect((await request(container.app).get(pdf.body.url as string)).status).toBe(200);
   });
 
   it('candidato não selecionado e professores não indicados não veem o projeto (404)', async () => {

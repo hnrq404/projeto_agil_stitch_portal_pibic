@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CircleAlert, Pencil, Send, UserCheck, Users } from 'lucide-react';
+import { CircleAlert, FileText, Pencil, Send, UserCheck, Users } from 'lucide-react';
 
 import { useCurrentUser } from '@/features/auth/AuthProvider';
 import { useAvaliadores } from '@/features/triagem/api';
@@ -16,6 +16,7 @@ import { ConfirmDialog } from '@/shared/ui/Dialog';
 import { Alert, EmptyState, ErrorState, LoadingState } from '@/shared/ui/Feedback';
 import { Input } from '@/shared/ui/Form';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { abrirPdf } from '@/shared/ui/PdfViewer';
 import { useToast } from '@/shared/ui/Toast';
 
 import { useCandidaturasDoProjeto, useEnviarAoEdital, useInscricao, useSelecionarAluno } from './api';
@@ -250,6 +251,20 @@ function Candidatos({ inscricao }: { inscricao: Inscricao }) {
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <StatusBadge status={CANDIDATURA_STATUS[c.status]} />
+                  {c.discente?.temCurriculo && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={<FileText className="h-4 w-4" aria-hidden />}
+                      onClick={() =>
+                        void abrirPdf(`/api/inscricoes/${inscricao.id}/candidaturas/${c.id}/curriculo`).catch((e) =>
+                          toast.error(errorMessage(e)),
+                        )
+                      }
+                    >
+                      Ver currículo
+                    </Button>
+                  )}
                   {podeSelecionar && c.status === 'PENDENTE' && (
                     <Button
                       size="sm"

@@ -125,6 +125,8 @@ function DetalheProjeto({
   const [erro, setErro] = useState<string | null>(null);
   const ehAluno = user?.role === 'DISCENTE';
   const valida = mensagem.trim().length >= MIN_MENSAGEM_CANDIDATURA;
+  // O professor avalia o candidato pelo Lattes: sem ele, a API recusa a candidatura.
+  const semCurriculo = ehAluno && !user?.curriculo;
 
   async function enviar() {
     setErro(null);
@@ -149,7 +151,7 @@ function DetalheProjeto({
             <Button variant="secondary" onClick={onClose}>
               Cancelar
             </Button>
-            <Button disabled={!valida} loading={candidatar.isPending} onClick={() => void enviar()}>
+            <Button disabled={!valida || semCurriculo} loading={candidatar.isPending} onClick={() => void enviar()}>
               Enviar candidatura
             </Button>
           </>
@@ -166,6 +168,14 @@ function DetalheProjeto({
         <Secao titulo="Metodologia">{projeto.metodologia}</Secao>
 
         {erro && <Alert tone="danger">{erro}</Alert>}
+        {semCurriculo && !jaCandidatado && (
+          <Alert tone="warning" title="Anexe seu currículo Lattes antes de se candidatar">
+            O professor avalia os candidatos pelo Lattes.{' '}
+            <Link to="/perfil" className="font-semibold underline">
+              Ir para Meu perfil
+            </Link>
+          </Alert>
+        )}
         {!user ? (
           <Alert tone="info" title="Entre como aluno para se candidatar">
             <Link to="/login" state={{ from: location.pathname }} className="font-semibold underline">

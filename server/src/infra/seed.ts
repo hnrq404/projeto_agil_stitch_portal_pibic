@@ -9,20 +9,22 @@
  * Grava pelos repositórios do container: no Firestore (emulador ou projeto
  * configurado no .env) e os PDFs no armazenamento ativo (disco ou Vercel Blob).
  *
- * Contas:
- *   gestor@pibic.edu.br      / gestor123     (GESTOR)
- *   docente@pibic.edu.br     / docente123    (DOCENTE, DCC) dono de um projeto divulgado e de um aprovado;
- *                                            também avalia o projeto da Profa. Marina
- *   docente2@pibic.edu.br    / docente123    (DOCENTE, DEMAT) projeto em avaliação
- *   avaliador@pibic.edu.br   / docente123    (DOCENTE, FIS)
- *   avaliador2@pibic.edu.br  / docente123    (DOCENTE, QUI)
- *   discente@pibic.edu.br    / discente123   (DISCENTE, bolsista com relatório mensal em atraso)
- *   bruno@pibic.edu.br       / discente123   (DISCENTE, candidato ao projeto divulgado)
- *   julia@pibic.edu.br       / discente123   (DISCENTE, candidata ao projeto divulgado)
- *   caio@pibic.edu.br        / discente123   (DISCENTE, selecionado no projeto em avaliação)
- *   visitante@pibic.edu.br   / visitante123  (USUARIO)
+ * Contas (o ".demo" deixa claro que não são caixas de e-mail de pessoas reais;
+ * já nascem confirmadas, e os alunos já têm o currículo Lattes no perfil):
+ *   gestor.demo@unicap.br      / gestor123     (GESTOR)
+ *   docente.demo@unicap.br     / docente123    (DOCENTE, DCC) dono de um projeto divulgado e de um aprovado;
+ *                                              também avalia o projeto da Profa. Marina
+ *   docente2.demo@unicap.br    / docente123    (DOCENTE, DEMAT) projeto em avaliação
+ *   avaliador.demo@unicap.br   / docente123    (DOCENTE, FIS)
+ *   avaliador2.demo@unicap.br  / docente123    (DOCENTE, QUI)
+ *   discente.demo@unicap.br    / discente123   (DISCENTE, bolsista com relatório mensal em atraso)
+ *   bruno.demo@unicap.br       / discente123   (DISCENTE, candidato ao projeto divulgado)
+ *   julia.demo@unicap.br       / discente123   (DISCENTE, candidata ao projeto divulgado)
+ *   caio.demo@unicap.br        / discente123   (DISCENTE, selecionado no projeto em avaliação)
+ *   visitante.demo@unicap.br   / visitante123  (USUARIO)
  *
- * Idempotente: pode rodar várias vezes sem duplicar dados.
+ * Idempotente: pode rodar várias vezes sem duplicar dados. Contas antigas
+ * (@pibic.edu.br) são renomeadas para os e-mails acima, mantendo os dados.
  */
 import { randomUUID } from 'node:crypto';
 
@@ -96,14 +98,21 @@ async function usuario(
   extra: { departamento?: string; matricula?: string } = {},
 ): Promise<Usuario> {
   const senhaHash = await bcrypt.hash(senha, 10);
-  const existente = await container.usuariosRepository.findByEmail(email);
+  // Contas de seeds anteriores usavam @pibic.edu.br: renomeia em vez de duplicar.
+  const legado = email.replace(/\.demo@unicap\.br$/, '@pibic.edu.br');
+  const existente =
+    (await container.usuariosRepository.findByEmail(email)) ?? (await container.usuariosRepository.findByEmail(legado));
   if (existente) {
     return container.usuariosRepository.update({
       ...existente,
+      email,
       senhaHash,
       role,
       departamento: extra.departamento ?? '',
       senhaAlteradaEm: null,
+      emailPendente: false,
+      tokenVerificacao: null,
+      tokenSenha: null,
     });
   }
   return container.usuariosRepository.create({
@@ -116,6 +125,23 @@ async function usuario(
     matricula: extra.matricula ?? null,
     criadoEm: new Date(),
     senhaAlteradaEm: null,
+  });
+}
+
+async function curriculoDemo(aluno: Usuario): Promise<void> {
+  if (aluno.curriculo) return;
+  const conteudo = pdfDemo(`Curriculo Lattes - ${aluno.nome}`);
+  const storageKey = `cv-${aluno.id}-${randomUUID()}`;
+  await container.arquivoStorage.salvar(storageKey, conteudo);
+  await container.usuariosRepository.update({
+    ...aluno,
+    curriculo: {
+      storageKey,
+      nome: 'curriculo-lattes.pdf',
+      tamanho: conteudo.length,
+      mimeType: 'application/pdf',
+      enviadoEm: new Date(),
+    },
   });
 }
 
@@ -157,36 +183,39 @@ async function protocolo(): Promise<string> {
 }
 
 async function main(): Promise<void> {
-  const gestor = await usuario('gestor@pibic.edu.br', 'Maria Gestora', 'gestor123', 'GESTOR', { departamento: 'PRPQ' });
-  const roberto = await usuario('docente@pibic.edu.br', 'Prof. Roberto Alencar', 'docente123', 'DOCENTE', {
+  const gestor = await usuario('gestor.demo@unicap.br', 'Maria Gestora', 'gestor123', 'GESTOR', { departamento: 'PRPQ' });
+  const roberto = await usuario('docente.demo@unicap.br', 'Prof. Roberto Alencar', 'docente123', 'DOCENTE', {
     departamento: 'DCC',
   });
-  const marina = await usuario('docente2@pibic.edu.br', 'Profa. Marina Vasconcelos', 'docente123', 'DOCENTE', {
+  const marina = await usuario('docente2.demo@unicap.br', 'Profa. Marina Vasconcelos', 'docente123', 'DOCENTE', {
     departamento: 'DEMAT',
   });
-  const carla = await usuario('avaliador@pibic.edu.br', 'Profa. Carla Mendes', 'docente123', 'DOCENTE', {
+  const carla = await usuario('avaliador.demo@unicap.br', 'Profa. Carla Mendes', 'docente123', 'DOCENTE', {
     departamento: 'FIS',
   });
-  const fernando = await usuario('avaliador2@pibic.edu.br', 'Prof. Fernando Guimarães', 'docente123', 'DOCENTE', {
+  const fernando = await usuario('avaliador2.demo@unicap.br', 'Prof. Fernando Guimarães', 'docente123', 'DOCENTE', {
     departamento: 'QUI',
   });
-  const ana = await usuario('discente@pibic.edu.br', 'Ana Discente', 'discente123', 'DISCENTE', {
+  const ana = await usuario('discente.demo@unicap.br', 'Ana Discente', 'discente123', 'DISCENTE', {
     departamento: 'Ciência da Computação',
     matricula: '2021049281',
   });
-  const bruno = await usuario('bruno@pibic.edu.br', 'Bruno Fontes', 'discente123', 'DISCENTE', {
+  const bruno = await usuario('bruno.demo@unicap.br', 'Bruno Fontes', 'discente123', 'DISCENTE', {
     departamento: 'Ciência da Computação',
     matricula: '2022019402',
   });
-  const julia = await usuario('julia@pibic.edu.br', 'Júlia Ramos', 'discente123', 'DISCENTE', {
+  const julia = await usuario('julia.demo@unicap.br', 'Júlia Ramos', 'discente123', 'DISCENTE', {
     departamento: 'Engenharia da Computação',
     matricula: '2023011577',
   });
-  const caio = await usuario('caio@pibic.edu.br', 'Caio Albuquerque', 'discente123', 'DISCENTE', {
+  const caio = await usuario('caio.demo@unicap.br', 'Caio Albuquerque', 'discente123', 'DISCENTE', {
     departamento: 'Matemática',
     matricula: '2022033190',
   });
-  await usuario('visitante@pibic.edu.br', 'Ana Visitante', 'visitante123', 'USUARIO');
+  await usuario('visitante.demo@unicap.br', 'Ana Visitante', 'visitante123', 'USUARIO');
+
+  // Os alunos anexam o Lattes no cadastro: os de demonstração já têm o deles.
+  for (const aluno of [ana, bruno, julia, caio]) await curriculoDemo(aluno);
 
   const agora = Date.now();
   const em = (dias: number) => new Date(agora + dias * DIA);

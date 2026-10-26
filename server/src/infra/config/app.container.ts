@@ -17,6 +17,9 @@ import {
 
 import { AuthService, JwtTokenSigner } from '@auth/auth.service';
 import { registerAuthRoutes } from '@auth/auth.controller';
+import { PerfilService } from '@auth/perfil.service';
+import { registerPerfilRoutes } from '@auth/perfil.controller';
+import { criarEmailSender, MemoryEmailSender, type EmailSender } from '@shared/email/email.sender';
 import {
   InMemoryUsuariosRepository,
   type UsuariosRepository,
@@ -103,6 +106,10 @@ export interface AppContainerOptions {
   arquivoStorage?: ArquivoStorage;
   userDirectory?: UserDirectory & { listUsers(): { id: string }[] };
   jwtSecret?: string;
+  /** Envio de e-mail (confirmação de conta, nova senha). Padrão: escolhido pelo ambiente (criarEmailSender). */
+  emailSender?: EmailSender;
+  /** Endereço do site usado nos links dos e-mails. Padrão: APP_URL, a URL de produção da Vercel ou o Vite local. */
+  urlApp?: string;
   /** Limite de tentativas em login/cadastro. Padrão: ligado, exceto com NODE_ENV=test. */
   authRateLimit?: boolean;
   /** Uma linha de log JSON por requisição da API. Padrão: ligado, exceto com NODE_ENV=test. */
@@ -127,6 +134,7 @@ export interface AppContainer {
   avaliacoesService: AvaliacoesService;
   projetosService: ProjetosService;
   arquivoStorage: ArquivoStorage;
+  emailSender: EmailSender;
   /** Fecha a conexão com o Firestore quando a persistência real está ativa. */
   disconnect?: () => Promise<void>;
 }
@@ -177,7 +185,12 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   const arquivoStorage = options.arquivoStorage ?? criarArquivoStorage(Boolean(db), jwtSecret);
 
   // ── Auth (JWT + bcrypt) ────────────────────────────────────────────────
-  const authService = new AuthService(usuariosRepository, new JwtTokenSigner(jwtSecret));
+  const emailSender = options.emailSender ?? criarEmailSender();
+  const authService = new AuthService(usuariosRepository, new JwtTokenSigner(jwtSecret), {
+    email: emailSender,
+    urlApp: options.urlApp ?? resolverUrlApp(),
+  });
+  const perfilService = new PerfilService(usuariosRepository, arquivoStorage, clock);
   const userDirectory: UserDirectory = options.userDirectory ?? new JwtUserDirectory(authService);
   const usuariosService = new UsuariosService(usuariosRepository);
   const auditoriaService = new AuditoriaService(auditoriaRepository, clock);
@@ -275,6 +288,22 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
         message: 'Muitos cadastros a partir desta rede. Aguarde uma hora e tente novamente.',
       }),
     );
+    // Cada pedido manda um e-mail: sem limite, viraria um jeito de lotar a caixa de alguém.
+    for (const [rota, prefixo] of [
+      ['/api/auth/reenviar-verificacao', 'reenvio'],
+      ['/api/auth/esqueci-senha', 'esqueci'],
+    ] as const) {
+      app.use(
+        rota,
+        createRateLimiter({
+          windowMs: 15 * 60 * 1000,
+          max: 5,
+          store: limiteStore,
+          prefixo,
+          message: 'Muitos pedidos de link em pouco tempo. Aguarde 15 minutos e tente novamente.',
+        }),
+      );
+    }
     // Com um token roubado, a troca de senha viraria um jeito de testar senhas atuais.
     app.use(
       '/api/auth/senha',
@@ -291,7 +320,8 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   const router: Router = express.Router();
   const authenticationGuard = createAuthenticationGuard(userDirectory);
 
-  registerAuthRoutes(router, authService, authenticationGuard);
+  registerAuthRoutes(router, authService, perfilService, authenticationGuard);
+  registerPerfilRoutes(router, perfilService, authenticationGuard);
   registerUsuariosRoutes(router, usuariosService, authenticationGuard, auditoriaService);
   registerEditaisRoutes(router, editaisService, authenticationGuard, auditoriaService);
   registerNotificacoesRoutes(router, notificacoesService, authenticationGuard);
@@ -316,6 +346,12 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   });
   registerCnpqRoutes(router);
   registerCronRoutes(router, { editaisService, projetosService });
+  // Sem servidor de e-mail no dev, os links ficam visíveis aqui (nunca em produção).
+  if (emailSender instanceof MemoryEmailSender && process.env['NODE_ENV'] !== 'production' && !process.env['VERCEL']) {
+    router.get('/api/dev/emails', (_req, res) => {
+      res.json({ data: [...emailSender.enviados].reverse() });
+    });
+  }
   if (arquivoStorage instanceof ArmazenamentoLocal) {
     registerArquivosLocaisRoutes(router, arquivoStorage);
   }
@@ -368,6 +404,7 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
     avaliacoesService,
     projetosService,
     arquivoStorage,
+    emailSender,
     disconnect: db ? () => encerrarFirestore() : undefined,
   };
 }
@@ -386,4 +423,11 @@ function criarArquivoStorage(persistente: boolean, jwtSecret: string): ArquivoSt
     throw new Error('Na Vercel não há disco permanente: configure o Vercel Blob (BLOB_READ_WRITE_TOKEN).');
   }
   return new DiskArquivoStorage(path.resolve(__dirname, '..', '..', '..', process.env['UPLOADS_DIR'] ?? 'uploads'), segredo);
+}
+
+/** Endereço do site nos links dos e-mails: APP_URL, senão a URL de produção da Vercel, senão o Vite local. */
+function resolverUrlApp(env: NodeJS.ProcessEnv = process.env): string {
+  if (env['APP_URL']) return env['APP_URL'];
+  if (env['VERCEL_PROJECT_PRODUCTION_URL']) return `https://${env['VERCEL_PROJECT_PRODUCTION_URL']}`;
+  return 'http://localhost:5173';
 }

@@ -1,10 +1,24 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import { ConflictError, ValidationError } from '@shared/errors/domain.errors';
+import {
+  ConflictError,
+  EmailNaoConfirmadoError,
+  ServicoIndisponivelError,
+  ValidationError,
+} from '@shared/errors/domain.errors';
 import { UnauthorizedError } from '@shared/auth/auth.types';
+import { MemoryEmailSender, type EmailSender } from '@shared/email/email.sender';
 
+import { emailConfirmacao, emailRedefinicaoSenha } from './conta.emails';
 import type { AuthResult, JwtPayload, PublicUsuario, RegistroRole, Usuario } from './domain/auth.types';
+import {
+  assertTokenValido,
+  gerarTokenEmail,
+  lerTokenEmail,
+  VALIDADE_SENHA_MS,
+  VALIDADE_VERIFICACAO_MS,
+} from './domain/token-email';
 import type { UsuariosRepository } from './repositories/usuarios.repository';
 
 const BCRYPT_ROUNDS = 10;
@@ -44,6 +58,20 @@ export interface RegisterInput {
   matricula?: string;
 }
 
+/** Resultado do cadastro: a conta existe, mas só entra depois de confirmar o e-mail. */
+export interface CadastroResult {
+  usuario: Usuario;
+  /** false quando o servidor de e-mail falhou; a pessoa pode pedir o reenvio do link. */
+  emailEnviado: boolean;
+}
+
+export interface AuthServiceOptions {
+  email?: EmailSender;
+  /** Endereço do site, usado nos links enviados por e-mail. */
+  urlApp?: string;
+  agora?: () => Date;
+}
+
 export function toPublicUsuario(usuario: Usuario): PublicUsuario {
   return {
     id: usuario.id,
@@ -53,42 +81,98 @@ export function toPublicUsuario(usuario: Usuario): PublicUsuario {
     departamento: usuario.departamento,
     matricula: usuario.matricula,
     criadoEm: usuario.criadoEm.toISOString(),
+    curriculo: usuario.curriculo
+      ? {
+          nome: usuario.curriculo.nome,
+          tamanho: usuario.curriculo.tamanho,
+          enviadoEm: usuario.curriculo.enviadoEm.toISOString(),
+        }
+      : null,
   };
 }
 
 /**
- * Casos de uso de autenticação: cadastro (bcrypt) e login (JWT).
- * O mesmo usuário cadastrado em register autentica em login — garantido pelo
- * repositório compartilhado + comparação bcrypt.
+ * Casos de uso da conta: cadastro com confirmação por e-mail, login (JWT),
+ * troca e redefinição de senha.
  */
 export class AuthService {
+  private readonly email: EmailSender;
+  private readonly urlApp: string;
+  private readonly agora: () => Date;
+
   constructor(
     private readonly usuarios: UsuariosRepository,
     private readonly signer: TokenSigner,
-  ) {}
+    opcoes: AuthServiceOptions = {},
+  ) {
+    this.email = opcoes.email ?? new MemoryEmailSender();
+    this.urlApp = (opcoes.urlApp ?? 'http://localhost:5173').replace(/\/+$/, '');
+    this.agora = opcoes.agora ?? (() => new Date());
+  }
 
-  async register(input: RegisterInput): Promise<AuthResult> {
+  /**
+   * Cria a conta como pendente e envia o link de confirmação. Só quem abre a
+   * caixa de entrada do e-mail informado consegue ativar a conta.
+   */
+  async register(input: RegisterInput): Promise<CadastroResult> {
+    this.assertEmailDisponivel();
     const email = input.email.trim().toLowerCase();
 
     const existing = await this.usuarios.findByEmail(email);
     if (existing) {
-      throw new ConflictError('Já existe uma conta com este e-mail.', { email });
+      throw new ConflictError(
+        existing.emailPendente
+          ? 'Este e-mail já foi cadastrado e aguarda confirmação. Na tela de entrada, use "Reenviar link de confirmação".'
+          : 'Já existe uma conta com este e-mail.',
+        { email },
+      );
     }
 
-    const senhaHash = await bcrypt.hash(input.senha, BCRYPT_ROUNDS);
+    const id = crypto.randomUUID();
+    const { token, registro } = gerarTokenEmail(id, VALIDADE_VERIFICACAO_MS, this.agora());
     const usuario = await this.usuarios.create({
-      id: crypto.randomUUID(),
+      id,
       nome: input.nome.trim(),
       email,
-      senhaHash,
+      senhaHash: await bcrypt.hash(input.senha, BCRYPT_ROUNDS),
       role: input.role,
       departamento: input.departamento?.trim().toUpperCase() ?? '',
       matricula: input.matricula?.trim() || null,
-      // bcrypt já impõe custo; criadoEm é preenchido pelo repositório/banco
-      criadoEm: new Date(),
+      criadoEm: this.agora(),
+      emailPendente: true,
+      tokenVerificacao: registro,
     });
 
-    return this.issueToken(usuario);
+    const emailEnviado = await this.tentarEnviar(() =>
+      this.email.enviar(emailConfirmacao(usuario.nome, usuario.email, this.link('/verificar-email', token))),
+    );
+    return { usuario, emailEnviado };
+  }
+
+  /** Link de confirmação clicado: ativa a conta e já inicia a sessão. */
+  async verificarEmail(token: string): Promise<AuthResult> {
+    const { usuarioId, segredo } = lerTokenEmail(token);
+    const usuario = await this.usuarios.findById(usuarioId);
+    if (usuario && !usuario.emailPendente) {
+      throw new ValidationError('Este e-mail já foi confirmado. Entre com seu e-mail e senha.');
+    }
+    assertTokenValido(usuario?.tokenVerificacao, segredo, this.agora());
+
+    const ativado = await this.usuarios.update({ ...usuario!, emailPendente: false, tokenVerificacao: null });
+    return this.issueToken(ativado);
+  }
+
+  /** Novo link de confirmação. Responde igual exista ou não a conta, para não revelar e-mails cadastrados. */
+  async reenviarVerificacao(emailInformado: string): Promise<void> {
+    this.assertEmailDisponivel();
+    const usuario = await this.usuarios.findByEmail(emailInformado.trim().toLowerCase());
+    if (!usuario?.emailPendente) return;
+
+    const { token, registro } = gerarTokenEmail(usuario.id, VALIDADE_VERIFICACAO_MS, this.agora());
+    await this.usuarios.update({ ...usuario, tokenVerificacao: registro });
+    await this.tentarEnviar(() =>
+      this.email.enviar(emailConfirmacao(usuario.nome, usuario.email, this.link('/verificar-email', token))),
+    );
   }
 
   async login(input: { email: string; senha: string }): Promise<AuthResult> {
@@ -100,8 +184,45 @@ export class AuthService {
     if (!usuario || !ok) {
       throw new UnauthorizedError('E-mail ou senha incorretos.');
     }
+    // Só depois de a senha conferir: assim não revela se um e-mail qualquer está pendente.
+    if (usuario.emailPendente) {
+      throw new EmailNaoConfirmadoError();
+    }
 
     return this.issueToken(usuario);
+  }
+
+  /** "Esqueci minha senha": envia o link de redefinição. Responde igual exista ou não a conta. */
+  async esqueciSenha(emailInformado: string): Promise<void> {
+    this.assertEmailDisponivel();
+    const usuario = await this.usuarios.findByEmail(emailInformado.trim().toLowerCase());
+    if (!usuario) return;
+
+    const { token, registro } = gerarTokenEmail(usuario.id, VALIDADE_SENHA_MS, this.agora());
+    await this.usuarios.update({ ...usuario, tokenSenha: registro });
+    await this.tentarEnviar(() =>
+      this.email.enviar(emailRedefinicaoSenha(usuario.nome, usuario.email, this.link('/redefinir-senha', token))),
+    );
+  }
+
+  /**
+   * Nova senha pelo link do e-mail. Encerra as outras sessões e, como o link
+   * prova que a pessoa tem acesso ao e-mail, também confirma uma conta pendente.
+   */
+  async redefinirSenha(token: string, novaSenha: string): Promise<AuthResult> {
+    const { usuarioId, segredo } = lerTokenEmail(token);
+    const usuario = await this.usuarios.findById(usuarioId);
+    assertTokenValido(usuario?.tokenSenha, segredo, this.agora());
+
+    const atualizado = await this.usuarios.update({
+      ...usuario!,
+      senhaHash: await bcrypt.hash(novaSenha, BCRYPT_ROUNDS),
+      senhaAlteradaEm: this.agora(),
+      tokenSenha: null,
+      emailPendente: false,
+      tokenVerificacao: null,
+    });
+    return this.issueToken(atualizado);
   }
 
   /**
@@ -125,7 +246,7 @@ export class AuthService {
     const atualizado = await this.usuarios.update({
       ...usuario,
       senhaHash: await bcrypt.hash(input.novaSenha, BCRYPT_ROUNDS),
-      senhaAlteradaEm: new Date(),
+      senhaAlteradaEm: this.agora(),
     });
     return this.issueToken(atualizado);
   }
@@ -155,6 +276,29 @@ export class AuthService {
       emitidoEm: Date.now(),
     });
     return { token, usuario: toPublicUsuario(usuario) };
+  }
+
+  private link(caminho: string, token: string): string {
+    return `${this.urlApp}${caminho}?token=${encodeURIComponent(token)}`;
+  }
+
+  private assertEmailDisponivel(): void {
+    if (!this.email.disponivel) {
+      throw new ServicoIndisponivelError(
+        'O envio de e-mails não está configurado, então não dá para confirmar contas agora. Avise a gestão do programa.',
+      );
+    }
+  }
+
+  /** Falha no envio não desfaz a conta: a pessoa pode pedir o reenvio do link. */
+  private async tentarEnviar(enviar: () => Promise<void>): Promise<boolean> {
+    try {
+      await enviar();
+      return true;
+    } catch (error) {
+      console.error('[auth] Não foi possível enviar o e-mail', error);
+      return false;
+    }
   }
 
   /** Helper para seeds/testes: cria usuário já com hash bcrypt. */

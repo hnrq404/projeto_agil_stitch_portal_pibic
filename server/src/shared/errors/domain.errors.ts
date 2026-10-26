@@ -9,7 +9,9 @@ export type DomainErrorName =
   | 'NOT_FOUND'
   | 'FORBIDDEN'
   | 'CONFLICT'
-  | 'UNPROCESSABLE';
+  | 'UNPROCESSABLE'
+  | 'EMAIL_NAO_CONFIRMADO'
+  | 'SERVICE_UNAVAILABLE';
 
 export class DomainError extends Error {
   public readonly name: DomainErrorName;
@@ -51,5 +53,19 @@ export class ConflictError extends DomainError {
 export class UnprocessableEntityError extends DomainError {
   constructor(message: string, details?: unknown) {
     super('UNPROCESSABLE', 422, message, details);
+  }
+}
+
+/** A senha confere, mas a pessoa ainda não clicou no link de confirmação enviado ao e-mail. */
+export class EmailNaoConfirmadoError extends DomainError {
+  constructor(message = 'Confirme seu e-mail antes de entrar. Procure o link na sua caixa de entrada (e no spam).') {
+    super('EMAIL_NAO_CONFIRMADO', 403, message);
+  }
+}
+
+/** Dependência externa fora do ar ou não configurada (ex.: envio de e-mail). */
+export class ServicoIndisponivelError extends DomainError {
+  constructor(message: string) {
+    super('SERVICE_UNAVAILABLE', 503, message);
   }
 }

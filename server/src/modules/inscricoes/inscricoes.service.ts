@@ -16,7 +16,7 @@ import {
 } from '@shared/storage/arquivo.storage';
 import type { Clock } from '@shared/time/clock';
 
-import type { Usuario } from '../auth/domain/auth.types';
+import type { Curriculo, Usuario } from '../auth/domain/auth.types';
 import type { UsuariosRepository } from '../auth/repositories/usuarios.repository';
 import { isInscricaoAberta } from '../editais/domain/editais.rules';
 import type { Edital } from '../editais/domain/editais.types';
@@ -33,6 +33,7 @@ import {
   pendenciasParaSubmissao,
 } from './domain/inscricoes.rules';
 import type {
+  Anexo,
   AnexoTipo,
   Candidatura,
   Inscricao,
@@ -136,8 +137,11 @@ export class InscricoesService {
   }
 
   async pendencias(inscricao: Inscricao): Promise<string[]> {
-    const edital = await this.getEdital(inscricao.editalId);
-    return pendenciasParaSubmissao(inscricao, edital);
+    const [edital, aluno] = await Promise.all([
+      this.getEdital(inscricao.editalId),
+      inscricao.discenteId ? this.usuarios.findById(inscricao.discenteId) : Promise.resolve(undefined),
+    ]);
+    return pendenciasParaSubmissao(inscricao, edital, { alunoTemCurriculo: Boolean(aluno?.curriculo) });
   }
 
   /** Resolve edital, aluno e professor de vários projetos com poucas consultas. */
@@ -245,6 +249,7 @@ export class InscricoesService {
   ): Promise<{ chave: string; upload: InstrucaoUpload }> {
     const inscricao = await this.getOwned(id, orientadorId);
     assertEditavel(inscricao);
+    assertAnexoDoProfessor(tipo);
     const chave = `${inscricao.id}-${tipo}-${randomUUID()}`;
     return { chave, upload: await this.storage.prepararUpload(chave) };
   }
@@ -259,6 +264,7 @@ export class InscricoesService {
   ): Promise<Inscricao> {
     const inscricao = await this.getOwned(id, orientadorId);
     assertEditavel(inscricao);
+    assertAnexoDoProfessor(tipo);
     // Só vale uma chave emitida para esta inscrição e este tipo de anexo.
     if (!storageKey.startsWith(`${inscricao.id}-${tipo}-`)) {
       throw new ValidationError('Envio de arquivo inválido. Anexe o PDF novamente.');
@@ -383,6 +389,10 @@ export class InscricoesService {
     if (await this.candidaturas.findByInscricaoAndDiscente(id, discenteId)) {
       throw new ConflictError('Você já se candidatou a este projeto.');
     }
+    // O professor avalia o candidato pelo Lattes; sem ele, a candidatura não ajuda ninguém.
+    if (!(await this.usuarios.findById(discenteId))?.curriculo) {
+      throw new UnprocessableEntityError('Anexe seu currículo Lattes em "Meu perfil" antes de se candidatar.');
+    }
     const selecionadoEm = await this.inscricoes.findByEditalAndDiscente(inscricao.editalId, discenteId);
     if (selecionadoEm) {
       throw new ConflictError('Você já foi selecionado(a) para outro projeto deste edital.', {
@@ -488,7 +498,8 @@ export class InscricoesService {
     const edital = await this.getEdital(inscricao.editalId);
     assertEditalAceitaInscricoes(edital, this.clock);
 
-    const pendencias = pendenciasParaSubmissao(inscricao, edital);
+    const aluno = inscricao.discenteId ? await this.usuarios.findById(inscricao.discenteId) : undefined;
+    const pendencias = pendenciasParaSubmissao(inscricao, edital, { alunoTemCurriculo: Boolean(aluno?.curriculo) });
     if (pendencias.length > 0) {
       throw new UnprocessableEntityError('O projeto ainda tem pendências.', { pendencias });
     }
@@ -500,13 +511,25 @@ export class InscricoesService {
       inscricao.protocolo ??
       gerarProtocolo(await this.inscricoes.proximoSequencialProtocolo(now.getUTCFullYear()), now.getUTCFullYear());
 
-    const saved = await this.inscricoes.update({
-      ...inscricao,
-      protocolo,
-      status: 'EM_AVALIACAO',
-      submetidaEm: now,
-      atualizadoEm: now,
-    });
+    // Congela o Lattes do aluno: os avaliadores veem exatamente o que foi enviado,
+    // mesmo que o aluno troque o currículo do perfil depois.
+    const copia = aluno?.curriculo ? await this.copiarCurriculo(inscricao, aluno.curriculo, now) : undefined;
+    const lattesAnterior = copia ? inscricao.anexos.find((a) => a.tipo === 'LATTES') : undefined;
+    let saved: Inscricao;
+    try {
+      saved = await this.inscricoes.update({
+        ...inscricao,
+        anexos: copia ? [...inscricao.anexos.filter((a) => a.tipo !== 'LATTES'), copia] : inscricao.anexos,
+        protocolo,
+        status: 'EM_AVALIACAO',
+        submetidaEm: now,
+        atualizadoEm: now,
+      });
+    } catch (error) {
+      if (copia) await this.storage.remove(copia.storageKey).catch(() => undefined);
+      throw error;
+    }
+    if (lattesAnterior) await this.storage.remove(lattesAnterior.storageKey).catch(() => undefined);
     await this.avaliacoes.atribuirNaSubmissao(saved, avaliadorIds);
 
     // Candidatos que não foram escolhidos recebem a resposta agora.
@@ -535,7 +558,37 @@ export class InscricoesService {
     return saved;
   }
 
+  /** O professor lê o Lattes de quem se candidatou ao projeto dele. */
+  async curriculoDoCandidato(
+    id: string,
+    orientadorId: string,
+    candidaturaId: string,
+  ): Promise<{ nome: string; url: string }> {
+    await this.getOwned(id, orientadorId);
+    const candidatura = await this.candidaturas.findById(candidaturaId);
+    if (!candidatura || candidatura.inscricaoId !== id) {
+      throw new NotFoundError('Candidatura não encontrada neste projeto.');
+    }
+    const curriculo = (await this.usuarios.findById(candidatura.discenteId))?.curriculo;
+    if (!curriculo) throw new NotFoundError('Este aluno ainda não anexou o currículo Lattes.');
+    return { nome: curriculo.nome, url: await this.storage.urlDeLeitura(curriculo.storageKey, curriculo.nome) };
+  }
+
   // ── Internos ─────────────────────────────────────────────────────────────
+
+  private async copiarCurriculo(inscricao: Inscricao, curriculo: Curriculo, agora: Date): Promise<Anexo> {
+    const storageKey = `${inscricao.id}-LATTES-${randomUUID()}`;
+    await this.storage.copiar(curriculo.storageKey, storageKey);
+    return {
+      id: randomUUID(),
+      tipo: 'LATTES',
+      storageKey,
+      nome: curriculo.nome,
+      tamanho: curriculo.tamanho,
+      mimeType: 'application/pdf',
+      enviadoEm: agora,
+    };
+  }
 
   private async getOwned(id: string, orientadorId: string): Promise<Inscricao> {
     const inscricao = await this.getById(id);
@@ -570,5 +623,14 @@ export class InscricoesService {
       discente: alunoById.get(candidatura.discenteId),
       projeto: projetoById.get(candidatura.inscricaoId),
     }));
+  }
+}
+
+/** O Lattes agora vem do perfil do aluno; o professor anexa só o plano de trabalho. */
+function assertAnexoDoProfessor(tipo: AnexoTipo): void {
+  if (tipo !== 'PLANO_TRABALHO') {
+    throw new UnprocessableEntityError(
+      'O currículo Lattes agora é enviado pelo próprio aluno, no perfil dele, e entra no projeto automaticamente no envio ao edital.',
+    );
   }
 }

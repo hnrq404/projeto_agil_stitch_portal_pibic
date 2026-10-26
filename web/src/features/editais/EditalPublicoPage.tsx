@@ -37,8 +37,8 @@ export function EditalPublicoPage() {
               <DataItem label="Fim das inscrições">{formatDate(edital.dataFimInscricoes)}</DataItem>
             </dl>
             <div className="rounded-lg bg-canvas p-4 text-sm text-ink-muted">
-              Para se inscrever você vai precisar de: título e resumo do projeto, objetivos, metodologia, indicação de
-              um orientador, plano de trabalho e currículo Lattes em PDF (até 10 MB cada).
+              Como participar: o professor escreve o projeto, anexa o plano de trabalho e o divulga aos alunos. O aluno
+              se candidata com o currículo Lattes do perfil dele (PDFs de até 10 MB).
             </div>
           </div>
         </Card>

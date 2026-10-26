@@ -66,6 +66,10 @@ export const router = createBrowserRouter([
             children: [
               { path: '/login', lazy: guestPage(() => import('@/features/auth/LoginPage'), 'LoginPage') },
               { path: '/cadastro', lazy: guestPage(() => import('@/features/auth/CadastroPage'), 'CadastroPage') },
+              { path: '/esqueci-senha', lazy: guestPage(() => import('@/features/auth/EsqueciSenhaPage'), 'EsqueciSenhaPage') },
+              // Destinos dos links enviados por e-mail: abrem com ou sem sessão.
+              { path: '/verificar-email', lazy: page(() => import('@/features/auth/VerificarEmailPage'), 'VerificarEmailPage') },
+              { path: '/redefinir-senha', lazy: page(() => import('@/features/auth/RedefinirSenhaPage'), 'RedefinirSenhaPage') },
               { path: '/editais', element: <EditaisPublicosPage /> },
               { path: '/editais/:id', lazy: page(() => import('@/features/editais/EditalPublicoPage'), 'EditalPublicoPage') },
               { path: '/pesquisas', lazy: page(() => import('@/features/vitrine/VitrinePesquisasPage'), 'VitrinePesquisasPage') },
@@ -87,6 +91,7 @@ export const router = createBrowserRouter([
             children: [
               { path: '/inicio', lazy: page(() => import('@/features/dashboard/InicioPage'), 'InicioPage') },
               { path: '/notificacoes', lazy: page(() => import('@/features/notificacoes/NotificacoesPage'), 'NotificacoesPage') },
+              { path: '/perfil', lazy: page(() => import('@/features/perfil/PerfilPage'), 'PerfilPage') },
               // Detalhe do projeto: professor dono, aluno selecionado, avaliador indicado e gestão (o backend decide).
               { path: '/inscricoes/:id', lazy: page(() => import('@/features/inscricoes/InscricaoDetalhePage'), 'InscricaoDetalhePage') },
               {
