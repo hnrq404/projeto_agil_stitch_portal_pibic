@@ -92,8 +92,9 @@ export class SmtpEmailSender implements EmailSender {
  * sem eles, memória no dev e "indisponível" em produção (nunca fingir que enviou).
  */
 export function criarEmailSender(env: NodeJS.ProcessEnv = process.env): EmailSender {
-  const usuario = env['SMTP_USUARIO'];
-  const senha = env['SMTP_SENHA'];
+  // Valores colados em painéis costumam vir com espaços ou aspas nas pontas.
+  const usuario = semAspas(env['SMTP_USUARIO']);
+  const senha = semAspas(env['SMTP_SENHA']);
   if (usuario && senha) {
     return new SmtpEmailSender({
       host: env['SMTP_HOST'] || 'smtp.gmail.com',
@@ -109,4 +110,8 @@ export function criarEmailSender(env: NodeJS.ProcessEnv = process.env): EmailSen
     return new EmailIndisponivel();
   }
   return new MemoryEmailSender(env['NODE_ENV'] !== 'test');
+}
+
+function semAspas(valor: string | undefined): string {
+  return (valor ?? '').trim().replace(/^["']|["']$/g, '').trim();
 }
