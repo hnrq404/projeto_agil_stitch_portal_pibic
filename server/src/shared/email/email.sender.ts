@@ -68,6 +68,11 @@ export class SmtpEmailSender implements EmailSender {
       // 465 é SMTP com TLS direto; 587 negocia TLS depois de conectar.
       secure: config.porta === 465,
       auth: { user: config.usuario, pass: config.senha },
+      // Os padrões do nodemailer passam de 2 minutos; na Vercel a função morre aos 30 s
+      // sem registrar nada. Falhar antes deixa o erro no log e o "Reenviar link" funcionando.
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     });
   }
 

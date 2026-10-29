@@ -11,7 +11,7 @@ function corpoHtml(paragrafos: string[], botao: { texto: string; link: string },
 <div style="max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:28px">
 <p style="margin:0 0 20px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#475569">Portal PIBIC · UNICAP</p>
 ${paragrafos.map((p) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.6">${p}</p>`).join('\n')}
-<p style="margin:24px 0"><a href="${html(botao.link)}" style="display:inline-block;background:#0f294a;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:bold">${html(botao.texto)}</a></p>
+<p style="margin:24px 0"><a href="${html(botao.link)}" style="display:inline-block;background:#9b1c31;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:bold">${html(botao.texto)}</a></p>
 <p style="margin:0 0 8px;font-size:13px;color:#475569">Se o botão não funcionar, copie este endereço no navegador:</p>
 <p style="margin:0 0 20px;font-size:13px;word-break:break-all"><a href="${html(botao.link)}">${html(botao.link)}</a></p>
 <p style="margin:0;font-size:13px;color:#475569">${rodape}</p>
