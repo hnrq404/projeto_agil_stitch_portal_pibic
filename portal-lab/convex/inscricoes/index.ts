@@ -120,7 +120,7 @@ export const listMinhas = query({
   },
 });
 
-/** Inscrições em que o docente autenticado é orientador (painel do docente). */
+/** Inscrições em que o docente autenticado é orientador. */
 export const listOrientacao = query({
   args: {},
   handler: async (ctx) => {
@@ -509,26 +509,42 @@ export const seedEditalDemo = mutation({
       .query("editais")
       .withIndex("status", (q) => q.eq("status", "publicado"))
       .first();
-    if (existente) {
-      return { editalId: existente._id, criado: false };
-    }
     const agora = Date.now();
-    const editalId = await ctx.db.insert("editais", {
-      numero: "001/2026",
-      titulo: "PIBIC 2026–2027 — Programa Institucional de Bolsas de Iniciação Científica",
-      programa: "PIBIC",
-      status: "publicado",
-      dataAbertura: agora - 7 * 24 * 60 * 60 * 1000,
-      dataEncerramento: agora + 45 * 24 * 60 * 60 * 1000,
-      // Formato da S2 (cotas por área CNPq).
-      ano: new Date(agora).getFullYear(),
-      cotasPorArea: [
-        { area: "Ciências Exatas e da Terra", total: 8, ocupadas: 0 },
-        { area: "Engenharias", total: 7, ocupadas: 0 },
-        { area: "Ciências Biológicas", total: 5, ocupadas: 0 },
-      ],
-      criadoPor: gestor._id,
-    });
-    return { editalId, criado: true };
+    const editalId =
+      existente?._id ??
+      (await ctx.db.insert("editais", {
+        numero: "001/2026",
+        titulo: "PIBIC 2026–2027 — Programa Institucional de Bolsas de Iniciação Científica",
+        programa: "PIBIC",
+        status: "publicado",
+        dataAbertura: agora - 7 * 24 * 60 * 60 * 1000,
+        dataEncerramento: agora + 45 * 24 * 60 * 60 * 1000,
+        // Formato da S2 (cotas por área).
+        ano: new Date(agora).getFullYear(),
+        cotasPorArea: [
+          { area: "Ciências Exatas e da Terra", total: 8, ocupadas: 0 },
+          { area: "Engenharias", total: 7, ocupadas: 0 },
+          { area: "Ciências Biológicas", total: 5, ocupadas: 0 },
+        ],
+        criadoPor: gestor._id,
+      }));
+
+    const emailOrientadorDemo = "orientador.demo@universidade.br";
+    const orientadorDemo = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", emailOrientadorDemo))
+      .first();
+    if (!orientadorDemo) {
+      await ctx.db.insert("users", {
+        name: "Orientador de Demonstração",
+        email: emailOrientadorDemo,
+        papel: "docente",
+        matricula: "SIAPE-E2E",
+        departamento: "ICEx — Inst. de Ciências Exatas",
+        areaCnpq: "Ciências Exatas e da Terra",
+      });
+    }
+
+    return { editalId, criado: !existente };
   },
 });

@@ -14,8 +14,8 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "resolveJsonModule": true,
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "noEmit": true
   },
-  "include": ["src", "convex", "tests", "playwright.config.ts", "vite.config.ts"]
+  "include": ["src", "convex", "tests", "e2e", "playwright.config.ts", "vite.config.ts"]
 }
