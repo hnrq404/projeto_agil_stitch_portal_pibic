@@ -66,7 +66,7 @@ Número de testes afetados, antes e depois das correções (24 arquivos, 228 tes
 | Exception Handling | 4 | **1** | Sobrou só o `try/catch` do `portal-lab`. |
 | Duplicate Assert | 3 | **2** | Os dois restantes repetem a asserção depois de mudar o estado, o que é intencional. |
 | Assertion Roulette | 129 | 127 | Mediana de 3 asserções. Os 7 testes com 10 ou mais são jornadas E2E/integração, onde é esperado. |
-| General Fixture | 23 | 24 | Concentrado em `jornada.int.test.ts` (ver 4). O +1 é o teste de auditoria, que agora usa um container próprio em vez de sobrescrever o compartilhado. A troca é proposital. |
+| General Fixture | 23 | 24 → **6** | Era concentrado em `jornada.int.test.ts`. O +1 da primeira rodada é o teste de auditoria, que passou a usar um container próprio (troca proposital). Depois da T1 (ver 4) caiu para 6. |
 | Magic Number Test | 147 | 146 | 400 literais, dos quais 157 são status HTTP (`toBe(201)`), que se explicam sozinhos. |
 | Eager Test | 49 | 49 | Integrações e jornadas chamam vários endpoints por natureza. |
 | Lazy Test | 105 | 105 | Padrão normal de testes de regra (um comportamento por teste da mesma função). |
@@ -90,7 +90,7 @@ Número de testes afetados, antes e depois das correções (24 arquivos, 228 tes
 
 | # | Smell | Onde | Sugestão | Prioridade |
 |---|---|---|---|---|
-| T1 | General Fixture | `server/tests/integration/jornada.int.test.ts` | O `beforeEach` cria 8 contas (gestor, 2 alunos, 4 professores) para todos os 19 testes, e nenhum teste usa todas. Isso custa cerca de 57 s, metade da suíte. Dividir em `describe` por etapa do fluxo, cada um com o `beforeEach` mínimo, ou criar as contas sob demanda com helpers (`await professor('fis')`). | P2 |
+| T1 | General Fixture | `server/tests/integration/jornada.int.test.ts` | ✅ **Aplicada.** O `beforeEach` criava 8 contas (gestor, 2 alunos, 4 professores) para todos os 19 testes. Agora ele só monta o container, e cada conta é criada na primeira vez que o teste a usa (`await docente()`, `await idDe('profFis')`), memorizada por container. General Fixture caiu de 24 para 6 testes e o arquivo, de ~35 s para ~22 s (medido no mesmo ambiente). | ~~P2~~ |
 | T2 | Assertion Roulette | Jornadas E2E (`web/tests/e2e/jornada.spec.ts`, `server/tests/e2e/*.e2e.ts`) | Usar `test.step('...')` no Playwright e blocos nomeados no Jest, para a falha indicar a etapa da jornada. | P3 |
 | T3 | Magic Number Test | Testes de regra | Para valores de regra de negócio (nota de corte, mínimo de caracteres, cota), importar a constante do domínio em vez de repetir o número. Status HTTP podem continuar literais. | P3 |
 | T4 | Duplicate Assert | `web/tests/e2e/jornada.spec.ts:159` | Trocar `getByRole('heading').first()` pelo título esperado de cada página (`/oportunidades`, `/pesquisas`). Fica mais preciso e deixa de ser duplicado. | P3 |
