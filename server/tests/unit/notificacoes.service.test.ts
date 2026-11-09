@@ -23,14 +23,16 @@ describe('NotificacoesService.handleEditalPublicado', () => {
 
     await service.handleEditalPublicado(event);
 
-    for (const userId of ['user-1', 'user-2', 'user-3']) {
-      const list = await repository.listByUser(userId);
-      expect(list).toHaveLength(1);
-      expect(list[0]!.tipo).toBe('EDITAL_PUBLICADO');
-      expect(list[0]!.referenceId).toBe('edital-1');
-      expect(list[0]!.lida).toBe(false);
-      expect(list[0]!.mensagem).toContain('06/2026');
-    }
+    const usuarios = ['user-1', 'user-2', 'user-3'];
+    const porUsuario = await Promise.all(usuarios.map((userId) => repository.listByUser(userId)));
+
+    const notificacaoEsperada = expect.objectContaining({
+      tipo: 'EDITAL_PUBLICADO',
+      referenceId: 'edital-1',
+      lida: false,
+      mensagem: expect.stringContaining('06/2026'),
+    });
+    expect(porUsuario).toEqual(usuarios.map(() => [notificacaoEsperada]));
   });
 
   it('é idempotente: republicar o mesmo edital não duplica notificações', async () => {

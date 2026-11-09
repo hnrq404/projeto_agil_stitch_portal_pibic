@@ -21,8 +21,6 @@ export type InscricaoStatus =
 /** RF10 — documentos obrigatórios no envio ao edital. */
 export type AnexoTipo = 'PLANO_TRABALHO' | 'LATTES';
 
-export const ANEXO_TIPOS: readonly AnexoTipo[] = ['PLANO_TRABALHO', 'LATTES'];
-
 export const ANEXO_LABEL: Record<AnexoTipo, string> = {
   PLANO_TRABALHO: 'Plano de trabalho',
   LATTES: 'Currículo Lattes do aluno',

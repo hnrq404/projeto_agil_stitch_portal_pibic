@@ -7,5 +7,3 @@ export const confirmarEnvioSchema = z
     nome: z.string().trim().min(1, 'informe o nome do arquivo').max(255),
   })
   .strict();
-
-export type ConfirmarEnvioDto = z.infer<typeof confirmarEnvioSchema>;

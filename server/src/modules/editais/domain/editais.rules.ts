@@ -9,8 +9,6 @@ import type { Clock } from '@shared/time/clock';
 
 import type { Edital, EditalStatus } from './editais.types';
 
-export const EDITAL_STATUS: readonly EditalStatus[] = ['RASCUNHO', 'PUBLICADO', 'ENCERRADO'] as const;
-
 /** Nota de corte padrão quando o gestor não define uma (escala 0–10). */
 export const NOTA_CORTE_PADRAO = 6;
 

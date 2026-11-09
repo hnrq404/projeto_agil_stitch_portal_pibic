@@ -15,6 +15,9 @@ beforeEach(() => {
   container = buildTestApp({ clock: new FixedClock(NOW), jwtSecret: 'auditoria-secret' });
 });
 
+// Spies (ex.: console.error) voltam ao normal mesmo quando o teste falha no meio.
+afterEach(() => jest.restoreAllMocks());
+
 const editalPayload = () => ({
   numero: '07/2026',
   titulo: 'Edital PIBIC 2026/2027',
@@ -26,8 +29,8 @@ const editalPayload = () => ({
   dataFimInscricoes: '2026-10-31T23:59:59.000Z',
 });
 
-function gestora() {
-  return criarELogar(container, { nome: 'Gestora Auditada', email: 'gestora@pibic.edu.br', role: 'GESTOR' });
+function gestora(app: AppContainer = container) {
+  return criarELogar(app, { nome: 'Gestora Auditada', email: 'gestora@pibic.edu.br', role: 'GESTOR' });
 }
 
 describe('Trilha de auditoria', () => {
@@ -77,7 +80,7 @@ describe('Trilha de auditoria', () => {
 
   it('falha ao gravar a auditoria não desfaz nem quebra a ação principal', async () => {
     const erroNoLog = jest.spyOn(console, 'error').mockImplementation(() => undefined);
-    container = buildTestApp({
+    const semAuditoria = buildTestApp({
       clock: new FixedClock(NOW),
       jwtSecret: 'auditoria-secret',
       auditoriaRepository: {
@@ -87,9 +90,9 @@ describe('Trilha de auditoria', () => {
         list: async () => ({ data: [], total: 0 }),
       },
     });
-    const { auth } = await gestora();
+    const { auth } = await gestora(semAuditoria);
 
-    const res = await request(container.app).post('/api/editais').set(auth).send(editalPayload());
+    const res = await request(semAuditoria.app).post('/api/editais').set(auth).send(editalPayload());
 
     expect(res.status).toBe(201);
     expect(erroNoLog).toHaveBeenCalledWith(
@@ -97,6 +100,5 @@ describe('Trilha de auditoria', () => {
       expect.objectContaining({ acao: 'EDITAL_CRIADO' }),
       expect.any(Error),
     );
-    erroNoLog.mockRestore();
   });
 });

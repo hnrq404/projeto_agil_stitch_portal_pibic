@@ -12,7 +12,11 @@ import {
 } from '@editais/domain/editais.rules';
 import type { Edital } from '@editais/domain/editais.types';
 
-const fixedClock = new FixedClock('2026-09-14T12:00:00.000Z');
+const AGORA = '2026-09-14T12:00:00.000Z';
+const fixedClock = new FixedClock(AGORA);
+
+// O relógio é compartilhado: volta ao "agora" antes de cada teste, para nenhum depender do anterior.
+beforeEach(() => fixedClock.setTo(AGORA));
 
 function buildEdital(overrides: Partial<Edital> = {}): Edital {
   const base: Edital = {
@@ -148,7 +152,6 @@ describe('Encerramento', () => {
     const edital = buildEdital({ status: 'PUBLICADO' });
     fixedClock.setTo('2026-11-05T12:00:00Z');
     expect(() => assertClosable(edital, fixedClock)).not.toThrow();
-    fixedClock.setTo('2026-09-14T12:00:00Z');
   });
 });
 
@@ -162,7 +165,6 @@ describe('Encerramento automatico por prazo (S2.3)', () => {
     const edital = buildEdital({ status: 'PUBLICADO' });
     fixedClock.advanceMs(60 * 24 * 60 * 60 * 1000); // +60 dias
     expect(resolveAutomaticStatus(edital, fixedClock)).toBe('ENCERRADO');
-    fixedClock.setTo('2026-09-14T12:00:00Z');
   });
 
   it('nunca altera RASCUNHO automaticamente', () => {
@@ -173,14 +175,14 @@ describe('Encerramento automatico por prazo (S2.3)', () => {
 });
 
 describe('Janela de inscricoes abertas (listagem publica)', () => {
-  it('PUBLICADO fica visivel somente dentro da janela', () => {
-    const edital = buildEdital({ status: 'PUBLICADO' });
-    expect(isInscricaoAberta(edital, fixedClock)).toBe(false); // antes de 15/09
-    fixedClock.setTo('2026-10-01T12:00:00Z');
-    expect(isInscricaoAberta(edital, fixedClock)).toBe(true);
-    fixedClock.setTo('2026-11-01T12:00:00Z');
-    expect(isInscricaoAberta(edital, fixedClock)).toBe(false); // apos 31/10
-    fixedClock.setTo('2026-09-14T12:00:00Z');
+  // Janela do edital de teste: 15/09 a 31/10.
+  it.each([
+    ['antes da janela', '2026-09-14T12:00:00Z', false],
+    ['dentro da janela', '2026-10-01T12:00:00Z', true],
+    ['depois da janela', '2026-11-01T12:00:00Z', false],
+  ])('PUBLICADO %s: visivel = %s', (_quando, data, visivel) => {
+    fixedClock.setTo(data);
+    expect(isInscricaoAberta(buildEdital({ status: 'PUBLICADO' }), fixedClock)).toBe(visivel);
   });
 
   it('RASCUNHO e ENCERRADO nunca ficam visiveis', () => {

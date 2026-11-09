@@ -35,3 +35,4 @@ service-account*.json
 
 .vercel
 .env*
+tools/test-smells/resultado/
