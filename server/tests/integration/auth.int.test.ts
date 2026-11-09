@@ -63,24 +63,26 @@ describe('POST /api/auth/register', () => {
     expect(denovo.status).toBe(400);
   });
 
-  it('link adulterado ou de outra conta é recusado', async () => {
+  it.each([
+    ['adulterado', (token: string) => `${token}x`],
+    ['com segredo inventado', (token: string) => `${token.split('.')[0] as string}.segredo-inventado`],
+    ['sem o formato id.segredo', () => 'sem-ponto-nenhum'],
+  ])('link %s é recusado', async (_caso, falsificar) => {
     await request(container.app).post('/api/auth/register').send(discentePayload());
     const token = tokenDoUltimoEmail(container, 'maria.discente@unicap.br');
-    const [id] = token.split('.');
 
-    for (const falso of [`${token}x`, `${id as string}.segredo-inventado`, 'sem-ponto-nenhum']) {
-      const res = await request(container.app).post('/api/auth/verificar-email').send({ token: falso });
-      expect(res.status).toBe(400);
-    }
+    const res = await request(container.app).post('/api/auth/verificar-email').send({ token: falsificar(token) });
+    expect(res.status).toBe(400);
   });
 
-  it('só aceita e-mail institucional @unicap.br', async () => {
-    for (const email of ['maria@gmail.com', 'maria@unicap.br.com', 'maria@aluno.unicap.edu']) {
+  it.each(['maria@gmail.com', 'maria@unicap.br.com', 'maria@aluno.unicap.edu'])(
+    'só aceita e-mail institucional @unicap.br: recusa %s',
+    async (email) => {
       const res = await request(container.app).post('/api/auth/register').send({ ...discentePayload(), email });
       expect(res.status).toBe(400);
-    }
-    expect(await container.usuariosRepository.list()).toHaveLength(0);
-  });
+      expect(await container.usuariosRepository.list()).toHaveLength(0);
+    },
+  );
 
   it('reenviar o link vale só para conta pendente e responde igual para e-mail inexistente', async () => {
     await request(container.app).post('/api/auth/register').send(discentePayload());
@@ -107,13 +109,11 @@ describe('POST /api/auth/register', () => {
     expect(res.body.usuario.role).toBe('USUARIO');
   });
 
-  it('não permite escolher GESTOR, ADMIN ou o papel antigo AVALIADOR no auto-cadastro (400)', async () => {
-    for (const role of ['GESTOR', 'AVALIADOR', 'ADMIN']) {
-      const res = await request(container.app)
-        .post('/api/auth/register')
-        .send({ ...discentePayload(), role });
-      expect(res.status).toBe(400);
-    }
+  it.each(['GESTOR', 'AVALIADOR', 'ADMIN'])('não permite escolher o papel %s no auto-cadastro (400)', async (role) => {
+    const res = await request(container.app)
+      .post('/api/auth/register')
+      .send({ ...discentePayload(), role });
+    expect(res.status).toBe(400);
     expect(await container.usuariosRepository.list()).toHaveLength(0);
   });
 
@@ -124,17 +124,14 @@ describe('POST /api/auth/register', () => {
     expect(res.body.error.code).toBe('CONFLICT');
   });
 
-  it('rejeita payload inválido (400) — senha curta, e-mail malformado, role inválida', async () => {
-    const cases = [
-      { ...discentePayload(), senha: '123' },
-      { ...discentePayload(), email: 'nao-e-email' },
-      { ...discentePayload(), role: 'SUPERUSER' },
-      { nome: 'x', email: 'x@unicap.br', senha: '123456' }, // sem role
-    ];
-    for (const payload of cases) {
-      const res = await cadastrar(container, payload);
-      expect(res.status).toBe(400);
-    }
+  it.each([
+    ['senha curta', { ...discentePayload(), senha: '123' }],
+    ['e-mail malformado', { ...discentePayload(), email: 'nao-e-email' }],
+    ['role inválida', { ...discentePayload(), role: 'SUPERUSER' }],
+    ['sem role', { nome: 'x', email: 'x@unicap.br', senha: '123456' }],
+  ])('rejeita payload inválido (400): %s', async (_caso, payload) => {
+    const res = await cadastrar(container, payload);
+    expect(res.status).toBe(400);
   });
 });
 

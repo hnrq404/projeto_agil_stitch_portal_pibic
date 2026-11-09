@@ -100,8 +100,6 @@ export function toInscricaoResponse(view: InscricaoView, extras: { pendencias?: 
   };
 }
 
-export type InscricaoResponse = ReturnType<typeof toInscricaoResponse>;
-
 /**
  * Projeto divulgado, visto pelo aluno ou por visitantes: só os campos de
  * apresentação (sem anexos, e-mail ou dados do aluno selecionado).

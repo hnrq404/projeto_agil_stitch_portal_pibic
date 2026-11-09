@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { USER_ROLES } from '@shared/auth/auth.types';
 
-import { REGISTRO_ROLES, type AuthResult, type PublicUsuario } from '../domain/auth.types';
+import { REGISTRO_ROLES, type AuthResult } from '../domain/auth.types';
 
 // Mínimo de 8 com letra e número; máximo de 72 bytes porque o bcrypt ignora o que passa disso.
 const senhaForte = z
@@ -76,17 +76,9 @@ export const updateUsuarioSchema = z
     message: 'Informe ao menos um campo para atualizar (role ou departamento).',
   });
 
-export type RegisterDto = z.infer<typeof registerSchema>;
-export type LoginDto = z.infer<typeof loginSchema>;
-export type AlterarSenhaDto = z.infer<typeof alterarSenhaSchema>;
-export type UpdateUsuarioDto = z.infer<typeof updateUsuarioSchema>;
-
 export function toAuthResponse(result: AuthResult) {
   return {
     token: result.token,
     usuario: result.usuario,
   };
 }
-
-export type AuthResponse = ReturnType<typeof toAuthResponse>;
-export type { PublicUsuario };

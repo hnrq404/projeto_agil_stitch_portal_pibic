@@ -65,10 +65,6 @@ export const transitionSchema = z
   })
   .strict();
 
-export type CreateEditalDto = z.infer<typeof createEditalSchema>;
-export type UpdateEditalDto = z.infer<typeof updateEditalSchema>;
-export type TransitionDto = z.infer<typeof transitionSchema>;
-
 /** Serializa datas para ISO — contrato estável para o cliente e os testes E2E. */
 export function toEditalResponse(edital: Edital) {
   return {

@@ -7,8 +7,6 @@ import type { ArquivoRef } from '@shared/storage/arquivo.storage';
 export type RelatorioTipo = 'MENSAL' | 'FINAL';
 export type RelatorioStatus = 'ENVIADO' | 'APROVADO' | 'DEVOLVIDO';
 
-export const RELATORIO_TIPOS: readonly RelatorioTipo[] = ['MENSAL', 'FINAL'];
-
 /** Uma versão de relatório. Devolvido → o bolsista envia nova versão (histórico mantido, RF21). */
 export interface Relatorio {
   id: string;

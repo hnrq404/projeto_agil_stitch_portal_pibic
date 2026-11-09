@@ -3,11 +3,19 @@ import path from 'node:path';
 
 import { ForbiddenError, ValidationError } from '../../src/shared/errors/domain.errors';
 import { CONTENT_SECURITY_POLICY } from '../../src/shared/http/security.middleware';
-import { assertPdfEnviado, InMemoryArquivoStorage, MAX_PDF_BYTES } from '../../src/shared/storage/arquivo.storage';
+import {
+  assertPdfEnviado,
+  InMemoryArquivoStorage,
+  MAX_PDF_BYTES,
+  type InstrucaoUpload,
+} from '../../src/shared/storage/arquivo.storage';
 
 const PDF = Buffer.from('%PDF-1.4 conteudo');
 
-function parametros(url: string) {
+/** O armazenamento local sempre recebe o envio pela própria API, numa URL assinada. */
+function parametros(instrucao: InstrucaoUpload) {
+  expect(instrucao).toMatchObject({ provedor: 'api' });
+  const { url } = instrucao as Extract<InstrucaoUpload, { provedor: 'api' }>;
   const u = new URL(url, 'http://localhost');
   return { chave: u.pathname.split('/').pop()!, exp: u.searchParams.get('exp')!, sig: u.searchParams.get('sig')! };
 }
@@ -15,9 +23,7 @@ function parametros(url: string) {
 describe('Armazenamento local com URLs assinadas', () => {
   it('aceita o envio na URL emitida e devolve o arquivo pela URL de leitura', async () => {
     const storage = new InMemoryArquivoStorage('segredo');
-    const instrucao = await storage.prepararUpload('insc-1-PLANO_TRABALHO-abc');
-    if (instrucao.provedor !== 'api') throw new Error('esperava envio pela API');
-    const { chave, exp, sig } = parametros(instrucao.url);
+    const { chave, exp, sig } = parametros(await storage.prepararUpload('insc-1-PLANO_TRABALHO-abc'));
 
     await storage.receberUpload(chave, exp, sig, PDF);
 
@@ -35,9 +41,7 @@ describe('Armazenamento local com URLs assinadas', () => {
   it('recusa assinatura adulterada, chave trocada e link vencido', async () => {
     let agora = 1_000_000;
     const storage = new InMemoryArquivoStorage('segredo', () => agora);
-    const instrucao = await storage.prepararUpload('chave-a');
-    if (instrucao.provedor !== 'api') throw new Error('esperava envio pela API');
-    const { exp, sig } = parametros(instrucao.url);
+    const { exp, sig } = parametros(await storage.prepararUpload('chave-a'));
 
     await expect(storage.receberUpload('chave-a', exp, `${sig}x`, PDF)).rejects.toBeInstanceOf(ForbiddenError);
     await expect(storage.receberUpload('chave-b', exp, sig, PDF)).rejects.toBeInstanceOf(ForbiddenError);
@@ -46,9 +50,7 @@ describe('Armazenamento local com URLs assinadas', () => {
   });
 
   it('assinaturas de outro segredo não valem', async () => {
-    const instrucao = await new InMemoryArquivoStorage('segredo-1').prepararUpload('chave-a');
-    if (instrucao.provedor !== 'api') throw new Error('esperava envio pela API');
-    const { exp, sig } = parametros(instrucao.url);
+    const { exp, sig } = parametros(await new InMemoryArquivoStorage('segredo-1').prepararUpload('chave-a'));
     await expect(new InMemoryArquivoStorage('segredo-2').receberUpload('chave-a', exp, sig, PDF)).rejects.toBeInstanceOf(
       ForbiddenError,
     );
