@@ -12,6 +12,7 @@
 import request from 'supertest';
 import { buildApp, type AppContainer } from '../../src/infra/config/app.container';
 import { FixedClock } from '../../src/shared/testing/fixed-clock';
+import { etapa } from '../helpers/etapa';
 
 jest.setTimeout(30000);
 
@@ -55,85 +56,95 @@ async function createEdital(overrides: Record<string, unknown> = {}): Promise<re
 }
 
 it('E2E: jornada completa do gestor', async () => {
-  // ── 1. Health check
-  const health = await request(container.app).get('/api/health');
-  expect(health.status).toBe(200);
+  await etapa('1. Health check', async () => {
+    const health = await request(container.app).get('/api/health');
+    expect(health.status).toBe(200);
+  });
 
-  // ── 2. Criação do edital com cotas coerentes
-  const created = await createEdital();
-  expect(created.status).toBe(201);
-  expect(created.body.status).toBe('RASCUNHO');
-  const editalId = created.body.id as string;
+  const editalId = await etapa('2. Criação do edital com cotas coerentes', async () => {
+    const created = await createEdital();
+    expect(created.status).toBe(201);
+    expect(created.body.status).toBe('RASCUNHO');
+    return created.body.id as string;
+  });
 
-  // ── 3. Tentativa de burlar a regra de cotas (soma 6 > total 5) → 422
-  const brokenCotas = await request(container.app)
-    .patch(`/api/editais/${editalId}`)
-    .set('Authorization', GESTOR)
-    .send({ totalCotas: 5, cotas: [{ subareaCode: '1.03', quantidade: 6 }] });
-  expect(brokenCotas.status).toBe(422);
+  await etapa('3. Tentativa de burlar a regra de cotas (soma 6 > total 5) → 422', async () => {
+    const brokenCotas = await request(container.app)
+      .patch(`/api/editais/${editalId}`)
+      .set('Authorization', GESTOR)
+      .send({ totalCotas: 5, cotas: [{ subareaCode: '1.03', quantidade: 6 }] });
+    expect(brokenCotas.status).toBe(422);
+  });
 
-  // ── 4. Ajuste legítimo das cotas + edição do rascunho
-  const adjusted = await request(container.app)
-    .patch(`/api/editais/${editalId}`)
-    .set('Authorization', GESTOR)
-    .send({
-      totalCotas: 6,
-      cotas: [
-        { subareaCode: '1.03', quantidade: 4 },
-        { subareaCode: '1.01', quantidade: 2 },
-      ],
-      titulo: 'Edital PIBIC 2026/2027 — retificação I',
-    });
-  expect(adjusted.status).toBe(200);
-  expect(adjusted.body.totalCotas).toBe(6);
+  await etapa('4. Ajuste legítimo das cotas + edição do rascunho', async () => {
+    const adjusted = await request(container.app)
+      .patch(`/api/editais/${editalId}`)
+      .set('Authorization', GESTOR)
+      .send({
+        totalCotas: 6,
+        cotas: [
+          { subareaCode: '1.03', quantidade: 4 },
+          { subareaCode: '1.01', quantidade: 2 },
+        ],
+        titulo: 'Edital PIBIC 2026/2027 — retificação I',
+      });
+    expect(adjusted.status).toBe(200);
+    expect(adjusted.body.totalCotas).toBe(6);
+  });
 
-  // ── 5. Publicação
-  const published = await request(container.app)
-    .post(`/api/editais/${editalId}/transicoes`)
-    .set('Authorization', GESTOR)
-    .send({ acao: 'publicar' });
-  expect(published.status).toBe(200);
-  expect(published.body.status).toBe('PUBLICADO');
-  expect(published.body.publicadoEm).toBeTruthy();
+  await etapa('5. Publicação', async () => {
+    const published = await request(container.app)
+      .post(`/api/editais/${editalId}/transicoes`)
+      .set('Authorization', GESTOR)
+      .send({ acao: 'publicar' });
+    expect(published.status).toBe(200);
+    expect(published.body.status).toBe('PUBLICADO');
+    expect(published.body.publicadoEm).toBeTruthy();
+  });
 
-  // ── 6. Notificação in-app chegou aos usuários
-  const notif = await request(container.app)
-    .get('/api/notificacoes')
-    .set('Authorization', 'Bearer discente-token');
-  expect(notif.status).toBe(200);
-  expect(notif.body.total).toBe(1);
-  expect(notif.body.data[0].tipo).toBe('EDITAL_PUBLICADO');
-  expect(notif.body.data[0].referenceId).toBe(editalId);
+  await etapa('6. Notificação in-app chegou aos usuários', async () => {
+    const notif = await request(container.app)
+      .get('/api/notificacoes')
+      .set('Authorization', 'Bearer discente-token');
+    expect(notif.status).toBe(200);
+    expect(notif.body.total).toBe(1);
+    expect(notif.body.data[0].tipo).toBe('EDITAL_PUBLICADO');
+    expect(notif.body.data[0].referenceId).toBe(editalId);
+  });
 
-  // ── 7. Listagem pública mostra o edital vigente
-  const publicList = await request(container.app).get('/api/publico/editais');
-  expect(publicList.status).toBe(200);
-  expect(publicList.body.total).toBe(1);
-  expect(publicList.body.data[0].id).toBe(editalId);
+  await etapa('7. Listagem pública mostra o edital vigente', async () => {
+    const publicList = await request(container.app).get('/api/publico/editais');
+    expect(publicList.status).toBe(200);
+    expect(publicList.body.total).toBe(1);
+    expect(publicList.body.data[0].id).toBe(editalId);
+  });
 
-  // ── 8. Edital publicado não é mais editável (regra de domínio, não validação de schema)
-  const editAfterPublish = await request(container.app)
-    .patch(`/api/editais/${editalId}`)
-    .set('Authorization', GESTOR)
-    .send({ titulo: 'Título Válido de Teste' });
-  expect(editAfterPublish.status).toBe(422);
+  await etapa('8. Edital publicado não é mais editável (regra de domínio, não validação de schema)', async () => {
+    const editAfterPublish = await request(container.app)
+      .patch(`/api/editais/${editalId}`)
+      .set('Authorization', GESTOR)
+      .send({ titulo: 'Título Válido de Teste' });
+    expect(editAfterPublish.status).toBe(422);
+  });
 
-  // ── 9. Avança o tempo além do prazo e encerra
-  (container.clock as FixedClock).setTo('2026-11-05T12:00:00.000Z');
-  const closed = await request(container.app)
-    .post(`/api/editais/${editalId}/transicoes`)
-    .set('Authorization', GESTOR)
-    .send({ acao: 'encerrar' });
-  expect(closed.status).toBe(200);
-  expect(closed.body.status).toBe('ENCERRADO');
+  await etapa('9. Avança o tempo além do prazo e encerra', async () => {
+    (container.clock as FixedClock).setTo('2026-11-05T12:00:00.000Z');
+    const closed = await request(container.app)
+      .post(`/api/editais/${editalId}/transicoes`)
+      .set('Authorization', GESTOR)
+      .send({ acao: 'encerrar' });
+    expect(closed.status).toBe(200);
+    expect(closed.body.status).toBe('ENCERRADO');
+  });
 
-  // ── 10. Edital encerrado some da listagem pública e não pode ser reaberto
-  const publicAfterClose = await request(container.app).get('/api/publico/editais');
-  expect(publicAfterClose.body.total).toBe(0);
+  await etapa('10. Edital encerrado some da listagem pública e não pode ser reaberto', async () => {
+    const publicAfterClose = await request(container.app).get('/api/publico/editais');
+    expect(publicAfterClose.body.total).toBe(0);
 
-  const reopen = await request(container.app)
-    .post(`/api/editais/${editalId}/transicoes`)
-    .set('Authorization', GESTOR)
-    .send({ acao: 'publicar' });
-  expect(reopen.status).toBe(422);
+    const reopen = await request(container.app)
+      .post(`/api/editais/${editalId}/transicoes`)
+      .set('Authorization', GESTOR)
+      .send({ acao: 'publicar' });
+    expect(reopen.status).toBe(422);
+  });
 });

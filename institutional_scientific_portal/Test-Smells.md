@@ -91,9 +91,9 @@ Número de testes afetados, antes e depois das correções (24 arquivos, 228 tes
 | # | Smell | Onde | Sugestão | Prioridade |
 |---|---|---|---|---|
 | T1 | General Fixture | `server/tests/integration/jornada.int.test.ts` | ✅ **Aplicada.** O `beforeEach` criava 8 contas (gestor, 2 alunos, 4 professores) para todos os 19 testes. Agora ele só monta o container, e cada conta é criada na primeira vez que o teste a usa (`await docente()`, `await idDe('profFis')`), memorizada por container. General Fixture caiu de 24 para 6 testes e o arquivo, de ~35 s para ~22 s (medido no mesmo ambiente). | ~~P2~~ |
-| T2 | Assertion Roulette | Jornadas E2E (`web/tests/e2e/jornada.spec.ts`, `server/tests/e2e/*.e2e.ts`) | Usar `test.step('...')` no Playwright e blocos nomeados no Jest, para a falha indicar a etapa da jornada. | P3 |
+| T2 | Assertion Roulette | Jornadas E2E (`web/tests/e2e/jornada.spec.ts`, `server/tests/e2e/gestor*.e2e.ts`) | ✅ **Aplicada.** Cada etapa da jornada virou um `test.step('N. ...')` no Playwright e um `etapa('N. ...')` no Jest (`server/tests/helpers/etapa.ts`, que prefixa a mensagem de erro com o nome da etapa). A falha agora diz em que etapa quebrou. A contagem do detector não muda (127), porque a análise estática continua vendo várias asserções por teste; o que muda é a mensagem da falha. `concorrencia.firestore.e2e.ts` ficou de fora: os testes já são curtos e com um assunto só. | ~~P3~~ |
 | T3 | Magic Number Test | Testes de regra | Para valores de regra de negócio (nota de corte, mínimo de caracteres, cota), importar a constante do domínio em vez de repetir o número. Status HTTP podem continuar literais. | P3 |
-| T4 | Duplicate Assert | `web/tests/e2e/jornada.spec.ts:159` | Trocar `getByRole('heading').first()` pelo título esperado de cada página (`/oportunidades`, `/pesquisas`). Fica mais preciso e deixa de ser duplicado. | P3 |
+| T4 | Duplicate Assert | `web/tests/e2e/jornada.spec.ts:181` | Trocar `getByRole('heading').first()` pelo título esperado de cada página (`/oportunidades`, `/pesquisas`). Fica mais preciso e deixa de ser duplicado. | P3 |
 | T5 | Exception Handling, Conditional | `portal-lab/e2e/discente.spec.ts` | Protótipo fora do CI. Só vale corrigir se o `portal-lab` voltar a ser mantido. | P3 |
 
 ---
