@@ -15,6 +15,7 @@ import { buildApp, type AppContainer } from '../../src/infra/config/app.containe
 import { loadEnv } from '../../src/infra/config/env';
 import { FixedClock } from '../../src/shared/testing/fixed-clock';
 import { cadastrar } from '../helpers/conta';
+import { etapa } from '../helpers/etapa';
 import { criarUsuario } from '../helpers/usuarios';
 
 jest.setTimeout(60000);
@@ -57,100 +58,109 @@ const editalPayload = () => ({
 });
 
 it('E2E: cadastro → login → criar edital → cotas → publicar → vitrine → encerrar', async () => {
-  // ── 1. Conta GESTOR com hash bcrypt (papel atribuído pela instituição, como no seed)
-  await criarUsuario(container, {
-    nome: 'Gestor E2E',
-    email: GESTOR_EMAIL,
-    senha: GESTOR_SENHA,
-    role: 'GESTOR',
+  await etapa('1. Conta GESTOR com hash bcrypt (papel atribuído pela instituição, como no seed)', async () => {
+    await criarUsuario(container, {
+      nome: 'Gestor E2E',
+      email: GESTOR_EMAIL,
+      senha: GESTOR_SENHA,
+      role: 'GESTOR',
+    });
   });
 
-  // ── 2. Login do MESMO usuário → JWT
-  const login = await request(container.app).post('/api/auth/login').send({
-    email: GESTOR_EMAIL,
-    senha: GESTOR_SENHA,
+  const auth = await etapa('2. Login do MESMO usuário → JWT', async () => {
+    const login = await request(container.app).post('/api/auth/login').send({
+      email: GESTOR_EMAIL,
+      senha: GESTOR_SENHA,
+    });
+    expect(login.status).toBe(200);
+    const token = login.body.token as string;
+
+    // Também cadastra (e confirma pelo link do e-mail) um usuário comum para receber a notificação de publicação.
+    await cadastrar(container, {
+      nome: 'Visitante E2E',
+      email: 'visitante.e2e@unicap.br',
+      senha: 'senha-visitante-1',
+      role: 'USUARIO',
+    });
+    return { Authorization: `Bearer ${token}` };
   });
-  expect(login.status).toBe(200);
-  const token = login.body.token as string;
-  const auth = { Authorization: `Bearer ${token}` };
 
-  // Também cadastra (e confirma pelo link do e-mail) um usuário comum para receber a notificação de publicação.
-  await cadastrar(container, {
-    nome: 'Visitante E2E',
-    email: 'visitante.e2e@unicap.br',
-    senha: 'senha-visitante-1',
-    role: 'USUARIO',
+  const editalId = await etapa('3. Criação do edital com cotas coerentes', async () => {
+    const created = await request(container.app)
+      .post('/api/editais')
+      .set(auth)
+      .send(editalPayload());
+    expect(created.status).toBe(201);
+    expect(created.body.status).toBe('RASCUNHO');
+    return created.body.id as string;
   });
 
-  // ── 3. Criação do edital com cotas coerentes
-  const created = await request(container.app)
-    .post('/api/editais')
-    .set(auth)
-    .send(editalPayload());
-  expect(created.status).toBe(201);
-  expect(created.body.status).toBe('RASCUNHO');
-  const editalId = created.body.id as string;
-
-  // ── 4. Regra de consistência de cotas: soma 6 > total 5 → 422
-  const broken = await request(container.app)
-    .post('/api/editais')
-    .set(auth)
-    .send({ ...editalPayload(), numero: '07/2026', cotas: [{ subareaCode: '1.03', quantidade: 6 }] });
-  expect(broken.status).toBe(422);
-  expect(broken.body.error.code).toBe('UNPROCESSABLE');
-
-  // ── 5. Publicação → status PUBLICADO + notificações in-app
-  const published = await request(container.app)
-    .post(`/api/editais/${editalId}/transicoes`)
-    .set(auth)
-    .send({ acao: 'publicar' });
-  expect(published.status).toBe(200);
-  expect(published.body.status).toBe('PUBLICADO');
-  expect(published.body.publicadoEm).toBeTruthy();
-
-  // ── 6. Notificações in-app chegaram a ambos os usuários cadastrados
-  const gestorNotifs = await request(container.app)
-    .get('/api/notificacoes')
-    .set(auth);
-  expect(gestorNotifs.status).toBe(200);
-  expect(gestorNotifs.body.total).toBe(1);
-  expect(gestorNotifs.body.data[0].referenceId).toBe(editalId);
-
-  const visitanteLogin = await request(container.app).post('/api/auth/login').send({
-    email: 'visitante.e2e@unicap.br',
-    senha: 'senha-visitante-1',
+  await etapa('4. Regra de consistência de cotas: soma 6 > total 5 → 422', async () => {
+    const broken = await request(container.app)
+      .post('/api/editais')
+      .set(auth)
+      .send({ ...editalPayload(), numero: '07/2026', cotas: [{ subareaCode: '1.03', quantidade: 6 }] });
+    expect(broken.status).toBe(422);
+    expect(broken.body.error.code).toBe('UNPROCESSABLE');
   });
-  const visitanteNotifs = await request(container.app)
-    .get('/api/notificacoes')
-    .set('Authorization', `Bearer ${visitanteLogin.body.token}`);
-  expect(visitanteNotifs.body.total).toBe(1);
-  expect(visitanteNotifs.body.data[0].tipo).toBe('EDITAL_PUBLICADO');
 
-  // ── 7. Vitrine pública (sem auth) mostra o edital vigente
-  const publicList = await request(container.app).get('/api/publico/editais');
-  expect(publicList.status).toBe(200);
-  expect(publicList.body.total).toBe(1);
-  expect(publicList.body.data[0].id).toBe(editalId);
+  await etapa('5. Publicação → status PUBLICADO + notificações in-app', async () => {
+    const published = await request(container.app)
+      .post(`/api/editais/${editalId}/transicoes`)
+      .set(auth)
+      .send({ acao: 'publicar' });
+    expect(published.status).toBe(200);
+    expect(published.body.status).toBe('PUBLICADO');
+    expect(published.body.publicadoEm).toBeTruthy();
+  });
 
-  // ── 8. Edital publicado não é mais editável
-  const editAfterPublish = await request(container.app)
-    .patch(`/api/editais/${editalId}`)
-    .set(auth)
-    .send({ titulo: 'Título Válido de Teste' });
-  expect(editAfterPublish.status).toBe(422);
+  await etapa('6. Notificações in-app chegaram a ambos os usuários cadastrados', async () => {
+    const gestorNotifs = await request(container.app)
+      .get('/api/notificacoes')
+      .set(auth);
+    expect(gestorNotifs.status).toBe(200);
+    expect(gestorNotifs.body.total).toBe(1);
+    expect(gestorNotifs.body.data[0].referenceId).toBe(editalId);
 
-  // ── 9. Encerramento após o prazo + persistência real (nova leitura do banco)
-  (container.clock as FixedClock).setTo('2026-11-05T12:00:00.000Z');
-  const closed = await request(container.app)
-    .post(`/api/editais/${editalId}/transicoes`)
-    .set(auth)
-    .send({ acao: 'encerrar' });
-  expect(closed.status).toBe(200);
-  expect(closed.body.status).toBe('ENCERRADO');
+    const visitanteLogin = await request(container.app).post('/api/auth/login').send({
+      email: 'visitante.e2e@unicap.br',
+      senha: 'senha-visitante-1',
+    });
+    const visitanteNotifs = await request(container.app)
+      .get('/api/notificacoes')
+      .set('Authorization', `Bearer ${visitanteLogin.body.token}`);
+    expect(visitanteNotifs.body.total).toBe(1);
+    expect(visitanteNotifs.body.data[0].tipo).toBe('EDITAL_PUBLICADO');
+  });
 
-  const persisted = await container.editaisRepository.findById(editalId);
-  expect(persisted?.status).toBe('ENCERRADO');
+  await etapa('7. Vitrine pública (sem auth) mostra o edital vigente', async () => {
+    const publicList = await request(container.app).get('/api/publico/editais');
+    expect(publicList.status).toBe(200);
+    expect(publicList.body.total).toBe(1);
+    expect(publicList.body.data[0].id).toBe(editalId);
+  });
 
-  const publicAfterClose = await request(container.app).get('/api/publico/editais');
-  expect(publicAfterClose.body.total).toBe(0);
+  await etapa('8. Edital publicado não é mais editável', async () => {
+    const editAfterPublish = await request(container.app)
+      .patch(`/api/editais/${editalId}`)
+      .set(auth)
+      .send({ titulo: 'Título Válido de Teste' });
+    expect(editAfterPublish.status).toBe(422);
+  });
+
+  await etapa('9. Encerramento após o prazo + persistência real (nova leitura do banco)', async () => {
+    (container.clock as FixedClock).setTo('2026-11-05T12:00:00.000Z');
+    const closed = await request(container.app)
+      .post(`/api/editais/${editalId}/transicoes`)
+      .set(auth)
+      .send({ acao: 'encerrar' });
+    expect(closed.status).toBe(200);
+    expect(closed.body.status).toBe('ENCERRADO');
+
+    const persisted = await container.editaisRepository.findById(editalId);
+    expect(persisted?.status).toBe('ENCERRADO');
+
+    const publicAfterClose = await request(container.app).get('/api/publico/editais');
+    expect(publicAfterClose.body.total).toBe(0);
+  });
 });
