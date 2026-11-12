@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 
 import express, { type Express, type Router } from 'express';
@@ -67,8 +68,14 @@ import {
   InMemoryAuditoriaRepository,
   type AuditoriaRepository,
 } from '@auditoria/repositories/auditoria.repository';
-import { errorHandler } from '@shared/http/http.middleware';
-import { createRateLimiter, securityHeaders } from '@shared/http/security.middleware';
+import {
+  comPrazo,
+  errorHandler,
+  PRAZO_READY_MS,
+  PRAZO_REQUISICAO_MS,
+  prazoDaRequisicao,
+} from '@shared/http/http.middleware';
+import { createRateLimiter, emailDoCorpo, securityHeaders } from '@shared/http/security.middleware';
 import { requestContext, requestLogger } from '@shared/http/request-context.middleware';
 import { registerCnpqRoutes } from '@shared/domain/cnpq.routes';
 
@@ -114,6 +121,8 @@ export interface AppContainerOptions {
   authRateLimit?: boolean;
   /** Uma linha de log JSON por requisição da API. Padrão: ligado, exceto com NODE_ENV=test. */
   requestLogging?: boolean;
+  /** Prazo de uma requisição antes do 503. Padrão: 25 s (a função da Vercel morre aos 30 s). */
+  prazoRequisicaoMs?: number;
 }
 
 export interface AppContainer {
@@ -259,36 +268,55 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   if (options.requestLogging ?? process.env['NODE_ENV'] !== 'test') {
     app.use(requestLogger());
   }
+  app.use(prazoDaRequisicao(options.prazoRequisicaoMs ?? PRAZO_REQUISICAO_MS));
   app.use(securityHeaders());
   app.use(express.json({ limit: '1mb' }));
 
-  // Contra força bruta de senha e criação de contas em massa (por IP).
+  // Contra força bruta de senha e criação de contas em massa. Os contadores são por
+  // conta (e-mail ou sessão), com um teto mais alto por IP: no Wi-Fi do campus muita
+  // gente sai pelo mesmo IP, e um contador só por IP deixaria um aluno travar o login
+  // de todos (achado do teste de segurança, testes-finais/).
   const authRateLimit = options.authRateLimit ?? process.env['NODE_ENV'] !== 'test';
   // Na Vercel cada requisição pode cair numa instância diferente: o contador fica no Firestore.
   const limiteStore: RateLimitStore | undefined = db ? createFirestoreRateLimitStore(db) : undefined;
   if (authRateLimit) {
+    const QUINZE_MIN = 15 * 60 * 1000;
     app.use(
       '/api/auth/login',
+      // Por conta, a partir de um IP: 10 senhas erradas travam só aquela conta naquela rede.
       createRateLimiter({
-        windowMs: 15 * 60 * 1000,
+        windowMs: QUINZE_MIN,
         max: 10,
         onlyFailures: true,
         store: limiteStore,
         prefixo: 'login',
-        message: 'Muitas tentativas de login sem sucesso. Aguarde 15 minutos e tente novamente.',
+        identificador: emailDoCorpo,
+        message: 'Muitas tentativas de login sem sucesso nesta conta. Aguarde 15 minutos e tente novamente.',
+      }),
+      // Por IP: barra quem testa senhas em muitas contas diferentes. Todo login do campus
+      // passa por este contador, então ele não reserva: só lê no login certo e soma o erro.
+      createRateLimiter({
+        windowMs: QUINZE_MIN,
+        max: 100,
+        onlyFailures: true,
+        reservar: false,
+        store: limiteStore,
+        prefixo: 'login-ip',
+        message: 'Muitas tentativas de login sem sucesso a partir desta rede. Aguarde 15 minutos e tente novamente.',
       }),
     );
     app.use(
       '/api/auth/register',
       createRateLimiter({
         windowMs: 60 * 60 * 1000,
-        max: 20,
+        max: 60,
         store: limiteStore,
         prefixo: 'cadastro',
         message: 'Muitos cadastros a partir desta rede. Aguarde uma hora e tente novamente.',
       }),
     );
     // Cada pedido manda um e-mail: sem limite, viraria um jeito de lotar a caixa de alguém.
+    // O limite é por e-mail de destino (de qualquer rede), com um teto por IP.
     for (const [rota, prefixo] of [
       ['/api/auth/reenviar-verificacao', 'reenvio'],
       ['/api/auth/esqueci-senha', 'esqueci'],
@@ -296,22 +324,34 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
       app.use(
         rota,
         createRateLimiter({
-          windowMs: 15 * 60 * 1000,
-          max: 5,
+          windowMs: QUINZE_MIN,
+          max: 3,
           store: limiteStore,
           prefixo,
-          message: 'Muitos pedidos de link em pouco tempo. Aguarde 15 minutos e tente novamente.',
+          identificador: emailDoCorpo,
+          semIp: true,
+          message: 'Muitos pedidos de link para este e-mail. Aguarde 15 minutos e tente novamente.',
+        }),
+        createRateLimiter({
+          windowMs: QUINZE_MIN,
+          max: 30,
+          store: limiteStore,
+          prefixo: `${prefixo}-ip`,
+          message: 'Muitos pedidos de link a partir desta rede. Aguarde 15 minutos e tente novamente.',
         }),
       );
     }
     // Com um token roubado, a troca de senha viraria um jeito de testar senhas atuais.
+    // O limite é por sessão (hash do token), não por rede.
     app.use(
       '/api/auth/senha',
       createRateLimiter({
-        windowMs: 15 * 60 * 1000,
+        windowMs: QUINZE_MIN,
         max: 10,
         store: limiteStore,
         prefixo: 'senha',
+        identificador: (req) => createHash('sha256').update(req.headers.authorization ?? '').digest('hex'),
+        semIp: true,
         message: 'Muitas tentativas de troca de senha. Aguarde 15 minutos e tente novamente.',
       }),
     );
@@ -364,14 +404,14 @@ export function buildApp(options: AppContainerOptions = {}): AppContainer {
   });
 
   // Readiness: o processo responde E o banco também (para o orquestrador/balanceador).
+  // Com o banco fora, o cliente do Firestore fica tentando reconectar: sem o prazo,
+  // esta rota ficava pendurada justamente quando mais importa (teste de estresse).
   app.get('/api/health/ready', (req, res) => {
     if (!db) {
       res.json({ status: 'ok', banco: 'memoria' });
       return;
     }
-    db.collection('saude')
-      .limit(1)
-      .get()
+    comPrazo(db.collection('saude').limit(1).get(), PRAZO_READY_MS)
       .then(() => res.json({ status: 'ok', banco: 'ok' }))
       .catch((error: unknown) => {
         console.error('[health] Banco indisponível', { requestId: req.requestId }, error);

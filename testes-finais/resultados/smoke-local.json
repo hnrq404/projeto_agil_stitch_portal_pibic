@@ -1,0 +1,188 @@
+[
+  {
+    "area": "Site",
+    "nome": "Página inicial carrega o app",
+    "ok": true,
+    "detalhe": "97 ms"
+  },
+  {
+    "area": "Site",
+    "nome": "Rota da SPA /login",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Site",
+    "nome": "Rota da SPA /cadastro",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Site",
+    "nome": "Rota da SPA /editais",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Site",
+    "nome": "Rota da SPA /pesquisas",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Saúde",
+    "nome": "API e banco prontos",
+    "ok": true,
+    "detalhe": "banco ok, 26 ms"
+  },
+  {
+    "area": "Público",
+    "nome": "Editais abertos",
+    "ok": true,
+    "detalhe": "1 edital(is)"
+  },
+  {
+    "area": "Público",
+    "nome": "Detalhe do edital",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Público",
+    "nome": "Projetos com vaga",
+    "ok": true,
+    "detalhe": "1 projeto(s)"
+  },
+  {
+    "area": "Público",
+    "nome": "Vitrine de pesquisas",
+    "ok": true,
+    "detalhe": "1 pesquisa(s), sem dados pessoais"
+  },
+  {
+    "area": "Público",
+    "nome": "Áreas do CNPq",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Segurança",
+    "nome": "Área logada exige login",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Segurança",
+    "nome": "Rota inexistente responde JSON",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Gestor",
+    "nome": "Painel com indicadores",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Gestor",
+    "nome": "Gestão de editais",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Gestor",
+    "nome": "Central de triagem",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Gestor",
+    "nome": "Gestão de usuários",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Gestor",
+    "nome": "Auditoria",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Gestor",
+    "nome": "Projetos em andamento",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Gestor",
+    "nome": "Exportação CSV",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Professor",
+    "nome": "Meus projetos",
+    "ok": true,
+    "detalhe": "2 projeto(s)"
+  },
+  {
+    "area": "Professor",
+    "nome": "Candidatos do projeto divulgado",
+    "ok": true,
+    "detalhe": "2 candidato(s), Lattes acessível"
+  },
+  {
+    "area": "Professor",
+    "nome": "Minhas avaliações",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Professor",
+    "nome": "Lista de professores para indicar",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Aluno",
+    "nome": "Minhas candidaturas",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Aluno",
+    "nome": "Meu projeto de bolsa",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Aluno",
+    "nome": "Notificações",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Aluno",
+    "nome": "Currículo Lattes no perfil",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Visitante",
+    "nome": "Sessão ativa",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Visitante",
+    "nome": "Sem acesso à gestão",
+    "ok": true,
+    "detalhe": ""
+  },
+  {
+    "area": "Cadastro",
+    "nome": "Cria conta @unicap.br, confirma pelo link e entra",
+    "ok": true,
+    "detalhe": ""
+  }
+]

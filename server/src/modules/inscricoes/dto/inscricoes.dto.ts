@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { listaLimitada } from '@shared/validation/lista';
+
 import type { Usuario } from '../../auth/domain/auth.types';
 import type { Anexo } from '../domain/inscricoes.types';
 import type { CandidaturaView, InscricaoView } from '../inscricoes.service';
@@ -38,7 +40,7 @@ export const selecaoSchema = z
 
 export const submissaoSchema = z
   .object({
-    avaliadorIds: z.array(z.string().trim().min(1)).max(10),
+    avaliadorIds: listaLimitada(z.array(z.string().trim().min(1)).max(10), 10),
   })
   .strict();
 

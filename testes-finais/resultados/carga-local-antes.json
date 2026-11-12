@@ -1,0 +1,309 @@
+{
+  "alvo": "http://localhost:3100",
+  "quando": "2026-11-12T11:16:58.414Z",
+  "porRota": [
+    {
+      "rota": "Site (index.html)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 28213,
+      "reqPorS": 2565.4,
+      "latMediaMs": 3.4,
+      "p50": 3,
+      "p90": 4,
+      "p99": 7,
+      "maxMs": 20,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 28213
+      }
+    },
+    {
+      "rota": "Saúde + banco",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 6483,
+      "reqPorS": 648.3,
+      "latMediaMs": 14.9,
+      "p50": 14,
+      "p90": 21,
+      "p99": 31,
+      "maxMs": 48,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 6483
+      }
+    },
+    {
+      "rota": "Editais abertos (público)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 3106,
+      "reqPorS": 310.6,
+      "latMediaMs": 31.8,
+      "p50": 31,
+      "p90": 42,
+      "p99": 54,
+      "maxMs": 85,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 3106
+      }
+    },
+    {
+      "rota": "Projetos com vaga (público)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1968,
+      "reqPorS": 196.8,
+      "latMediaMs": 50.3,
+      "p50": 49,
+      "p90": 65,
+      "p99": 84,
+      "maxMs": 98,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1968
+      }
+    },
+    {
+      "rota": "Vitrine de pesquisas (público)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 2464,
+      "reqPorS": 246.4,
+      "latMediaMs": 40.2,
+      "p50": 39,
+      "p90": 51,
+      "p99": 66,
+      "maxMs": 77,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 2464
+      }
+    },
+    {
+      "rota": "Sessão /me (aluno)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 7713,
+      "reqPorS": 771.3,
+      "latMediaMs": 12.5,
+      "p50": 12,
+      "p90": 17,
+      "p99": 23,
+      "maxMs": 55,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 7713
+      }
+    },
+    {
+      "rota": "Notificações não lidas (aluno)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 4607,
+      "reqPorS": 460.7,
+      "latMediaMs": 21.2,
+      "p50": 20,
+      "p90": 27,
+      "p99": 37,
+      "maxMs": 118,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 4607
+      }
+    },
+    {
+      "rota": "Minhas candidaturas (aluno)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1715,
+      "reqPorS": 171.5,
+      "latMediaMs": 57.9,
+      "p50": 56,
+      "p90": 69,
+      "p99": 89,
+      "maxMs": 100,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1715
+      }
+    },
+    {
+      "rota": "Meus projetos (professor)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1954,
+      "reqPorS": 195.4,
+      "latMediaMs": 50.6,
+      "p50": 49,
+      "p90": 62,
+      "p99": 78,
+      "maxMs": 92,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1954
+      }
+    },
+    {
+      "rota": "Minhas avaliações (professor)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1188,
+      "reqPorS": 118.8,
+      "latMediaMs": 83.7,
+      "p50": 69,
+      "p90": 99,
+      "p99": 464,
+      "maxMs": 686,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1188
+      }
+    },
+    {
+      "rota": "Painel do gestor",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1403,
+      "reqPorS": 140.3,
+      "latMediaMs": 70.9,
+      "p50": 68,
+      "p90": 86,
+      "p99": 112,
+      "maxMs": 190,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1403
+      }
+    },
+    {
+      "rota": "Triagem (gestor)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1140,
+      "reqPorS": 114,
+      "latMediaMs": 87.3,
+      "p50": 84,
+      "p90": 112,
+      "p99": 131,
+      "maxMs": 143,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1140
+      }
+    },
+    {
+      "rota": "Login (bcrypt)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 105,
+      "reqPorS": 10.5,
+      "latMediaMs": 884.8,
+      "p50": 887,
+      "p90": 1176,
+      "p99": 1484,
+      "maxMs": 1507,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 105
+      }
+    }
+  ],
+  "misto": [
+    {
+      "conexoes": 10,
+      "duracaoS": 20,
+      "total": 4952,
+      "reqPorS": 247.6,
+      "latMediaMs": 40,
+      "p50": 38,
+      "p90": 66,
+      "p99": 88,
+      "maxMs": 210,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 4952
+      }
+    },
+    {
+      "conexoes": 50,
+      "duracaoS": 20,
+      "total": 3244,
+      "reqPorS": 162.2,
+      "latMediaMs": 305.1,
+      "p50": 199,
+      "p90": 404,
+      "p99": 2420,
+      "maxMs": 4203,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 3244
+      }
+    },
+    {
+      "conexoes": 100,
+      "duracaoS": 20,
+      "total": 2579,
+      "reqPorS": 129,
+      "latMediaMs": 782,
+      "p50": 545,
+      "p90": 2239,
+      "p99": 3682,
+      "maxMs": 4182,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 2579
+      }
+    }
+  ]
+}

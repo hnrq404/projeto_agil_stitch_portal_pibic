@@ -179,7 +179,8 @@ Cada agregado é um documento (o edital leva as cotas; a inscrição, os anexos;
 
 - **Consultas por um campo só, filtro e ordenação em memória.** Assim nenhuma consulta exige índice composto, que o emulador não cobra e faria a produção falhar. A única exceção, notificações não lidas por usuário, está declarada em [`firestore.indexes.json`](../firestore.indexes.json).
 - **Unicidade por documento-índice.** O Firestore não tem UNIQUE: e-mail, número de edital, candidatura (projeto + aluno) e versão de relatório têm uma coleção `*_unicos` cujo id é a chave única, criada na mesma escrita. Conflito vira 409.
-- **Transações onde há disputa**: sequência do protocolo, aprovação dentro da cota (todas as aprovações da subárea passam por uma mesma trava) e contador de tentativas de login.
+- **Transações onde há disputa**: sequência do protocolo e aprovação dentro da cota (todas as aprovações da subárea passam por uma mesma trava).
+- **Contador de tentativas sem transação**: um documento por janela de 15 min e o incremento atômico do Firestore. A transação travava com logins simultâneos (o login certo chegava a 12 s e, ao expirar, o limite era liberado). Os limites são por conta (e-mail ou sessão), com um teto mais alto por IP, para um aluno no Wi-Fi do campus não travar o login de todos. Detalhes em [Testes-Finais.md](../institutional_scientific_portal/Testes-Finais.md).
 - **Regras de segurança fechadas** ([`firestore.rules`](../firestore.rules)): só a API, com o `firebase-admin`, lê e grava.
 - Não há migrações: campo novo nasce opcional no tipo de domínio e o adapter preenche o padrão na leitura.
 

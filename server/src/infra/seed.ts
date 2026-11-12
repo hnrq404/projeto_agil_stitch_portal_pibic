@@ -28,7 +28,7 @@
  */
 import { randomUUID } from 'node:crypto';
 
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 import type { UserRole } from '../shared/auth/auth.types';
 import type { Usuario } from '../modules/auth/domain/auth.types';

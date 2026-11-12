@@ -1,0 +1,325 @@
+{
+  "alvo": "http://localhost:3100",
+  "quando": "2026-11-12T12:13:32.265Z",
+  "porRota": [
+    {
+      "rota": "Site (index.html)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 44117,
+      "reqPorS": 4010.8,
+      "latMediaMs": 2,
+      "p50": 2,
+      "p90": 3,
+      "p99": 4,
+      "maxMs": 20,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 44117
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Saúde + banco",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 7929,
+      "reqPorS": 792.9,
+      "latMediaMs": 12.1,
+      "p50": 11,
+      "p90": 17,
+      "p99": 23,
+      "maxMs": 35,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 7929
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Editais abertos (público)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 4267,
+      "reqPorS": 426.7,
+      "latMediaMs": 23,
+      "p50": 22,
+      "p90": 30,
+      "p99": 41,
+      "maxMs": 55,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 4267
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Projetos com vaga (público)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 2767,
+      "reqPorS": 276.7,
+      "latMediaMs": 35.7,
+      "p50": 34,
+      "p90": 45,
+      "p99": 64,
+      "maxMs": 104,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 2767
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Vitrine de pesquisas (público)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 3446,
+      "reqPorS": 344.6,
+      "latMediaMs": 28.6,
+      "p50": 28,
+      "p90": 36,
+      "p99": 47,
+      "maxMs": 65,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 3446
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Sessão /me (aluno)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 8555,
+      "reqPorS": 855.5,
+      "latMediaMs": 11.2,
+      "p50": 10,
+      "p90": 15,
+      "p99": 26,
+      "maxMs": 74,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 8555
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Notificações não lidas (aluno)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 4952,
+      "reqPorS": 495.2,
+      "latMediaMs": 19.7,
+      "p50": 19,
+      "p90": 25,
+      "p99": 35,
+      "maxMs": 97,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 4952
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Minhas candidaturas (aluno)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1926,
+      "reqPorS": 192.6,
+      "latMediaMs": 51.5,
+      "p50": 50,
+      "p90": 61,
+      "p99": 73,
+      "maxMs": 93,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1926
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Meus projetos (professor)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 2256,
+      "reqPorS": 225.6,
+      "latMediaMs": 43.9,
+      "p50": 43,
+      "p90": 52,
+      "p99": 64,
+      "maxMs": 77,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 2256
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Minhas avaliações (professor)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1905,
+      "reqPorS": 190.5,
+      "latMediaMs": 52.1,
+      "p50": 51,
+      "p90": 61,
+      "p99": 71,
+      "maxMs": 78,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1905
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Painel do gestor",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1917,
+      "reqPorS": 191.7,
+      "latMediaMs": 51.7,
+      "p50": 50,
+      "p90": 62,
+      "p99": 73,
+      "maxMs": 89,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1917
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Triagem (gestor)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 1512,
+      "reqPorS": 151.2,
+      "latMediaMs": 65.6,
+      "p50": 64,
+      "p90": 77,
+      "p99": 97,
+      "maxMs": 132,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 1512
+      },
+      "codigosErro": {}
+    },
+    {
+      "rota": "Login (hash de senha)",
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 555,
+      "reqPorS": 55.5,
+      "latMediaMs": 178.8,
+      "p50": 175,
+      "p90": 209,
+      "p99": 303,
+      "maxMs": 356,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 555
+      },
+      "codigosErro": {}
+    }
+  ],
+  "misto": [
+    {
+      "conexoes": 10,
+      "duracaoS": 20,
+      "total": 6022,
+      "reqPorS": 301.1,
+      "latMediaMs": 32.8,
+      "p50": 32,
+      "p90": 54,
+      "p99": 70,
+      "maxMs": 97,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 6022
+      },
+      "codigosErro": {}
+    },
+    {
+      "conexoes": 50,
+      "duracaoS": 20,
+      "total": 6755,
+      "reqPorS": 337.8,
+      "latMediaMs": 147.8,
+      "p50": 145,
+      "p90": 246,
+      "p99": 290,
+      "maxMs": 348,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 6755
+      },
+      "codigosErro": {}
+    },
+    {
+      "conexoes": 100,
+      "duracaoS": 20,
+      "total": 5755,
+      "reqPorS": 287.8,
+      "latMediaMs": 344,
+      "p50": 330,
+      "p90": 580,
+      "p99": 739,
+      "maxMs": 896,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 5755
+      },
+      "codigosErro": {}
+    }
+  ]
+}

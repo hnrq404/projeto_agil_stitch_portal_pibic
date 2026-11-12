@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { listaLimitada } from '@shared/validation/lista';
+
 import type { Usuario } from '../../auth/domain/auth.types';
 import { CRITERIOS, type Avaliacao } from '../domain/avaliacoes.types';
 
@@ -10,22 +12,25 @@ const criterioIds = CRITERIOS.map((c) => c.id) as [
 
 export const atribuirSchema = z
   .object({
-    avaliadorIds: z.array(z.string().trim().min(1)).min(1, 'Selecione ao menos um avaliador').max(3),
+    avaliadorIds: listaLimitada(z.array(z.string().trim().min(1)).min(1, 'Selecione ao menos um avaliador').max(3), 3),
   })
   .strict();
 
 export const parecerSchema = z
   .object({
-    notas: z
-      .array(
-        z
-          .object({
-            criterio: z.enum(criterioIds),
-            nota: z.number().int('notas são inteiras').min(0).max(10),
-          })
-          .strict(),
-      )
-      .length(CRITERIOS.length, `Avalie os ${CRITERIOS.length} critérios da rubrica`),
+    notas: listaLimitada(
+      z
+        .array(
+          z
+            .object({
+              criterio: z.enum(criterioIds),
+              nota: z.number().int('notas são inteiras').min(0).max(10),
+            })
+            .strict(),
+        )
+        .length(CRITERIOS.length, `Avalie os ${CRITERIOS.length} critérios da rubrica`),
+      CRITERIOS.length,
+    ),
     parecer: z.string().max(5000),
   })
   .strict();

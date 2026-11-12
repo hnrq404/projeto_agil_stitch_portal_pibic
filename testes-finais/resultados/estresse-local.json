@@ -1,0 +1,279 @@
+{
+  "alvo": "http://localhost:3100",
+  "quando": "2026-11-12T12:46:03.854Z",
+  "rampa": {
+    "referencia": {
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 2065,
+      "reqPorS": 206.5,
+      "latMediaMs": 48.1,
+      "p50": 47,
+      "p90": 75,
+      "p99": 115,
+      "maxMs": 148,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 2065
+      },
+      "codigosErro": {}
+    },
+    "niveis": [
+      {
+        "conexoes": 50,
+        "duracaoS": 15,
+        "total": 3989,
+        "reqPorS": 265.9,
+        "latMediaMs": 186.1,
+        "p50": 188,
+        "p90": 288,
+        "p99": 373,
+        "maxMs": 427,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3989
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 100,
+        "duracaoS": 15,
+        "total": 3447,
+        "reqPorS": 229.8,
+        "latMediaMs": 428.1,
+        "p50": 436,
+        "p90": 673,
+        "p99": 842,
+        "maxMs": 941,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3447
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 200,
+        "duracaoS": 15,
+        "total": 3788,
+        "reqPorS": 252.5,
+        "latMediaMs": 774.2,
+        "p50": 803,
+        "p90": 1214,
+        "p99": 1461,
+        "maxMs": 1633,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3788
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 400,
+        "duracaoS": 15,
+        "total": 3436,
+        "reqPorS": 229.1,
+        "latMediaMs": 1709.4,
+        "p50": 1681,
+        "p90": 2666,
+        "p99": 2935,
+        "maxMs": 3047,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3436
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 800,
+        "duracaoS": 15,
+        "total": 3204,
+        "reqPorS": 213.6,
+        "latMediaMs": 3300.8,
+        "p50": 3295,
+        "p90": 5232,
+        "p99": 5532,
+        "maxMs": 5937,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3204
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 1600,
+        "duracaoS": 15,
+        "total": 3299,
+        "reqPorS": 235.7,
+        "latMediaMs": 6376.9,
+        "p50": 6598,
+        "p90": 7456,
+        "p99": 8467,
+        "maxMs": 8586,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3299
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 2400,
+        "duracaoS": 15,
+        "total": 205,
+        "reqPorS": 22.8,
+        "latMediaMs": 8947.3,
+        "p50": 8940,
+        "p90": 9576,
+        "p99": 9603,
+        "maxMs": 9607,
+        "erros": 5311,
+        "timeouts": 2200,
+        "non2xx": 0,
+        "taxaFalhaPct": 96.3,
+        "status": {
+          "200": 205
+        },
+        "codigosErro": {
+          "request timed out": 2200,
+          "ETIMEDOUT": 3111
+        }
+      }
+    ],
+    "quebraEm": 2400
+  },
+  "recuperacao": {
+    "amostras": [
+      {
+        "segundos": 5,
+        "conexoes": 10,
+        "duracaoS": 5,
+        "total": 855,
+        "reqPorS": 171,
+        "latMediaMs": 58.1,
+        "p50": 45,
+        "p90": 67,
+        "p99": 1278,
+        "maxMs": 1287,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 855
+        },
+        "codigosErro": {}
+      },
+      {
+        "segundos": 10,
+        "conexoes": 10,
+        "duracaoS": 5,
+        "total": 1059,
+        "reqPorS": 211.8,
+        "latMediaMs": 46.6,
+        "p50": 47,
+        "p90": 71,
+        "p99": 105,
+        "maxMs": 132,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 1059
+        },
+        "codigosErro": {}
+      }
+    ],
+    "recuperouEmS": 10
+  },
+  "logins": {
+    "logins": {
+      "total": 471,
+      "reqPorS": 47.1,
+      "p50": 628,
+      "p99": 827,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 471
+      }
+    },
+    "leveSozinha": {
+      "conexoes": 5,
+      "duracaoS": 8,
+      "total": 31425,
+      "reqPorS": 3928.4,
+      "latMediaMs": 0.8,
+      "p50": 0,
+      "p90": 1,
+      "p99": 7,
+      "maxMs": 36,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 31425
+      },
+      "codigosErro": {}
+    },
+    "leveJunto": {
+      "conexoes": 5,
+      "duracaoS": 8,
+      "total": 16299,
+      "reqPorS": 2037.6,
+      "latMediaMs": 2,
+      "p50": 1,
+      "p90": 6,
+      "p99": 11,
+      "maxMs": 28,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 16299
+      },
+      "codigosErro": {}
+    }
+  },
+  "corpoGrande": {
+    "conexoes": 20,
+    "duracaoS": 8,
+    "total": 2264,
+    "reqPorS": 283,
+    "latMediaMs": 70.6,
+    "p50": 69,
+    "p90": 99,
+    "p99": 148,
+    "maxMs": 177,
+    "erros": 0,
+    "timeouts": 0,
+    "non2xx": 2264,
+    "taxaFalhaPct": 100,
+    "status": {
+      "413": 2264
+    },
+    "codigosErro": {},
+    "saudeDepois": 200
+  }
+}

@@ -1,0 +1,470 @@
+[
+  {
+    "grupo": "A",
+    "id": "A1",
+    "descricao": "17 rotas protegidas sem token",
+    "esperado": "todas 401",
+    "obtido": "todas 401",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "A",
+    "id": "A2",
+    "descricao": "Token malformado",
+    "esperado": 401,
+    "obtido": "401",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "A",
+    "id": "A3",
+    "descricao": "JWT com alg \"none\" se passando pelo gestor",
+    "esperado": 401,
+    "obtido": "401",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "A",
+    "id": "A4",
+    "descricao": "JWT de gestor assinado com segredo errado",
+    "esperado": 401,
+    "obtido": "401",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "A",
+    "id": "A5",
+    "descricao": "JWT expirado (assinatura válida)",
+    "esperado": 401,
+    "obtido": "401",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "A",
+    "id": "A6",
+    "descricao": "JWT válido de aluno com papel GESTOR no token (papel vem do banco)",
+    "esperado": 403,
+    "obtido": "403",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "A",
+    "id": "A7",
+    "descricao": "JWT válido de usuário inexistente",
+    "esperado": 401,
+    "obtido": "401",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "A",
+    "id": "A8",
+    "descricao": "Login de conta com e-mail não confirmado",
+    "esperado": "403 EMAIL_NAO_CONFIRMADO",
+    "obtido": "403 EMAIL_NAO_CONFIRMADO",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "E",
+    "id": "E1",
+    "descricao": "Link de confirmação usado duas vezes",
+    "esperado": "1º 200, 2º 400",
+    "obtido": "200, 400",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "E",
+    "id": "E2",
+    "descricao": "Nome com HTML escapado no e-mail enviado",
+    "esperado": "sem <img no HTML",
+    "obtido": "escapado",
+    "ok": true,
+    "severidade": "média"
+  },
+  {
+    "grupo": "A",
+    "id": "A9",
+    "descricao": "Troca de senha derruba a sessão antiga",
+    "esperado": "antiga 401",
+    "obtido": "troca 200, antiga 401",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "E",
+    "id": "E3",
+    "descricao": "\"Esqueci minha senha\" não revela se o e-mail tem conta",
+    "esperado": "respostas iguais",
+    "obtido": "iguais",
+    "ok": true,
+    "severidade": "média"
+  },
+  {
+    "grupo": "E",
+    "id": "E4",
+    "descricao": "Token de nova senha adulterado",
+    "esperado": 400,
+    "obtido": "400",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "E",
+    "id": "E5",
+    "descricao": "Token de nova senha usado duas vezes",
+    "esperado": "1º 200, 2º 400",
+    "obtido": "200, 400",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "E",
+    "id": "E6",
+    "descricao": "Login não revela se o e-mail tem conta",
+    "esperado": "mesma resposta",
+    "obtido": "iguais",
+    "ok": true,
+    "severidade": "média"
+  },
+  {
+    "grupo": "E",
+    "id": "E7",
+    "descricao": "Cadastro com e-mail já usado revela que a conta existe",
+    "esperado": "não revelar (ou risco aceito)",
+    "obtido": "409 \"Já existe uma conta com este e-mail.\"",
+    "ok": false,
+    "severidade": "baixa (risco aceito)"
+  },
+  {
+    "grupo": "B",
+    "id": "B1",
+    "descricao": "discente em 7 rotas de gestor",
+    "esperado": "todas 403",
+    "obtido": "todas 403",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "B",
+    "id": "B2",
+    "descricao": "docente em 7 rotas de gestor",
+    "esperado": "todas 403",
+    "obtido": "todas 403",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "B",
+    "id": "B3",
+    "descricao": "visitante em 7 rotas de gestor",
+    "esperado": "todas 403",
+    "obtido": "todas 403",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "B",
+    "id": "B4",
+    "descricao": "Aluno tenta se promover a gestor",
+    "esperado": 403,
+    "obtido": "403",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "B",
+    "id": "B5",
+    "descricao": "Aluno lê projeto em avaliação de um professor",
+    "esperado": 404,
+    "obtido": "404",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "B",
+    "id": "B6",
+    "descricao": "Professor sem vínculo lê projeto em avaliação de colega",
+    "esperado": 404,
+    "obtido": "404",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "B",
+    "id": "B7",
+    "descricao": "Controle: avaliador indicado lê o projeto que avalia",
+    "esperado": 200,
+    "obtido": "200",
+    "ok": true,
+    "severidade": "média"
+  },
+  {
+    "grupo": "B",
+    "id": "B8",
+    "descricao": "Professor edita projeto de colega",
+    "esperado": "403/404",
+    "obtido": "404",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "B",
+    "id": "B9",
+    "descricao": "Aluna cancela a candidatura de outro aluno",
+    "esperado": "403/404",
+    "obtido": "404",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "B",
+    "id": "B10",
+    "descricao": "Aluno marca como lida a notificação de outro",
+    "esperado": "403/404",
+    "obtido": "404",
+    "ok": true,
+    "severidade": "média"
+  },
+  {
+    "grupo": "B",
+    "id": "B11",
+    "descricao": "Professor lê o parecer de outro avaliador",
+    "esperado": "403/404",
+    "obtido": "404",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "B",
+    "id": "B12",
+    "descricao": "Aluno lê o projeto (e relatórios) de outro bolsista",
+    "esperado": "403/404",
+    "obtido": "404",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "B",
+    "id": "B13",
+    "descricao": "Aluna baixa o currículo de outro candidato",
+    "esperado": "403/404",
+    "obtido": "403",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "B",
+    "id": "B14",
+    "descricao": "Professor lista candidatos do projeto de colega",
+    "esperado": "403/404",
+    "obtido": "404",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "C",
+    "id": "C1",
+    "descricao": "Cadastro pedindo papel GESTOR",
+    "esperado": 400,
+    "obtido": "400",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "C",
+    "id": "C2",
+    "descricao": "Cadastro com campo extra (emailPendente:false)",
+    "esperado": 400,
+    "obtido": "400",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "C",
+    "id": "C3",
+    "descricao": "Cadastro com domínio de fora (3 variações)",
+    "esperado": "todas 400",
+    "obtido": "400,400,400",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "C",
+    "id": "C4",
+    "descricao": "Operadores e objetos na query string",
+    "esperado": "nenhum 500",
+    "obtido": "200,200,200",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "C",
+    "id": "C5",
+    "descricao": "JSON malformado",
+    "esperado": "400 sem stack",
+    "obtido": "400",
+    "ok": true,
+    "severidade": "média"
+  },
+  {
+    "grupo": "C",
+    "id": "C6",
+    "descricao": "Rota inexistente da API",
+    "esperado": "404 JSON",
+    "obtido": "404 JSON",
+    "ok": true,
+    "severidade": "baixa"
+  },
+  {
+    "grupo": "C",
+    "id": "C7",
+    "descricao": "Corpo JSON de 2 MB",
+    "esperado": 413,
+    "obtido": "413 \"Dados enviados acima do tamanho permitido.\"",
+    "ok": true,
+    "severidade": "média"
+  },
+  {
+    "grupo": "C",
+    "id": "C8",
+    "descricao": "Mensagem do 413 adequada a corpo JSON",
+    "esperado": "sem citar \"Arquivo\"",
+    "obtido": "Dados enviados acima do tamanho permitido.",
+    "ok": true,
+    "severidade": "baixa"
+  },
+  {
+    "grupo": "C",
+    "id": "C9",
+    "descricao": "Senha fraca (só números)",
+    "esperado": 400,
+    "obtido": "400",
+    "ok": true,
+    "severidade": "média"
+  },
+  {
+    "grupo": "D",
+    "id": "D1",
+    "descricao": "Arquivo que não é PDF com Content-Type de PDF",
+    "esperado": 400,
+    "obtido": "400 \"Formato inválido. Apenas arquivos PDF são aceitos.\"",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "D",
+    "id": "D2",
+    "descricao": "Envio com assinatura do link adulterada",
+    "esperado": 403,
+    "obtido": "403",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "D",
+    "id": "D3",
+    "descricao": "Path traversal na chave do arquivo",
+    "esperado": "400/404",
+    "obtido": "400,400",
+    "ok": true,
+    "severidade": "crítica"
+  },
+  {
+    "grupo": "D",
+    "id": "D4",
+    "descricao": "Aluno registra como seu um arquivo enviado por outra aluna",
+    "esperado": 400,
+    "obtido": "400",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "D",
+    "id": "D5",
+    "descricao": "Link de leitura com o nome do arquivo trocado",
+    "esperado": 403,
+    "obtido": "403",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "F",
+    "id": "F1",
+    "descricao": "Cabeçalhos de segurança da API",
+    "esperado": "todos presentes",
+    "obtido": "todos presentes",
+    "ok": true,
+    "severidade": "média"
+  },
+  {
+    "grupo": "F",
+    "id": "F2",
+    "descricao": "X-Powered-By (revela Express)",
+    "esperado": "ausente",
+    "obtido": "ausente",
+    "ok": true,
+    "severidade": "baixa"
+  },
+  {
+    "grupo": "F",
+    "id": "F3",
+    "descricao": "CORS para origem maliciosa",
+    "esperado": "sem Access-Control-Allow-Origin",
+    "obtido": "ausente",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "F",
+    "id": "F4",
+    "descricao": "Tarefas agendadas sem / com segredo errado / certo",
+    "esperado": "401, 401, 200",
+    "obtido": "401, 401, 200",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "G",
+    "id": "G1",
+    "descricao": "30 senhas erradas em paralelo para uma conta (limite: 10)",
+    "esperado": "no máximo 10 testadas",
+    "obtido": "0 testadas, 30 bloqueadas",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "G",
+    "id": "G2",
+    "descricao": "Após 10 senhas erradas, a conta atacada fica bloqueada (mesmo com a senha certa)",
+    "esperado": "429, com no máximo 10 testadas",
+    "obtido": "429, 10 testadas no total",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "G",
+    "id": "G3",
+    "descricao": "Outra pessoa na mesma rede (IP) consegue entrar com a senha certa",
+    "esperado": 200,
+    "obtido": "200",
+    "ok": true,
+    "severidade": "alta"
+  },
+  {
+    "grupo": "G",
+    "id": "G4",
+    "descricao": "Rajada de \"esqueci minha senha\" para um mesmo e-mail",
+    "esperado": "bloqueia",
+    "obtido": "202,202,202,429",
+    "ok": true,
+    "severidade": "média"
+  }
+]

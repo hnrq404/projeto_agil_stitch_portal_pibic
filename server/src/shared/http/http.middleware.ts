@@ -19,8 +19,15 @@ export function errorHandler(
   error: unknown,
   req: Request,
   res: Response<ApiErrorPayload>,
-  _next: NextFunction,
+  next: NextFunction,
 ): void {
+  // A resposta já saiu (ex.: o prazo da requisição estourou antes de a rota falhar):
+  // o Express só encerra a conexão.
+  if (res.headersSent) {
+    next(error);
+    return;
+  }
+
   if (error instanceof DomainError) {
     res.status(error.statusCode).json({
       error: { code: error.name, message: error.message, details: error.details },
@@ -35,7 +42,7 @@ export function errorHandler(
 
   if (error instanceof ZodError) {
     res.status(400).json({
-      error: { code: 'VALIDATION_ERROR', message: 'Payload inválido.', details: error.flatten() },
+      error: { code: 'VALIDATION_ERROR', message: 'Payload inválido.', details: detalhesResumidos(error) },
     });
     return;
   }
@@ -43,10 +50,16 @@ export function errorHandler(
   // Erros do body-parser (JSON malformado, corpo acima do limite).
   if (isBodyParserError(error)) {
     const tooLarge = error.type === 'entity.too.large';
+    // O mesmo erro vem do PDF (limite de 10 MB) e do JSON (1 MB): a mensagem segue o tipo enviado.
+    const ehPdf = req.is('application/pdf') === 'application/pdf';
     res.status(tooLarge ? 413 : 400).json({
       error: {
         code: tooLarge ? 'PAYLOAD_TOO_LARGE' : 'VALIDATION_ERROR',
-        message: tooLarge ? 'Arquivo acima do limite de 10 MB.' : 'Corpo da requisição malformado.',
+        message: !tooLarge
+          ? 'Corpo da requisição malformado.'
+          : ehPdf
+            ? 'Arquivo acima do limite de 10 MB.'
+            : 'Dados enviados acima do tamanho permitido.',
       },
     });
     return;
@@ -87,6 +100,46 @@ function isBodyParserError(error: unknown): error is { type: string; status: num
   );
 }
 
+/** Prazo padrão de uma requisição: abaixo dos 30 s da função na Vercel (vercel.json). */
+export const PRAZO_REQUISICAO_MS = 25_000;
+/** Prazo da checagem do banco no /api/health/ready. */
+export const PRAZO_READY_MS = 3_000;
+
+/** Rejeita se a promessa não terminar no prazo (ex.: banco fora do ar, cliente tentando reconectar). */
+export function comPrazo<T>(promessa: Promise<T>, ms: number): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const prazo = new Promise<never>((_, rejeitar) => {
+    timer = setTimeout(() => rejeitar(new Error(`Prazo de ${ms} ms esgotado`)), ms);
+  });
+  return Promise.race([promessa, prazo]).finally(() => clearTimeout(timer));
+}
+
+/**
+ * Responde 503 em JSON se a rota não terminar no prazo. Sem isso, com o banco fora
+ * do ar a requisição ficava pendurada até a Vercel derrubar a função com uma página
+ * de erro dela (teste de estresse, testes-finais/).
+ */
+export function prazoDaRequisicao(ms: number): (req: Request, res: Response, next: NextFunction) => void {
+  return (req, res, next) => {
+    const timer = setTimeout(() => {
+      if (res.headersSent) return;
+      console.error('[prazo] Requisição sem resposta no prazo', { requestId: req.requestId, rota: req.originalUrl.split('?')[0] });
+      res.status(503).json({
+        error: {
+          code: 'SERVICE_UNAVAILABLE',
+          message: 'O serviço demorou demais para responder. Tente de novo em instantes.',
+          requestId: req.requestId,
+        },
+      });
+    }, ms);
+    timer.unref();
+    const limpar = () => clearTimeout(timer);
+    res.on('finish', limpar);
+    res.on('close', limpar);
+    next();
+  };
+}
+
 /** Envolve handlers síncronos/assíncronos garantindo propagação ao errorHandler. */
 export function asyncHandler(
   handler: (req: Request, res: Response, next: NextFunction) => unknown,
@@ -113,11 +166,18 @@ export function sendPdf(res: Response, content: Buffer, nome: string): void {
   res.send(content);
 }
 
+/** Problemas de validação devolvidos na resposta: o suficiente para a tela mostrar, sem virar uma resposta de megabytes. */
+const MAX_PROBLEMAS = 20;
+
+function detalhesResumidos(error: ZodError) {
+  return new ZodError(error.issues.slice(0, MAX_PROBLEMAS)).flatten();
+}
+
 /** Valida o corpo da requisição com um schema Zod, lançando ValidationError tipado. */
 export function parseBody<S extends ZodTypeAny>(schema: S, body: unknown): z.output<S> {
   const result = schema.safeParse(body);
   if (!result.success) {
-    throw new ValidationError('Corpo da requisição inválido.', result.error.flatten());
+    throw new ValidationError('Corpo da requisição inválido.', detalhesResumidos(result.error));
   }
   return result.data;
 }

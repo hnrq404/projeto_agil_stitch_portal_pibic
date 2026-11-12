@@ -24,5 +24,8 @@ export default defineConfig({
         url: 'http://localhost:3000/api/health',
         reuseExistingServer: true,
         timeout: 90_000,
+        // Prevalecem sobre o server/.env de quem roda: o banco é o emulador (onde o seed
+        // grava) e nenhum e-mail real sai, mesmo com o Gmail do projeto configurado.
+        env: { PERSISTENCIA: 'firestore', SMTP_USUARIO: '', SMTP_SENHA: '' },
       },
 });

@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
 import { isKnownCnpqAreaCode } from '@shared/domain/cnpq-areas';
+import { listaLimitada } from '@shared/validation/lista';
 import type { Edital } from '../domain/editais.types';
+
+/** Teto de cotas por edital (a tabela CNPq tem algumas centenas de subáreas; um edital usa poucas). */
+const MAX_COTAS = 200;
 
 /** Cota por subárea CNPq — código deve existir na tabela de áreas do conhecimento. */
 export const createCotaSchema = z
@@ -33,7 +37,10 @@ export const createEditalSchema = z
     descricao: z.string().trim().optional(),
     tipoBolsa: z.enum(['PIBIC', 'PIBITI', 'PIBIC_AF', 'VOLUNTARIO']),
     totalCotas: z.number().int().min(1),
-    cotas: z.array(createCotaSchema).min(1, 'Informe ao menos uma cota por subárea'),
+    cotas: listaLimitada(
+      z.array(createCotaSchema).min(1, 'Informe ao menos uma cota por subárea').max(MAX_COTAS, `No máximo ${MAX_COTAS} cotas`),
+      MAX_COTAS,
+    ),
     notaCorte: notaCorteSchema.optional(),
     dataInicioInscricoes: isoDate,
     dataFimInscricoes: isoDate,
@@ -52,7 +59,7 @@ export const updateEditalSchema = z
     descricao: z.string().trim().optional(),
     tipoBolsa: z.enum(['PIBIC', 'PIBITI', 'PIBIC_AF', 'VOLUNTARIO']).optional(),
     totalCotas: z.number().int().min(1).optional(),
-    cotas: z.array(createCotaSchema).min(1).optional(),
+    cotas: listaLimitada(z.array(createCotaSchema).min(1).max(MAX_COTAS, `No máximo ${MAX_COTAS} cotas`), MAX_COTAS).optional(),
     notaCorte: notaCorteSchema.optional(),
     dataInicioInscricoes: isoDate.optional(),
     dataFimInscricoes: isoDate.optional(),

@@ -1,0 +1,290 @@
+{
+  "alvo": "http://localhost:3100",
+  "quando": "2026-11-12T11:27:37.364Z",
+  "rampa": {
+    "referencia": {
+      "conexoes": 10,
+      "duracaoS": 10,
+      "total": 2696,
+      "reqPorS": 269.6,
+      "latMediaMs": 36.6,
+      "p50": 38,
+      "p90": 55,
+      "p99": 69,
+      "maxMs": 87,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 2696
+      },
+      "codigosErro": {}
+    },
+    "niveis": [
+      {
+        "conexoes": 50,
+        "duracaoS": 15,
+        "total": 4581,
+        "reqPorS": 305.4,
+        "latMediaMs": 162.9,
+        "p50": 172,
+        "p90": 234,
+        "p99": 272,
+        "maxMs": 302,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 4581
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 100,
+        "duracaoS": 15,
+        "total": 3777,
+        "reqPorS": 251.8,
+        "latMediaMs": 394.4,
+        "p50": 388,
+        "p90": 583,
+        "p99": 1344,
+        "maxMs": 1513,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3777
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 200,
+        "duracaoS": 15,
+        "total": 3923,
+        "reqPorS": 261.5,
+        "latMediaMs": 753.1,
+        "p50": 773,
+        "p90": 1158,
+        "p99": 1461,
+        "maxMs": 1612,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3923
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 400,
+        "duracaoS": 15,
+        "total": 3744,
+        "reqPorS": 249.6,
+        "latMediaMs": 1469.9,
+        "p50": 1455,
+        "p90": 2345,
+        "p99": 2680,
+        "maxMs": 2912,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3744
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 800,
+        "duracaoS": 15,
+        "total": 3418,
+        "reqPorS": 227.9,
+        "latMediaMs": 2955.6,
+        "p50": 2981,
+        "p90": 4718,
+        "p99": 5205,
+        "maxMs": 5272,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 3418
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 1600,
+        "duracaoS": 15,
+        "total": 4608,
+        "reqPorS": 329.2,
+        "latMediaMs": 4979.7,
+        "p50": 5423,
+        "p90": 7050,
+        "p99": 7925,
+        "maxMs": 8046,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 4608
+        },
+        "codigosErro": {}
+      },
+      {
+        "conexoes": 2400,
+        "duracaoS": 15,
+        "total": 364,
+        "reqPorS": 36.4,
+        "latMediaMs": 5656,
+        "p50": 6490,
+        "p90": 7606,
+        "p99": 7614,
+        "maxMs": 7615,
+        "erros": 4550,
+        "timeouts": 2215,
+        "non2xx": 0,
+        "taxaFalhaPct": 137.7,
+        "status": {
+          "200": 364
+        },
+        "codigosErro": {
+          "ETIMEDOUT": 2335,
+          "request timed out": 2215
+        }
+      }
+    ],
+    "quebraEm": 2400
+  },
+  "recuperacao": {
+    "amostras": [
+      {
+        "segundos": 5,
+        "conexoes": 10,
+        "duracaoS": 5,
+        "total": 970,
+        "reqPorS": 194,
+        "latMediaMs": 2544.3,
+        "p50": 2534,
+        "p90": 3508,
+        "p99": 3693,
+        "maxMs": 3731,
+        "erros": 920,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 48.7,
+        "status": {
+          "200": 970
+        },
+        "codigosErro": {
+          "ECONNREFUSED": 920
+        }
+      },
+      {
+        "segundos": 10,
+        "conexoes": 10,
+        "duracaoS": 5,
+        "total": 1290,
+        "reqPorS": 258,
+        "latMediaMs": 38.2,
+        "p50": 39,
+        "p90": 58,
+        "p99": 77,
+        "maxMs": 91,
+        "erros": 0,
+        "timeouts": 0,
+        "non2xx": 0,
+        "taxaFalhaPct": 0,
+        "status": {
+          "200": 1290
+        },
+        "codigosErro": {}
+      }
+    ],
+    "recuperouEmS": 10
+  },
+  "logins": {
+    "logins": {
+      "conexoes": 30,
+      "duracaoS": 10,
+      "total": 95,
+      "reqPorS": 9.5,
+      "latMediaMs": 2434.3,
+      "p50": 2480,
+      "p90": 2786,
+      "p99": 2788,
+      "maxMs": 2788,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 95
+      },
+      "codigosErro": {}
+    },
+    "leveSozinha": {
+      "conexoes": 5,
+      "duracaoS": 8,
+      "total": 40132,
+      "reqPorS": 5017.5,
+      "latMediaMs": 0.4,
+      "p50": 0,
+      "p90": 1,
+      "p99": 5,
+      "maxMs": 36,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 40132
+      },
+      "codigosErro": {}
+    },
+    "leveJunto": {
+      "conexoes": 5,
+      "duracaoS": 8,
+      "total": 508,
+      "reqPorS": 63.5,
+      "latMediaMs": 67.6,
+      "p50": 0,
+      "p90": 10,
+      "p99": 2286,
+      "maxMs": 2412,
+      "erros": 0,
+      "timeouts": 0,
+      "non2xx": 0,
+      "taxaFalhaPct": 0,
+      "status": {
+        "200": 508
+      },
+      "codigosErro": {}
+    }
+  },
+  "corpoGrande": {
+    "conexoes": 20,
+    "duracaoS": 8,
+    "total": 2600,
+    "reqPorS": 325,
+    "latMediaMs": 61.4,
+    "p50": 59,
+    "p90": 85,
+    "p99": 125,
+    "maxMs": 153,
+    "erros": 0,
+    "timeouts": 0,
+    "non2xx": 2600,
+    "taxaFalhaPct": 100,
+    "status": {
+      "413": 2600
+    },
+    "codigosErro": {},
+    "saudeDepois": 200
+  }
+}

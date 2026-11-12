@@ -1,0 +1,767 @@
+[
+  {
+    "s": 0.1,
+    "saude": {
+      "status": 200,
+      "ms": 73
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 18
+    },
+    "editais": {
+      "status": 200,
+      "ms": 29
+    }
+  },
+  {
+    "s": 0.6,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 33
+    },
+    "editais": {
+      "status": 200,
+      "ms": 48
+    }
+  },
+  {
+    "s": 1.2,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 18
+    },
+    "editais": {
+      "status": 200,
+      "ms": 34
+    }
+  },
+  {
+    "s": 1.7,
+    "saude": {
+      "status": 200,
+      "ms": 1
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 18
+    },
+    "editais": {
+      "status": 200,
+      "ms": 33
+    }
+  },
+  {
+    "s": 2.3,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 33
+    },
+    "editais": {
+      "status": 200,
+      "ms": 49
+    }
+  },
+  {
+    "s": 2.8,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 34
+    },
+    "editais": {
+      "status": 200,
+      "ms": 49
+    }
+  },
+  {
+    "s": 3.4,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 20
+    },
+    "editais": {
+      "status": 200,
+      "ms": 35
+    }
+  },
+  {
+    "s": 4,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 33
+    },
+    "editais": {
+      "status": 200,
+      "ms": 49
+    }
+  },
+  {
+    "s": 4.6,
+    "saude": {
+      "status": 200,
+      "ms": 1
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 18
+    },
+    "editais": {
+      "status": 200,
+      "ms": 33
+    }
+  },
+  {
+    "s": 5.1,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 20
+    },
+    "editais": {
+      "status": 200,
+      "ms": 34
+    }
+  },
+  {
+    "s": 5.6,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 19
+    },
+    "editais": {
+      "status": 200,
+      "ms": 33
+    }
+  },
+  {
+    "s": 6.2,
+    "saude": {
+      "status": 200,
+      "ms": 18
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 35
+    },
+    "editais": {
+      "status": 200,
+      "ms": 50
+    }
+  },
+  {
+    "s": 6.8,
+    "saude": {
+      "status": 200,
+      "ms": 18
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 34
+    },
+    "editais": {
+      "status": 200,
+      "ms": 49
+    }
+  },
+  {
+    "s": 7.3,
+    "saude": {
+      "status": 200,
+      "ms": 18
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 34
+    },
+    "editais": {
+      "status": 200,
+      "ms": 38
+    }
+  },
+  {
+    "s": 7.8,
+    "saude": {
+      "status": 200,
+      "ms": 1
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 19
+    },
+    "editais": {
+      "status": 200,
+      "ms": 37
+    }
+  },
+  {
+    "s": 8.4,
+    "saude": {
+      "status": 200,
+      "ms": 3
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 19
+    },
+    "editais": {
+      "status": 200,
+      "ms": 34
+    }
+  },
+  {
+    "s": 8.9,
+    "saude": {
+      "status": 200,
+      "ms": 3
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 19
+    },
+    "editais": {
+      "status": 200,
+      "ms": 33
+    }
+  },
+  {
+    "s": 9.5,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 20
+    },
+    "editais": {
+      "status": 200,
+      "ms": 33
+    }
+  },
+  {
+    "s": 10,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 34
+    },
+    "editais": {
+      "status": 200,
+      "ms": 49
+    }
+  },
+  {
+    "s": 10.6,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 34
+    },
+    "editais": {
+      "status": 200,
+      "ms": 49
+    }
+  },
+  {
+    "s": 11.1,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 35
+    },
+    "editais": {
+      "status": 200,
+      "ms": 50
+    }
+  },
+  {
+    "s": 11.7,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 19
+    },
+    "editais": {
+      "status": 200,
+      "ms": 34
+    }
+  },
+  {
+    "s": 12.2,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 34
+    },
+    "editais": {
+      "status": 200,
+      "ms": 48
+    }
+  },
+  {
+    "s": 12.8,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 35
+    },
+    "editais": {
+      "status": 200,
+      "ms": 51
+    }
+  },
+  {
+    "s": 13.3,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 21
+    },
+    "editais": {
+      "status": 200,
+      "ms": 34
+    }
+  },
+  {
+    "s": 13.9,
+    "saude": {
+      "status": 200,
+      "ms": 21
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 34
+    },
+    "editais": {
+      "status": 200,
+      "ms": 49
+    }
+  },
+  {
+    "s": 14.5,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 34
+    },
+    "editais": {
+      "status": 200,
+      "ms": 49
+    }
+  },
+  {
+    "s": 15,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 35
+    },
+    "editais": {
+      "status": 200,
+      "ms": 50
+    }
+  },
+  {
+    "s": 15.6,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 34
+    },
+    "editais": {
+      "status": 200,
+      "ms": 37
+    }
+  },
+  {
+    "s": 31.1,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 503,
+      "ms": 3021
+    },
+    "editais": {
+      "status": "timeout",
+      "ms": 15016
+    }
+  },
+  {
+    "s": 46.6,
+    "saude": {
+      "status": 200,
+      "ms": 6
+    },
+    "pronto": {
+      "status": 503,
+      "ms": 3014
+    },
+    "editais": {
+      "status": "timeout",
+      "ms": 15004
+    }
+  },
+  {
+    "s": 62.1,
+    "saude": {
+      "status": 200,
+      "ms": 5
+    },
+    "pronto": {
+      "status": 503,
+      "ms": 3008
+    },
+    "editais": {
+      "status": "timeout",
+      "ms": 15015
+    }
+  },
+  {
+    "s": 70.2,
+    "saude": {
+      "status": 200,
+      "ms": 5
+    },
+    "pronto": {
+      "status": 503,
+      "ms": 3008
+    },
+    "editais": {
+      "status": 200,
+      "ms": 7511
+    }
+  },
+  {
+    "s": 70.7,
+    "saude": {
+      "status": 200,
+      "ms": 4
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 19
+    },
+    "editais": {
+      "status": 200,
+      "ms": 16
+    }
+  },
+  {
+    "s": 71.2,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 25
+    },
+    "editais": {
+      "status": 200,
+      "ms": 24
+    }
+  },
+  {
+    "s": 71.8,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 44
+    },
+    "editais": {
+      "status": 200,
+      "ms": 48
+    }
+  },
+  {
+    "s": 72.3,
+    "saude": {
+      "status": 200,
+      "ms": 1
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 23
+    },
+    "editais": {
+      "status": 200,
+      "ms": 23
+    }
+  },
+  {
+    "s": 72.8,
+    "saude": {
+      "status": 200,
+      "ms": 1
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 23
+    },
+    "editais": {
+      "status": 200,
+      "ms": 23
+    }
+  },
+  {
+    "s": 73.4,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 24
+    },
+    "editais": {
+      "status": 200,
+      "ms": 29
+    }
+  },
+  {
+    "s": 73.9,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 38
+    },
+    "editais": {
+      "status": 200,
+      "ms": 37
+    }
+  },
+  {
+    "s": 74.4,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 25
+    },
+    "editais": {
+      "status": 200,
+      "ms": 31
+    }
+  },
+  {
+    "s": 75,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 24
+    },
+    "editais": {
+      "status": 200,
+      "ms": 24
+    }
+  },
+  {
+    "s": 75.5,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 23
+    },
+    "editais": {
+      "status": 200,
+      "ms": 22
+    }
+  },
+  {
+    "s": 76,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 24
+    },
+    "editais": {
+      "status": 200,
+      "ms": 24
+    }
+  },
+  {
+    "s": 76.6,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 38
+    },
+    "editais": {
+      "status": 200,
+      "ms": 39
+    }
+  },
+  {
+    "s": 77.1,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 23
+    },
+    "editais": {
+      "status": 200,
+      "ms": 23
+    }
+  },
+  {
+    "s": 77.6,
+    "saude": {
+      "status": 200,
+      "ms": 2
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 24
+    },
+    "editais": {
+      "status": 200,
+      "ms": 24
+    }
+  },
+  {
+    "s": 78.2,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 38
+    },
+    "editais": {
+      "status": 200,
+      "ms": 38
+    }
+  },
+  {
+    "s": 78.7,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 24
+    },
+    "editais": {
+      "status": 200,
+      "ms": 29
+    }
+  },
+  {
+    "s": 79.2,
+    "saude": {
+      "status": 200,
+      "ms": 16
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 21
+    },
+    "editais": {
+      "status": 200,
+      "ms": 26
+    }
+  },
+  {
+    "s": 79.8,
+    "saude": {
+      "status": 200,
+      "ms": 17
+    },
+    "pronto": {
+      "status": 200,
+      "ms": 38
+    },
+    "editais": {
+      "status": 200,
+      "ms": 38
+    }
+  }
+]

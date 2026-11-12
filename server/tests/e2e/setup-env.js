@@ -5,3 +5,7 @@
  */
 process.env.FIRESTORE_EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
 process.env.FIREBASE_PROJECT_ID = 'demo-portal-pibic-e2e';
+// Os testes leem os links na caixa de entrada em memória e nunca enviam e-mail de verdade,
+// mesmo que o server/.env de quem roda tenha o Gmail do projeto (testes finais).
+process.env.SMTP_USUARIO = '';
+process.env.SMTP_SENHA = '';

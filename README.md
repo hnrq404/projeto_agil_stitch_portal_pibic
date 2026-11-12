@@ -162,6 +162,7 @@ Detalhes, riscos e critérios de saída de cada sprint em [Sprints.md](./institu
 - [Arquitetura.md](./institutional_scientific_portal/Arquitetura.md) — módulos, camadas, modelo de dados Convex e convenções de código
 - [Usabilidade.md](./institutional_scientific_portal/Usabilidade.md) — aplicação das 10 heurísticas de Nielsen e checklist de UI para PRs
 - [Test-Smells.md](./institutional_scientific_portal/Test-Smells.md) — Smell Test (catálogo do tsDetect aplicado aos testes TypeScript) e limpeza de código morto
+- [Testes-Finais.md](./institutional_scientific_portal/Testes-Finais.md) — testes de carga, estresse, segurança e smoke, com os problemas achados e as correções (scripts em [`testes-finais/`](./testes-finais))
 
 Demais páginas da wiki (Qualidade, Definition-of-Done, Gestão de Projeto) são referenciadas via wikilinks `[[...]]` a partir do `PROJECT_BRAIN.md`.
 

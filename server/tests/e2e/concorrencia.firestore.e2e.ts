@@ -125,9 +125,15 @@ describe('Concorrência no Firestore', () => {
   it('o contador de tentativas soma certo com requisições simultâneas', async () => {
     const store = createFirestoreRateLimitStore(obterFirestore());
     const agora = Date.now();
-    await Promise.all(Array.from({ length: 8 }, () => store.incrementar('login:1.2.3.4', agora, 60_000)));
-    expect((await store.consultar('login:1.2.3.4', agora)).count).toBe(8);
+    // Sem transação: 30 somas simultâneas no mesmo contador não travam nem se perdem.
+    const janelas = await Promise.all(Array.from({ length: 30 }, () => store.incrementar('login:1.2.3.4', agora, 60_000)));
+    expect((await store.consultar('login:1.2.3.4', agora, 60_000)).count).toBe(30);
+    // Cada soma enxerga ao menos a própria tentativa, e a última enxerga todas.
+    expect(Math.max(...janelas.map((j) => j.count))).toBe(30);
+    // Login certo devolve a tentativa reservada.
+    await store.decrementar('login:1.2.3.4', agora, 60_000);
+    expect((await store.consultar('login:1.2.3.4', agora, 60_000)).count).toBe(29);
     // Depois da janela, recomeça do zero.
-    expect((await store.consultar('login:1.2.3.4', agora + 60_001)).count).toBe(0);
+    expect((await store.consultar('login:1.2.3.4', agora + 60_000, 60_000)).count).toBe(0);
   });
 });

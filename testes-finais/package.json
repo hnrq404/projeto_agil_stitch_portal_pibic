@@ -1,0 +1,19 @@
+{
+  "name": "portal-pibic-testes-finais",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Testes finais: carga, estresse, segurança e smoke do Portal PIBIC",
+  "type": "module",
+  "scripts": {
+    "carga": "node carga.mjs",
+    "estresse": "node estresse.mjs",
+    "seguranca": "node seguranca.mjs",
+    "smoke": "node smoke.mjs"
+  },
+  "dependencies": {
+    "autocannon": "8.0.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

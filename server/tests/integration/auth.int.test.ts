@@ -349,6 +349,88 @@ describe('Endurecimento da API', () => {
       expect(ok.status).toBe(200);
     }
   });
+
+  // Testes finais (testes-finais/seguranca.mjs, G1): a tentativa é reservada antes do
+  // bcrypt, então uma rajada simultânea não escapa do limite.
+  it('uma rajada de senhas erradas em paralelo testa no máximo 10', async () => {
+    const limitado = buildTestApp({ jwtSecret: 'test-secret', authRateLimit: true });
+    await cadastrar(limitado, discentePayload());
+
+    const respostas = await Promise.all(
+      Array.from({ length: 30 }, (_, i) =>
+        request(limitado.app).post('/api/auth/login').send({ email: discentePayload().email, senha: `chute-${i}` }),
+      ),
+    );
+
+    // No máximo 10: em memória passam exatamente 10; no Firestore a contagem é lida depois
+    // da soma, então numa rajada todas podem enxergar o total e nenhuma senha é testada.
+    const testadas = respostas.filter((r) => r.status === 401).length;
+    expect(testadas).toBeLessThanOrEqual(10);
+    expect(respostas.filter((r) => r.status === 429)).toHaveLength(30 - testadas);
+
+    // Completando 10 erros de fato, nem a senha certa entra até a janela acabar.
+    for (let i = testadas; i < 10; i += 1) {
+      await request(limitado.app).post('/api/auth/login').send({ email: discentePayload().email, senha: `seq-${i}` });
+    }
+    const certa = await request(limitado.app)
+      .post('/api/auth/login')
+      .send({ email: discentePayload().email, senha: discentePayload().senha });
+    expect(certa.status).toBe(429);
+  });
+
+  // G3: no Wi-Fi do campus todos saem pelo mesmo IP; travar uma conta não pode travar as outras.
+  it('o bloqueio de uma conta não impede outra pessoa da mesma rede de entrar', async () => {
+    const limitado = buildTestApp({ jwtSecret: 'test-secret', authRateLimit: true });
+    await cadastrar(limitado, discentePayload());
+    await cadastrar(limitado, usuarioPayload());
+
+    for (let i = 0; i < 11; i += 1) {
+      await request(limitado.app).post('/api/auth/login').send({ email: discentePayload().email, senha: 'senha-errada' });
+    }
+
+    const outraPessoa = await request(limitado.app)
+      .post('/api/auth/login')
+      .send({ email: usuarioPayload().email, senha: usuarioPayload().senha });
+    expect(outraPessoa.status).toBe(200);
+  });
+
+  it('limita os pedidos de nova senha por e-mail, sem travar os pedidos para outros e-mails', async () => {
+    const limitado = buildTestApp({ jwtSecret: 'test-secret', authRateLimit: true });
+
+    const mesmoEmail = [];
+    for (let i = 0; i < 4; i += 1) {
+      mesmoEmail.push((await request(limitado.app).post('/api/auth/esqueci-senha').send({ email: 'alvo@unicap.br' })).status);
+    }
+    expect(mesmoEmail).toEqual([202, 202, 202, 429]);
+
+    const outro = await request(limitado.app).post('/api/auth/esqueci-senha').send({ email: 'outra.pessoa@unicap.br' });
+    expect(outro.status).toBe(202);
+  });
+
+  it('responde 413 com mensagem de dados (e não de arquivo) a um JSON grande demais', async () => {
+    const res = await request(container.app)
+      .post('/api/auth/login')
+      .send({ email: 'x@unicap.br', senha: 'a'.repeat(2 * 1024 * 1024) });
+
+    expect(res.status).toBe(413);
+    expect(res.body.error.message).toBe('Dados enviados acima do tamanho permitido.');
+  });
+
+  // Teste de segurança: 1 MB com 500 mil itens subia a memória da API em ~400 MB e
+  // gerava uma resposta de 17 MB (Zod 3 valida item a item, GHSA-mrhx-c7xc-m3w5).
+  it('recusa uma lista gigante sem validar item a item nem devolver um erro por item', async () => {
+    const { auth } = await criarELogar(container, { nome: 'Prof. Paulo', email: 'paulo@unicap.br', role: 'DOCENTE' });
+    const inicio = Date.now();
+
+    const res = await request(container.app)
+      .post('/api/inscricoes/qualquer/submissao')
+      .set(auth)
+      .send({ avaliadorIds: Array(500_000).fill(1) });
+
+    expect(res.status).toBe(400);
+    expect(JSON.stringify(res.body).length).toBeLessThan(5_000);
+    expect(Date.now() - inicio).toBeLessThan(2_000);
+  });
 });
 
 describe('POST /api/auth/senha', () => {
